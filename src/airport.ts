@@ -115,36 +115,23 @@ export class Aerodrome extends Waypoint {
     return `${this.name} (${this.ICAO})`;
   }
 
-  // TODO: Select the main runway if the wind is calm
-  // TODO: This method can be improved
   /**
    * Calculates the wind vectors for all runways of the airport.
    * 
    * @returns The wind vectors for the runways in descending order of headwind
    */
   public runwayWind(): RunwayWindVector[] {
-    if (this.metarStation?.metarData.windDirection && this.metarStation?.metarData.windSpeed) {
-      return this.runways.map(runway => {
-        const direction = this.metarStation?.metarData.windDirection ?? 0;
-        const speed = this.metarStation?.metarData.windSpeed ?? 0;
-
-        const windVector = calculateWindVector({ direction, speed }, runway.heading);
-        return {
-          runway: runway,
-          windAngle: windVector.angle,
-          headwind: windVector.headwind,
-          crosswind: windVector.crosswind,
-        };
-      }).sort((a, b) => b.headwind - a.headwind) as RunwayWindVector[];
-    }
+    const windDirection = this.metarStation?.metarData.windDirection ?? 0;
+    const windSpeed = this.metarStation?.metarData.windSpeed ?? 0;
 
     return this.runways.map(runway => {
+      const windVector = calculateWindVector({ direction: windDirection, speed: windSpeed }, runway.heading);
       return {
-        runway: runway,
-        windAngle: 0,
-        headwind: 0,
-        crosswind: 0,
+        runway,
+        windAngle: windVector.angle,
+        headwind: windVector.headwind,
+        crosswind: windVector.crosswind,
       };
-    });
+    }).sort((a, b) => b.headwind - a.headwind);
   }
 }

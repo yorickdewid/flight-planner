@@ -66,6 +66,12 @@ export class WeatherService implements WeatherRepository {
     return Array.from(this.metarStations.values());
   }
 
+  /**
+   * Refreshes the METAR stations within a bounding box.
+   *
+   * @param bbox - The bounding box as an array of coordinates [minX, minY, maxX, maxY].
+   * @returns A promise that resolves when the data has been refreshed.
+   */
   private async refreshData(search: string | GeoJSON.BBox): Promise<void> {
     if (this.fetchMetarStation) {
       const fetchedMetarStations = await this.fetchMetarStation(search);
@@ -73,6 +79,12 @@ export class WeatherService implements WeatherRepository {
     }
   }
 
+  /**
+   * Refreshes the METAR stations within a bounding box.
+   * 
+   * @param bbox - The bounding box as an array of coordinates [minX, minY, maxX, maxY].
+   * @returns A promise that resolves when the data has been refreshed.
+   */
   public async refreshByRadius(location: GeoJSON.Point, radius: number = 35): Promise<void> {
     const featureBuffer = buffer(point(location.coordinates), radius);
 
@@ -82,6 +94,12 @@ export class WeatherService implements WeatherRepository {
     }
   }
 
+  /**
+   * Finds a METAR station by its ICAO code.
+   * 
+   * @param icao - The ICAO code of the METAR station.
+   * @returns A promise that resolves to the METAR station, or undefined if not found.
+   */
   public async findByICAO(icao: string): Promise<MetarStation | undefined> {
     const icaoNormalized = normalizeICAO(icao);
 
@@ -89,6 +107,14 @@ export class WeatherService implements WeatherRepository {
     return this.metarStations.get(icaoNormalized);
   }
 
+  /**
+   * Finds the nearest METAR station to a location within a specified radius, excluding certain stations.
+   * 
+   * @param location - The center location as a GeoJSON point.
+   * @param radius - The radius in kilometers (default is 35).
+   * @param exclude - An optional array of ICAO codes to exclude from the search.
+   * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
+   */
   public async nearestStation(location: GeoJSON.Point, radius: number = 35, exclude: string[] = []): Promise<MetarStation | undefined> {
     await this.refreshByRadius(location, radius);
 
