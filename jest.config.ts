@@ -1,9 +1,10 @@
-import type { Config } from 'jest';
+import type { Config } from '@jest/types';
 
-const config: Config = {
-  preset: 'ts-jest', // Use ts-jest to process TypeScript files
-  testEnvironment: 'node', // If you're testing Node.js code. Use 'jsdom' for browser-like environment.
-  testMatch: ['<rootDir>/src/**/*.test.ts'], // Pattern to find test files
+const config: Config.InitialOptions = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  verbose: true,
+  testMatch: ['<rootDir>/src/**/*.test.ts'],
 };
 
 export default config;

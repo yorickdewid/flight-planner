@@ -1,5 +1,5 @@
 import { AerodromeRepository } from './index';
-import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
+import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
 import { point } from '@turf/turf';
 
 export interface WindVector {

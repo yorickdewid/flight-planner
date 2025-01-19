@@ -1,5 +1,5 @@
 import { Feature, Point, GeoJsonProperties } from 'geojson';
-import { bearingToAzimuth, calculateWindVector } from './utils.js';
+import { bearingToAzimuth, calculateWindVector } from './utils';
 import { MetarStation } from '.';
 import { bearing, distance } from "@turf/turf";
 
