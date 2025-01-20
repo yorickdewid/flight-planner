@@ -1,4 +1,4 @@
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, Wind } from "./utils.js";
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, Wind } from "./utils";
 
 export interface AircraftPerformance {
   headWind: number;

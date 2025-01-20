@@ -1,6 +1,6 @@
+import calculateFlightPerformance, { Aircraft, AircraftPerformance } from './aircraft';
+import { Aerodrome, ReportingPoint, Waypoint } from './airport';
 import { lineString, point } from '@turf/turf';
-import calculateFlightPerformance, { Aircraft, AircraftPerformance } from './aircraft.js';
-import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
 import { featureCollection } from '@turf/helpers';
 
 export interface RouteLeg {

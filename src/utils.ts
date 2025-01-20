@@ -1,6 +1,6 @@
 import { AerodromeRepository } from './index';
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
-import { point } from '@turf/turf';
+import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 
 export interface WindVector {
   angle: number;
@@ -11,36 +11,6 @@ export interface WindVector {
 export interface Wind {
   direction: number;
   speed: number;
-}
-
-/**
- * Converts degrees to radians.
- *
- * @param degrees - The angle in degrees.
- * @returns The angle in radians.
- */
-export function degreesToRadians(degrees: number): number {
-  return degrees * (Math.PI / 180);
-}
-
-/**
- * Converts radians to degrees.
- *
- * @param radians - The angle in radians.
- * @returns The angle in degrees.
- */
-export function radiansToDegrees(radians: number): number {
-  return radians * (180 / Math.PI);
-}
-
-/**
- * Converts a bearing to an azimuth.
- * 
- * @param bearing - The bearing in degrees.
- * @returns The azimuth in degrees.
- */
-export function bearingToAzimuth(bearing: number): number {
-  return (bearing + 360) % 360;
 }
 
 /**

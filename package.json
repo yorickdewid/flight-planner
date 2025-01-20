@@ -8,7 +8,10 @@
     "plane",
     "aerodrome",
     "pre-flight",
-    "flight"
+    "flight",
+    "vfr",
+    "vmc",
+    "metar"
   ],
   "type": "module",
   "author": "Yorick de Wid <ydewid@gmail.com>",
@@ -33,7 +36,6 @@
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.3",
-    "@types/turf": "^3.5.32",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "eslint": "^9.17.0",

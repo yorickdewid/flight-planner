@@ -1,4 +1,4 @@
-import { bearingToAzimuth, degreesToRadians, isICAO, radiansToDegrees } from './utils';
+import { isICAO } from './utils';
 
 describe('isICAO', () => {
   it('should return true for valid ICAO identifiers', () => {
@@ -17,35 +17,5 @@ describe('isICAO', () => {
 
   it('should handle edge cases', () => {
     expect(isICAO('ZZZZ')).toBe(true);
-  });
-});
-
-describe('degreesToRadians', () => {
-  it('should convert degrees to radians', () => {
-    expect(degreesToRadians(0)).toBe(0);
-    expect(degreesToRadians(90)).toBe(Math.PI / 2);
-    expect(degreesToRadians(180)).toBe(Math.PI);
-    expect(degreesToRadians(270)).toBe(3 * Math.PI / 2);
-    expect(degreesToRadians(360)).toBe(2 * Math.PI);
-  });
-});
-
-describe('radiansToDegrees', () => {
-  it('should convert radians to degrees', () => {
-    expect(radiansToDegrees(0)).toBe(0);
-    expect(radiansToDegrees(Math.PI / 2)).toBe(90);
-    expect(radiansToDegrees(Math.PI)).toBe(180);
-    expect(radiansToDegrees(3 * Math.PI / 2)).toBe(270);
-    expect(radiansToDegrees(2 * Math.PI)).toBe(360);
-  });
-});
-
-describe('bearingToAzimuth', () => {
-  it('should convert a bearing to an azimuth', () => {
-    expect(bearingToAzimuth(0)).toBe(0);
-    expect(bearingToAzimuth(90)).toBe(90);
-    expect(bearingToAzimuth(180)).toBe(180);
-    expect(bearingToAzimuth(270)).toBe(270);
-    expect(bearingToAzimuth(360)).toBe(0);
   });
 });

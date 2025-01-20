@@ -1,9 +1,8 @@
 import { AerodromeRepository, MetarStation, WeatherRepository } from ".";
-import { Aerodrome } from "./airport.js";
-import { normalizeICAO } from "./utils.js";
-import nearestPoint from '@turf/nearest-point';
+import { Aerodrome } from "./airport";
+import { normalizeICAO } from "./utils";
+import { bbox, buffer, point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
-import { bbox, buffer, point } from "@turf/turf";
 
 export type FnFetchAerodrome = (icao: string) => Promise<Aerodrome>;
 
