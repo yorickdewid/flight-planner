@@ -49,16 +49,14 @@ function calculateCeilingHeight(clouds: ICloud[]): number | undefined {
  * @returns The flight rules
  */
 function calculateFlightRules(metarData: MetarData): FlightRules {
-  if (metarData.visibility !== undefined && metarData.visibility > 8000 && (metarData.ceiling === undefined || metarData.ceiling > 3000)) {
-    return FlightRules.VFR;
-  }
-
-  if (metarData.visibility !== undefined && metarData.visibility > 5000 && metarData.ceiling !== undefined && metarData.ceiling > 1000) {
-    return FlightRules.MVFR;
-  }
-
-  if (metarData.visibility !== undefined && metarData.visibility > 1500 && metarData.ceiling !== undefined && metarData.ceiling > 500) {
-    return FlightRules.IFR;
+  if (metarData.visibility !== undefined) {
+    if (metarData.visibility > 8000 && (metarData.ceiling === undefined || metarData.ceiling > 3000)) {
+      return FlightRules.VFR;
+    } else if (metarData.visibility > 5000 && metarData.ceiling !== undefined && metarData.ceiling > 1000) {
+      return FlightRules.MVFR;
+    } else if (metarData.visibility > 1500 && metarData.ceiling !== undefined && metarData.ceiling > 500) {
+      return FlightRules.IFR;
+    }
   }
 
   return FlightRules.LIFR;
