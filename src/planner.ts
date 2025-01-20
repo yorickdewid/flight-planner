@@ -42,11 +42,9 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
     const distance = startWaypoint.getDistanceTo(endWaypoint);
     const trueTrack = startWaypoint.getHeadingTo(endWaypoint);
 
-    let wind = { direction: 0, speed: 0 };
+    const metarData = startWaypoint.metarStation?.metarData;
+    const wind = { direction: metarData?.windDirection || 0, speed: metarData?.windSpeed || 0 };
 
-    if (startWaypoint.metarStation?.metarData.windDirection && startWaypoint.metarStation?.metarData.windSpeed) {
-      wind = { direction: startWaypoint.metarStation.metarData.windDirection, speed: startWaypoint.metarStation.metarData.windSpeed };
-    }
     return {
       start: startWaypoint,
       end: endWaypoint,
