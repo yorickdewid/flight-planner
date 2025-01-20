@@ -18,12 +18,13 @@ export interface RouteTrip {
   totalDistance: number;
   totalDuration: number;
   totalFuelConsumption?: number;
+  departureTime?: Date;
+  arrivalTime?: Date;
 }
 
 export interface RouteOptions {
   altitude?: number;
   departureTime?: Date;
-  arrivalTime?: Date;
   aircraft?: Aircraft;
 }
 
@@ -57,11 +58,20 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
     };
   });
 
+  const totalDistance = legs.reduce((acc, leg) => acc + leg.distance, 0);
+  const totalDuration = legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0);
+  const totalFuelConsumption = legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0);
+
+  const departureTime = options?.departureTime || new Date();
+  const arrivalTime = new Date(departureTime.getTime() + totalDuration * 60 * 1000);
+
   return {
     route: legs,
-    totalDistance: legs.reduce((acc, leg) => acc + leg.distance, 0),
-    totalDuration: legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0),
-    totalFuelConsumption: legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0),
+    totalDistance: totalDistance,
+    totalDuration: totalDuration,
+    totalFuelConsumption: totalFuelConsumption,
+    departureTime: departureTime,
+    arrivalTime: arrivalTime,
   };
 }
 
