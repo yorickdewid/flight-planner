@@ -8,7 +8,7 @@ export { parseMetar };
 /**
  * The version of the library.
  */
-export const LIBRARY_VERSION = "1.0.0";
+export const LIBRARY_VERSION = "1.0.1";
 
 /**
  * Represents a weather station with METAR and optional TAF information.

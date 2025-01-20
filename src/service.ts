@@ -46,6 +46,12 @@ export class AerodromeService implements AerodromeRepository {
   }
 }
 
+/**
+ * Represents a function that fetches METAR stations.
+ * 
+ * @param search - The search string or bounding box to use for fetching METAR stations.
+ * @returns A promise that resolves to an array of METAR stations.
+ */
 export type FnFetchMetarStation = (search: string | GeoJSON.BBox) => Promise<MetarStation[]>;
 
 // TODO: This can later be improved with geohashing
@@ -53,14 +59,30 @@ export class WeatherService implements WeatherRepository {
   private metarStations: Map<string, MetarStation>;
   private fetchMetarStation?: FnFetchMetarStation;
 
+  /**
+   * Creates a new instance of the WeatherService class.
+   * 
+   * @param metarStations - An optional array of METAR stations to initialize the service with.
+   * @returns An instance of the WeatherService class.
+   */
   constructor(metarStations: MetarStation[] = []) {
     this.metarStations = new Map(metarStations.map(metar => [normalizeICAO(metar.station), metar]));
   }
 
+  /**
+   * Sets the function to fetch METAR stations.
+   * 
+   * @param fnFetchMetarStation - The function to fetch METAR stations.
+   */
   set fetchFunction(fnFetchMetarStation: FnFetchMetarStation) {
     this.fetchMetarStation = fnFetchMetarStation;
   }
 
+  /**
+   * Returns the METAR stations.
+   * 
+   * @returns An array of METAR stations.
+   */
   get stations(): MetarStation[] {
     return Array.from(this.metarStations.values());
   }
@@ -85,7 +107,7 @@ export class WeatherService implements WeatherRepository {
    * @returns A promise that resolves when the data has been refreshed.
    */
   public async refreshByRadius(location: GeoJSON.Point, radius: number = 35): Promise<void> {
-    const featureBuffer = buffer(point(location.coordinates), radius);
+    const featureBuffer = buffer(point(location.coordinates), radius, { units: 'kilometers' });
 
     if (featureBuffer) {
       const bufferedBbox = bbox(featureBuffer);
