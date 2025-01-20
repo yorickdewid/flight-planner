@@ -20,7 +20,21 @@ export interface RouteTrip {
   totalFuelConsumption?: number;
 }
 
-export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], aircraft?: Aircraft): RouteTrip {
+export interface RouteOptions {
+  altitude?: number;
+  departureTime?: Date;
+  arrivalTime?: Date;
+  aircraft?: Aircraft;
+}
+
+/**
+ * Plans a route between the given waypoints.
+ * 
+ * @param waypoints - An array of waypoints.
+ * @param aircraft - An optional aircraft object.
+ * @returns A route trip object.
+ */
+export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip {
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
@@ -39,7 +53,7 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
       trueTrack: trueTrack,
       windDirection: wind.direction,
       windSpeed: wind.speed,
-      performance: aircraft ? calculateFlightPerformance(aircraft, distance, trueTrack, wind) : undefined,
+      performance: options?.aircraft ? calculateFlightPerformance(options?.aircraft, distance, trueTrack, wind) : undefined,
     };
   });
 
@@ -71,7 +85,3 @@ export function waypointFeatureCollection(waypoints: (Aerodrome | ReportingPoint
   }));
 }
 
-// TODO: Maybe leave this the caller code
-// export function bbox(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): [number, number, number, number] {
-//   return turf.bbox(waypointFeatureCollection(waypoints)).slice(0, 4) as [number, number, number, number];
-// }

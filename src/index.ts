@@ -2,8 +2,7 @@ import { parseMetar } from "metar-taf-parser";
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
 import { MetarData } from "./metar";
 import { AerodromeService, WeatherService } from "./service";
-
-export { parseMetar };
+import { RouteLeg, RouteOptions, routePlan, RouteTrip } from "./planner";
 
 /**
  * The version of the library.
@@ -34,5 +33,7 @@ export interface AerodromeRepository {
   findByICAO(icao: string): Promise<Aerodrome | undefined>;
 }
 
+export { parseMetar };
 export { Waypoint, ReportingPoint, Aerodrome };
 export { WeatherService, AerodromeService };
+export { RouteOptions, RouteLeg, RouteTrip, routePlan }
