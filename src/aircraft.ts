@@ -25,6 +25,15 @@ export interface Aircraft {
   maxTakeoffWeight?: number; // in kilograms
 }
 
+/**
+ * Calculates the flight performance for the given aircraft, distance, true track, and wind.
+ * 
+ * @param aircraft - The aircraft object.
+ * @param distance - The distance in nautical miles.
+ * @param trueTrack - The true track in degrees.
+ * @param wind - The wind object.
+ * @returns The aircraft performance object.
+ */
 export default function calculateFlightPerformance(
   aircraft: Aircraft,
   distance: number, // nautical miles

@@ -2,12 +2,18 @@ import { AerodromeRepository } from './index';
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 
+/**
+ * Represents a point in 3D space.
+ */
 export interface WindVector {
   angle: number;
   headwind: number;
   crosswind: number;
 }
 
+/**
+ * Represents the wind direction and speed.
+ */
 export interface Wind {
   direction: number;
   speed: number;
