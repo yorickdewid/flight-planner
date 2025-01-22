@@ -20,16 +20,33 @@ export class Waypoint {
     this.location = location;
   }
 
+  /**
+   * Returns a string representation of the waypoint.
+   * 
+   * @returns A string representation of the waypoint
+   */
   public toString(): string {
     return `${this.name}`;
   }
 
+  /**
+   * Calculates the distance to the given waypoint.
+   * 
+   * @param waypoint The waypoint to calculate the distance to
+   * @returns The distance in nautical miles
+   */
   public getDistanceTo(waypoint: Waypoint): number {
     const distanceInKm = distance(this.location, waypoint.location);
     const distanceInNm = distanceInKm * 0.539957; // TODO: Move to constants
     return distanceInNm;
   }
 
+  /**
+   * Calculates the heading to the given waypoint.
+   * 
+   * @param waypoint The waypoint to calculate the heading to
+   * @returns The heading in degrees
+   */
   public getHeadingTo(waypoint: Waypoint): number {
     const bearingValue = bearing(this.location, waypoint.location);
     return bearingToAzimuth(bearingValue)
@@ -109,6 +126,8 @@ export class Aerodrome extends Waypoint {
   }
 
   /**
+   * Returns a string representation of the airport.
+   * 
    * @returns A string representation of the airport
    */
   public toString(): string {
