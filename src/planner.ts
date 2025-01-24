@@ -92,4 +92,3 @@ export function waypointFeatureCollection(waypoints: (Aerodrome | ReportingPoint
     });
   }));
 }
-

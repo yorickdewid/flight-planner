@@ -1,5 +1,5 @@
 import { parseMetar } from "metar-taf-parser";
-import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
+import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport";
 import { FlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar";
 import { AerodromeService, WeatherService } from "./service";
 import { RouteLeg, RouteOptions, routePlan, RouteTrip } from "./planner";
@@ -33,6 +33,6 @@ export interface AerodromeRepository {
 
 export { parseMetar, parseRouteString, fromIMetar, normalizeICAO };
 export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind };
-export { Waypoint, ReportingPoint, Aerodrome };
+export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector };
 export { WeatherService, AerodromeService };
 export { RouteOptions, RouteLeg, RouteTrip, routePlan }
