@@ -1,9 +1,9 @@
 import { parseMetar } from "metar-taf-parser";
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
-import { MetarData } from "./metar";
+import { FlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar";
 import { AerodromeService, WeatherService } from "./service";
 import { RouteLeg, RouteOptions, routePlan, RouteTrip } from "./planner";
-import { parseRouteString } from "./utils";
+import { normalizeICAO, parseRouteString } from "./utils";
 
 /**
  * Represents a weather station with METAR and optional TAF information.
@@ -31,7 +31,8 @@ export interface AerodromeRepository {
   findByICAO(icao: string): Promise<Aerodrome | undefined>;
 }
 
-export { parseMetar, parseRouteString };
+export { parseMetar, parseRouteString, fromIMetar, normalizeICAO };
+export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind };
 export { Waypoint, ReportingPoint, Aerodrome };
 export { WeatherService, AerodromeService };
 export { RouteOptions, RouteLeg, RouteTrip, routePlan }
