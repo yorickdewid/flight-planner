@@ -1,8 +1,9 @@
 import calculateFlightPerformance, { Aircraft, AircraftPerformance } from './aircraft';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport';
-import { lineString, point } from '@turf/turf';
-import { featureCollection } from '@turf/helpers';
 
+/**
+ * Represents a route leg between two waypoints.
+ */
 export interface RouteLeg {
   start: Waypoint;
   end: Waypoint;
@@ -13,6 +14,9 @@ export interface RouteLeg {
   performance?: AircraftPerformance;
 }
 
+/**
+ * Represents a route trip between multiple waypoints.
+ */
 export interface RouteTrip {
   route: RouteLeg[];
   totalDistance: number;
@@ -22,6 +26,9 @@ export interface RouteTrip {
   arrivalTime?: Date;
 }
 
+/**
+ * Represents the options for planning a route.
+ */
 export interface RouteOptions {
   altitude?: number;
   departureTime?: Date;
@@ -73,22 +80,3 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
   };
 }
 
-export function routePlanFeatureCollection(routeTrip: RouteTrip): GeoJSON.FeatureCollection {
-  return featureCollection(routeTrip.route.map(leg => {
-    return lineString([leg.start.location.geometry.coordinates, leg.end.location.geometry.coordinates], {
-      start: leg.start.name,
-      end: leg.end.name,
-      distance: Math.round(leg.distance),
-      trueTrack: Math.round(leg.trueTrack),
-      // TODO: Add more properties
-    });
-  }));
-}
-
-export function waypointFeatureCollection(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): GeoJSON.FeatureCollection {
-  return featureCollection(waypoints.map(waypoint => {
-    return point(waypoint.location.geometry.coordinates, {
-      name: waypoint.toString(),
-    });
-  }));
-}
