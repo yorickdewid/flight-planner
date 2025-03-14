@@ -5,6 +5,18 @@ import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 
 export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 
+/**
+ * Represents a waypoint in the flight planning system
+ * 
+ * A waypoint is a specified geographical location used for navigation purposes.
+ * It can be associated with a METAR weather observation station.
+ * 
+ * @example
+ * ```typescript
+ * const location: WaypointLocation = { lat: 37.62, lng: -122.38 };
+ * const sfo = new Waypoint("KSFO", location);
+ * ```
+ */
 export class Waypoint {
   public name: string;
   public location: WaypointLocation;
@@ -68,6 +80,16 @@ export class ReportingPoint extends Waypoint {
   }
 }
 
+/**
+ * Represents a runway at an airport.
+ * 
+ * @interface Runway
+ * @property {string} designator - The identifier of the runway (e.g., "09L", "27R").
+ * @property {number} heading - The magnetic heading of the runway in degrees.
+ * @property {string} [length] - The length of the runway, typically in feet or meters.
+ * @property {string} [surface] - The surface material of the runway (e.g., "asphalt", "concrete").
+ * @property {boolean} [isActive] - Indicates whether the runway is currently active/operational.
+ */
 export interface Runway {
   designator: string;
   heading: number;
@@ -76,6 +98,12 @@ export interface Runway {
   isActive?: boolean;
 }
 
+/**
+ * Enum representing various types of airport radio frequencies.
+ * 
+ * @enum {number}
+ * @readonly
+ */
 export enum FrequencyType {
   Approach = 0,
   Arrival = 2,
@@ -87,12 +115,29 @@ export enum FrequencyType {
   Other = 17,
 }
 
+/**
+ * Represents a radio frequency used at an airport.
+ * 
+ * @interface Frequency
+ * @property {string} type - The type of frequency (e.g., TOWER, GROUND, APPROACH). TODO: Use enum instead of string.
+ * @property {string} name - The name or description of the frequency.
+ * @property {string} value - The actual frequency value (e.g., "118.5").
+ */
 export interface Frequency {
   type: string; // TODO: Use enum
   name: string;
   value: string;
 }
 
+/**
+ * Represents a wind vector in relation to a specific runway.
+ * 
+ * @interface RunwayWindVector
+ * @property {Runway} runway - The runway for which the wind vector is calculated.
+ * @property {number} windAngle - The angle between the runway heading and the wind direction in degrees.
+ * @property {number} headwind - The headwind component in knots (positive for headwind, negative for tailwind).
+ * @property {number} crosswind - The crosswind component in knots (absolute value).
+ */
 export interface RunwayWindVector {
   runway: Runway;
   windAngle: number;
