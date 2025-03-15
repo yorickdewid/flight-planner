@@ -2,7 +2,15 @@ import calculateFlightPerformance, { Aircraft, AircraftPerformance } from './air
 import { Aerodrome, ReportingPoint, Waypoint } from './airport';
 
 /**
- * Represents a route leg between two waypoints.
+ * Represents a segment of a flight route between two waypoints.
+ * @interface RouteLeg
+ * @property {Waypoint} start - The starting waypoint of the leg
+ * @property {Waypoint} end - The ending waypoint of the leg
+ * @property {number} distance - The distance of the leg in nautical miles
+ * @property {number} trueTrack - The true track heading in degrees
+ * @property {number | undefined} windDirection - The wind direction in degrees, if available
+ * @property {number | undefined} windSpeed - The wind speed in knots, if available
+ * @property {AircraftPerformance} [performance] - Optional performance calculations for this leg
  */
 export interface RouteLeg {
   start: Waypoint;
@@ -15,7 +23,16 @@ export interface RouteLeg {
 }
 
 /**
- * Represents a route trip between multiple waypoints.
+ * Represents a complete route trip with multiple legs.
+ * Contains information about the route's path, distances, duration, and optionally fuel consumption and timing.
+ * 
+ * @interface RouteTrip
+ * @property {RouteLeg[]} route - Array of route legs that make up the complete trip
+ * @property {number} totalDistance - Total distance of the trip in nautical miles
+ * @property {number} totalDuration - Total duration of the trip in minutes
+ * @property {number} [totalFuelConsumption] - Optional total fuel consumption for the trip in gallons/liters
+ * @property {Date} [departureTime] - Optional planned departure time
+ * @property {Date} [arrivalTime] - Optional estimated arrival time
  */
 export interface RouteTrip {
   route: RouteLeg[];
@@ -27,7 +44,11 @@ export interface RouteTrip {
 }
 
 /**
- * Represents the options for planning a route.
+ * Options for configuring a flight route.
+ * @interface RouteOptions
+ * @property {number} [altitude] - The cruising altitude in feet.
+ * @property {Date} [departureTime] - The scheduled time of departure.
+ * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
  */
 export interface RouteOptions {
   altitude?: number;

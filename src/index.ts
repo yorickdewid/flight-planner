@@ -23,7 +23,10 @@ export interface MetarStation {
 }
 
 /**
- * Represents a repository for weather stations.
+ * Represents a repository for weather information.
+ * 
+ * This interface provides methods to access and manage weather station data
+ * including METAR (Meteorological Terminal Air Report) stations.
  */
 export interface WeatherRepository {
   findByICAO(icao: string): Promise<MetarStation | undefined>;
@@ -32,7 +35,8 @@ export interface WeatherRepository {
 }
 
 /**
- * Represents a repository for aerodromes.
+ * Repository interface for aerodrome operations.
+ * Defines methods to retrieve aerodrome information from a data store.
  */
 export interface AerodromeRepository {
   findByICAO(icao: string): Promise<Aerodrome | undefined>;
