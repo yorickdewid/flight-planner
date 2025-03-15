@@ -3,6 +3,7 @@ import { Aerodrome, ReportingPoint, Waypoint } from './airport';
 
 /**
  * Represents a segment of a flight route between two waypoints.
+ * 
  * @interface RouteLeg
  * @property {Waypoint} start - The starting waypoint of the leg
  * @property {Waypoint} end - The ending waypoint of the leg
@@ -45,6 +46,7 @@ export interface RouteTrip {
 
 /**
  * Options for configuring a flight route.
+ * 
  * @interface RouteOptions
  * @property {number} [altitude] - The cruising altitude in feet.
  * @property {Date} [departureTime] - The scheduled time of departure.
