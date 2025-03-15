@@ -124,6 +124,10 @@ export function formatWind(metarData: MetarData): string {
     windString += ` gusting ${metarData.windGust}kt`;
   }
 
+  if (metarData.windDirectionMin && metarData.windDirectionMax) {
+    windString += ` (${metarData.windDirectionMin}° to ${metarData.windDirectionMax}°)`;
+  }
+
   return windString;
 }
 
@@ -135,6 +139,16 @@ export function formatWind(metarData: MetarData): string {
  */
 export function formatTemperature(metarData: MetarData): string {
   return `${metarData.temperature}°C`;
+}
+
+/**
+ * Converts a MetarData object to a METAR string.
+ * 
+ * @param metarData The MetarData object
+ * @returns The METAR string
+ */
+export function formatDewpoint(metarData: MetarData): string {
+  return `${metarData.dewpoint}°C`;
 }
 
 /**
@@ -177,7 +191,7 @@ export function formatQNH(metarData: MetarData): string {
  */
 export function formatCeiling(metarData: MetarData): string {
   if (metarData.ceiling === undefined) {
-    return 'Unlimited';
+    return '-';
   }
 
   return `${metarData.ceiling} ft`;

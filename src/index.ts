@@ -6,7 +6,14 @@ import { RouteLeg, RouteOptions, routePlan, RouteTrip } from "./planner";
 import { normalizeICAO, parseRouteString } from "./utils";
 
 /**
- * Represents a weather station with METAR and optional TAF information.
+ * Represents a METAR (Meteorological Aerodrome Report) station.
+ *
+ * @interface MetarStation
+ * @property {string} station - The identifier for the METAR station.
+ * @property {MetarData} metarData - The METAR data associated with the station.
+ * @property {string} [rawTaf] - The raw TAF (Terminal Aerodrome Forecast) data, if available.
+ * @property {GeoJSON.Feature<GeoJSON.Point>} location - The geographical location of the station.
+ * @todo Change location type to GeoJSON.Position
  */
 export interface MetarStation {
   station: string;

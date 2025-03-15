@@ -3,7 +3,12 @@ import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 
 /**
- * Represents a point in 3D space.
+ * Represents a wind vector with angle and decomposed components.
+ * 
+ * @interface WindVector
+ * @property {number} angle - The angle of the wind in degrees.
+ * @property {number} headwind - The headwind component of the wind vector.
+ * @property {number} crosswind - The crosswind component of the wind vector.
  */
 export interface WindVector {
   angle: number;
@@ -12,7 +17,11 @@ export interface WindVector {
 }
 
 /**
- * Represents the wind direction and speed.
+ * Represents wind conditions.
+ * 
+ * @interface Wind
+ * @property {number} direction - The direction of the wind in degrees (0-359).
+ * @property {number} speed - The speed of the wind in knots.
  */
 export interface Wind {
   direction: number;
