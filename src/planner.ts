@@ -51,11 +51,15 @@ export interface RouteTrip {
  * @property {number} [altitude] - The cruising altitude in feet.
  * @property {Date} [departureTime] - The scheduled time of departure.
  * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
+ * @property {Aerodrome} [alternate] - An alternate aerodrome for the flight plan.
+ * @property {number} [reserveFuel] - The amount of reserve fuel to carry in gallons or liters.
  */
 export interface RouteOptions {
   altitude?: number;
   departureTime?: Date;
   aircraft?: Aircraft;
+  alternate?: Aerodrome;
+  reserveFuel?: number;
 }
 
 /**
@@ -102,4 +106,3 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
     arrivalTime: arrivalTime,
   };
 }
-

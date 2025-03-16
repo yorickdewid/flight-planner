@@ -1,5 +1,15 @@
 import { ICloud, IMetar } from "metar-taf-parser";
 
+/**
+ * Enumeration representing different flight rules categories.
+ * 
+ * @enum {string}
+ * @readonly
+ * @property {string} VFR - Visual Flight Rules
+ * @property {string} MVFR - Marginal Visual Flight Rules
+ * @property {string} IFR - Instrument Flight Rules
+ * @property {string} LIFR - Low Instrument Flight Rules
+ */
 export enum FlightRules {
   VFR = 'VFR',
   MVFR = 'MVFR',
@@ -7,6 +17,28 @@ export enum FlightRules {
   LIFR = 'LIFR',
 }
 
+/**
+ * Interface representing METAR (Meteorological Terminal Aviation Routine Weather Report) data.
+ *
+ * Contains parsed weather data from a METAR report, including station identification,
+ * observation time, flight rules category, and various weather parameters.
+ *
+ * @interface MetarData
+ * @property {string} station - The ICAO code of the reporting station
+ * @property {Date} observationTime - The date and time when the observation was made
+ * @property {FlightRules} flightRules - The flight rules category (VFR, MVFR, IFR, LIFR)
+ * @property {string} raw - The raw METAR text string
+ * @property {number} [windDirection] - Wind direction in degrees
+ * @property {number} [windDirectionMin] - Minimum wind direction in degrees (for variable wind direction)
+ * @property {number} [windDirectionMax] - Maximum wind direction in degrees (for variable wind direction)
+ * @property {number} [windSpeed] - Wind speed in the units used in the METAR (typically knots)
+ * @property {number} [windGust] - Wind gust speed in the same units as windSpeed
+ * @property {number} [temperature] - Temperature in degrees Celsius
+ * @property {number} [dewpoint] - Dewpoint temperature in degrees Celsius
+ * @property {number} [visibility] - Visibility in statute miles or meters (depends on country)
+ * @property {number} [qnh] - Barometric pressure (QNH) in hPa or inHg (depends on country)
+ * @property {number} [ceiling] - Height of the lowest broken or overcast cloud layer in feet
+ */
 export interface MetarData {
   station: string;
   observationTime: Date;
