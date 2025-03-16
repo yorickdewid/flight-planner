@@ -65,7 +65,7 @@ export interface MetarData {
  * @returns The ceiling height in feet, or undefined if the ceiling is unlimited.
  */
 function calculateCeilingHeight(clouds: ICloud[]): number | undefined {
-  const cloudCeilingQuantity = ['BKN', 'SCT', 'OVC'];
+  const cloudCeilingQuantity = ['BKN', 'OVC'];
   const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
   if (cloudCeiling.length > 0) {
     return cloudCeiling[0].height ?? undefined;
