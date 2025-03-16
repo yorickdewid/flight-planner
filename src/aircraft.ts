@@ -55,6 +55,25 @@ export interface Aircraft {
 }
 
 /**
+ * Calculates the fuel consumption for a given aircraft and flight duration.
+ * 
+ * @param aircraft - The aircraft for which to calculate fuel consumption
+ * @param duration - The flight duration in minutes
+ * @returns The fuel consumption in liters, or undefined if the aircraft has no fuel consumption data
+ */
+export function calculateFuelConsumption(aircraft: Aircraft, duration: number): number | undefined {
+  if (duration < 0) {
+    throw new Error('Duration cannot be negative');
+  }
+
+  if (!aircraft?.fuelConsumption) {
+    return undefined;
+  }
+
+  return aircraft.fuelConsumption * (duration / 60);
+}
+
+/**
  * Calculates the flight performance for the given aircraft, distance, true track, and wind.
  * 
  * @param aircraft - The aircraft object.
@@ -65,8 +84,8 @@ export interface Aircraft {
  */
 export default function calculateFlightPerformance(
   aircraft: Aircraft,
-  distance: number, // nautical miles
-  trueTrack: number, // degrees
+  distance: number,
+  trueTrack: number,
   wind: Wind
 ): AircraftPerformance | undefined {
   if (!aircraft.cruiseSpeed) {
@@ -78,7 +97,7 @@ export default function calculateFlightPerformance(
   const heading = trueTrack + wca; // TODO: Correct for magnetic variation
   const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
   const duration = (distance / groundSpeed) * 60;
-  const fuelConsumption = aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
+  const fuelConsumption = calculateFuelConsumption(aircraft, duration);
 
   return {
     headWind: windVector.headwind,

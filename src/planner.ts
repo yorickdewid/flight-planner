@@ -1,4 +1,4 @@
-import calculateFlightPerformance, { Aircraft, AircraftPerformance } from './aircraft';
+import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport';
 
 /**
@@ -32,6 +32,7 @@ export interface RouteLeg {
  * @property {number} totalDistance - Total distance of the trip in nautical miles
  * @property {number} totalDuration - Total duration of the trip in minutes
  * @property {number} [totalFuelConsumption] - Optional total fuel consumption for the trip in gallons/liters
+ * @property {number} [totalFuelRequired] - Optional total fuel required for the trip in gallons/liters
  * @property {Date} [departureTime] - Optional planned departure time
  * @property {Date} [arrivalTime] - Optional estimated arrival time
  */
@@ -40,6 +41,7 @@ export interface RouteTrip {
   totalDistance: number;
   totalDuration: number;
   totalFuelConsumption?: number;
+  totalFuelRequired?: number;
   departureTime?: Date;
   arrivalTime?: Date;
 }
@@ -70,6 +72,8 @@ export interface RouteOptions {
  * @returns A route trip object.
  */
 export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip {
+  const aircraft = options?.aircraft;
+
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
@@ -86,13 +90,16 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
       trueTrack: trueTrack,
       windDirection: wind.direction,
       windSpeed: wind.speed,
-      performance: options?.aircraft ? calculateFlightPerformance(options?.aircraft, distance, trueTrack, wind) : undefined,
+      performance: aircraft ? calculateFlightPerformance(aircraft, distance, trueTrack, wind) : undefined,
     };
   });
 
   const totalDistance = legs.reduce((acc, leg) => acc + leg.distance, 0);
   const totalDuration = legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0);
   const totalFuelConsumption = legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0);
+
+  const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, 30) : 0);
+  const totalFuelRequired = totalFuelConsumption + (reserveFuel || 0);
 
   const departureTime = options?.departureTime || new Date();
   const arrivalTime = new Date(departureTime.getTime() + totalDuration * 60 * 1000);
@@ -102,6 +109,7 @@ export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], 
     totalDistance: totalDistance,
     totalDuration: totalDuration,
     totalFuelConsumption: totalFuelConsumption,
+    totalFuelRequired: totalFuelRequired,
     departureTime: departureTime,
     arrivalTime: arrivalTime,
   };
