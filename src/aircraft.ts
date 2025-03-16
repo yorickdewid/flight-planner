@@ -50,7 +50,7 @@ export interface Aircraft {
   range?: number; // in nautical miles
   fuelCapacity?: number; // in liters
   fuelConsumption?: number; // in liters per hour
-  engineType?: 'piston' | 'turboprop' | 'jet';
+  engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
   maxTakeoffWeight?: number; // in kilograms
 }
 
