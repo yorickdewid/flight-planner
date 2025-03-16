@@ -191,7 +191,7 @@ export function formatDewpoint(metarData: MetarData): string {
  */
 export function formatVisibility(metarData: MetarData): string {
   if (metarData.visibility === undefined) {
-    return 'Unknown';
+    return '-';
   }
 
   if (metarData.visibility >= 9999) {
