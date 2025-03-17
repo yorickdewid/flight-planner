@@ -6,6 +6,7 @@ import { featureCollection } from '@turf/helpers';
 
 export type FnFetchAerodrome = (icao: string) => Promise<Aerodrome>;
 
+// TODO: Copy from byteflight app
 export class AerodromeService implements AerodromeRepository {
   private aerodromes: Map<string, Aerodrome>;
   private fetchAerodrome?: FnFetchAerodrome;

@@ -65,6 +65,12 @@ export class Waypoint {
   }
 }
 
+/**
+ * Represents a reporting point in the flight plan.
+ * A reporting point is a waypoint that may be required for the flight.
+ * 
+ * @extends Waypoint
+ */
 export class ReportingPoint extends Waypoint {
   public required: boolean;
 
@@ -113,6 +119,29 @@ export enum FrequencyType {
   Tower = 14,
   ATIS = 15,
   Other = 17,
+}
+
+/**
+ * Defines the various types of aerodromes.
+ * 
+ * @enum {number}
+ * @readonly
+ */
+export enum AerodromeType {
+  Airport = 0,
+  GliderSite = 1,
+  AirfieldCivil = 2,
+  InternationalAirport = 3,
+  HeliportMilitary = 4,
+  MilitaryAerodrome = 5,
+  UltraLightFlyingSite = 6,
+  HeliportCivil = 7,
+  AerodromeClosed = 8,
+  AirportIFR = 9,
+  AirfieldWater = 10,
+  LandingStrip = 11,
+  AgriculturalLandingStrip = 12,
+  Altiport = 13,
 }
 
 /**
