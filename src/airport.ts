@@ -112,13 +112,28 @@ export interface Runway {
  */
 export enum FrequencyType {
   Approach = 0,
+  APRON = 1,
   Arrival = 2,
+  Center = 3,
+  CTAF = 4,
   Delivery = 5,
+  Departure = 6,
+  FIS = 7,
+  Gliding = 8,
   Ground = 9,
-  Radio = 10,
+  Information = 10,
+  Multicom = 11,
+  Unicom = 12,
+  Radar = 13,
   Tower = 14,
   ATIS = 15,
+  Radio = 16,
   Other = 17,
+  AIRMET = 18,
+  AWOS = 19,
+  Lights = 20,
+  VOLMET = 21,
+  AFIS = 22,
 }
 
 /**
