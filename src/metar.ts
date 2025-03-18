@@ -1,4 +1,5 @@
 import { ICloud, IMetar } from "metar-taf-parser";
+import { normalizeICAO } from "./utils";
 
 /**
  * Enumeration representing different flight rules categories.
@@ -15,6 +16,30 @@ export enum FlightRules {
   MVFR = 'MVFR',
   IFR = 'IFR',
   LIFR = 'LIFR',
+}
+
+/**
+ * Represents a distance measurement.
+ * 
+ * @interface Distance
+ * @property {number} value - The numerical value of the distance.
+ * @property {'m'|'sm'} unit - The unit of measurement, either meters ('m') or statute miles ('sm').
+ */
+interface Distance {
+  value: number;
+  unit: 'm' | 'sm';
+}
+
+/**
+ * Represents atmospheric pressure information.
+ * 
+ * @interface Pressure
+ * @property {number} value - The numeric value of the pressure measurement
+ * @property {'hPa' | 'inHg'} unit - The unit of measurement for pressure, either hectopascals (hPa) or inches of mercury (inHg)
+ */
+interface Pressure {
+  value: number;
+  unit: 'hPa' | 'inHg';
 }
 
 /**
@@ -53,8 +78,8 @@ export interface MetarData {
 
   temperature?: number;
   dewpoint?: number;
-  visibility?: number;
-  qnh?: number;
+  visibility?: Distance;
+  qnh?: Pressure;
   ceiling?: number;
 }
 
@@ -81,17 +106,53 @@ function calculateCeilingHeight(clouds: ICloud[]): number | undefined {
  * @returns The flight rules
  */
 function calculateFlightRules(metarData: MetarData): FlightRules {
+  // if (metarData.visibility !== undefined) {
+  //   let visibilityMeters = metarData.visibility.value;
+  //   if (metarData.visibility.unit === 'sm') {
+  //     visibilityMeters *= 1609.34;
+  //   }
+
+  //   if (visibilityMeters > 8000 && (metarData.ceiling === undefined || metarData.ceiling > 3000)) {
+  //     return FlightRules.VFR;
+  //   } else if (visibilityMeters > 5000 && metarData.ceiling !== undefined && metarData.ceiling > 1000) {
+  //     return FlightRules.MVFR;
+  //   } else if (visibilityMeters > 1500 && metarData.ceiling !== undefined && metarData.ceiling > 500) {
+  //     return FlightRules.IFR;
+  //   }
+  // }
+
+  // return FlightRules.LIFR;
+
+  // Default to LIFR if we can't determine anything else
+  let visibilityMeters: number | undefined;
+
   if (metarData.visibility !== undefined) {
-    if (metarData.visibility > 8000 && (metarData.ceiling === undefined || metarData.ceiling > 3000)) {
-      return FlightRules.VFR;
-    } else if (metarData.visibility > 5000 && metarData.ceiling !== undefined && metarData.ceiling > 1000) {
-      return FlightRules.MVFR;
-    } else if (metarData.visibility > 1500 && metarData.ceiling !== undefined && metarData.ceiling > 500) {
-      return FlightRules.IFR;
+    visibilityMeters = metarData.visibility.value;
+    if (metarData.visibility.unit === 'sm') {
+      visibilityMeters *= 1609.34;
     }
   }
 
-  return FlightRules.LIFR;
+  // Check for LIFR first (most restrictive)
+  if (visibilityMeters !== undefined && visibilityMeters <= 1500 ||
+    metarData.ceiling !== undefined && metarData.ceiling <= 500) {
+    return FlightRules.LIFR;
+  }
+
+  // Check for IFR
+  if (visibilityMeters !== undefined && visibilityMeters <= 5000 ||
+    metarData.ceiling !== undefined && metarData.ceiling <= 1000) {
+    return FlightRules.IFR;
+  }
+
+  // Check for MVFR
+  if (visibilityMeters !== undefined && visibilityMeters <= 8000 ||
+    metarData.ceiling !== undefined && metarData.ceiling <= 3000) {
+    return FlightRules.MVFR;
+  }
+
+  // If none of the above, it's VFR
+  return FlightRules.VFR;
 }
 
 /**
@@ -117,7 +178,7 @@ export function fromIMetar(metar: IMetar): MetarData {
   observationTime.setUTCMilliseconds(0);
 
   const data = {
-    station: metar.station,
+    station: normalizeICAO(metar.station),
     observationTime: observationTime,
     flightRules: 'VFR' as FlightRules,
     raw: metar.message,
@@ -131,8 +192,14 @@ export function fromIMetar(metar: IMetar): MetarData {
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
 
-    visibility: metar.visibility?.value, // TODO: check the unit
-    qnh: metar.altimeter?.value, // TODO: check the unit
+    visibility: metar.visibility ? {
+      value: metar.visibility.value,
+      unit: metar.visibility.unit === 'm' ? 'm' : 'sm',
+    } as Distance : undefined,
+    qnh: metar.altimeter ? {
+      value: metar.altimeter.value,
+      unit: metar.altimeter.unit === 'hPa' ? 'hPa' : 'inHg'
+    } as Pressure : undefined,
     ceiling: calculateCeilingHeight(metar.clouds),
   };
 
@@ -194,15 +261,20 @@ export function formatVisibility(metarData: MetarData): string {
     return '-';
   }
 
-  if (metarData.visibility >= 9999) {
+  if (metarData.visibility.value >= 9999 && metarData.visibility.unit === 'm') {
     return '10 km+';
+  } else if (metarData.visibility.value >= 10 && metarData.visibility.unit === 'sm') {
+    return '10 sm+';
   }
 
-  if (metarData.visibility < 1000) {
-    return `${metarData.visibility} m`;
+  if (metarData.visibility.unit === 'm') {
+    if (metarData.visibility.value < 1000) {
+      return `${metarData.visibility.value} m`;
+    }
+    return `${(metarData.visibility.value / 1000).toFixed(1)} km`;
+  } else {
+    return `${metarData.visibility.value} sm`;
   }
-
-  return `${metarData.visibility / 1000} km`;
 }
 
 /**
@@ -212,7 +284,11 @@ export function formatVisibility(metarData: MetarData): string {
  * @returns The METAR string
  */
 export function formatQNH(metarData: MetarData): string {
-  return `${metarData.qnh} hPa`;
+  if (metarData.qnh === undefined) {
+    return '-';
+  }
+
+  return `${metarData.qnh.value} ${metarData.qnh.unit}`;
 }
 
 /**
