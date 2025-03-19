@@ -33,8 +33,8 @@ export interface RouteLeg {
  * @property {number} totalDuration - Total duration of the trip in minutes
  * @property {number} [totalFuelConsumption] - Optional total fuel consumption for the trip in gallons/liters
  * @property {number} [totalFuelRequired] - Optional total fuel required for the trip in gallons/liters
- * @property {Date} [departureTime] - Optional planned departure time
- * @property {Date} [arrivalTime] - Optional estimated arrival time
+ * @property {Date} [departureDate] - Optional planned departure date and time
+ * @property {Date} [arrivalDate] - Optional estimated arrival date and time
  */
 export interface RouteTrip {
   route: RouteLeg[];
@@ -42,8 +42,8 @@ export interface RouteTrip {
   totalDuration: number;
   totalFuelConsumption?: number;
   totalFuelRequired?: number;
-  departureTime?: Date;
-  arrivalTime?: Date;
+  departureDate?: Date;
+  arrivalDate?: Date;
 }
 
 /**
@@ -51,14 +51,14 @@ export interface RouteTrip {
  * 
  * @interface RouteOptions
  * @property {number} [altitude] - The cruising altitude in feet.
- * @property {Date} [departureTime] - The scheduled time of departure.
+ * @property {Date} [departureDate] - The scheduled departure date and time.
  * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
  * @property {Aerodrome} [alternate] - An alternate aerodrome for the flight plan.
  * @property {number} [reserveFuel] - The amount of reserve fuel to carry in gallons or liters.
  */
 export interface RouteOptions {
   altitude?: number;
-  departureTime?: Date;
+  departureDate?: Date;
   aircraft?: Aircraft;
   alternate?: Aerodrome;
   reserveFuel?: number;
@@ -101,8 +101,8 @@ export function planFlightRoute(waypoints: (Aerodrome | ReportingPoint | Waypoin
   const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, 30) : 0);
   const totalFuelRequired = totalFuelConsumption + (reserveFuel || 0);
 
-  const departureTime = options?.departureTime || new Date();
-  const arrivalTime = new Date(departureTime.getTime() + totalDuration * 60 * 1000);
+  const departureDate = options?.departureDate || new Date();
+  const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
 
   return {
     route: legs,
@@ -110,7 +110,7 @@ export function planFlightRoute(waypoints: (Aerodrome | ReportingPoint | Waypoin
     totalDuration: totalDuration,
     totalFuelConsumption: totalFuelConsumption,
     totalFuelRequired: totalFuelRequired,
-    departureTime: departureTime,
-    arrivalTime: arrivalTime,
+    departureDate: departureDate,
+    arrivalDate: arrivalDate,
   };
 }
