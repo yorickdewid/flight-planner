@@ -285,3 +285,29 @@ export function formatCeiling(metarData: MetarData): string {
 
   return `${metarData.ceiling} ft`;
 }
+
+/**
+ * Returns a color string corresponding to the given flight rules.
+ * 
+ * @param flightRules - The flight rules to convert to a color
+ * @returns A string representing the color associated with the flight rules:
+ *          - 'green' for VFR (Visual Flight Rules)
+ *          - 'blue' for MVFR (Marginal Visual Flight Rules)
+ *          - 'red' for IFR (Instrument Flight Rules)
+ *          - 'purple' for LIFR (Low Instrument Flight Rules)
+ *          - 'black' for any undefined flight rules
+ */
+export function colorizeFlightRules(flightRules: FlightRules): string {
+  switch (flightRules) {
+    case FlightRules.VFR:
+      return 'green';
+    case FlightRules.MVFR:
+      return 'blue';
+    case FlightRules.IFR:
+      return 'red';
+    case FlightRules.LIFR:
+      return 'purple';
+    default:
+      return 'black';
+  }
+}
