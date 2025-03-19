@@ -1,8 +1,8 @@
 import { parseMetar } from "metar-taf-parser";
 import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport";
-import { FlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar";
+import { FlightRules, colorizeFlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar";
 import { AerodromeService, WeatherService } from "./service";
-import { RouteLeg, RouteOptions, routePlan, RouteTrip } from "./planner";
+import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner";
 import { normalizeICAO, parseRouteString } from "./utils";
 
 /**
@@ -43,7 +43,7 @@ export interface AerodromeRepository {
 }
 
 export { parseMetar, parseRouteString, fromIMetar, normalizeICAO };
-export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind };
+export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, colorizeFlightRules };
 export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector };
 export { WeatherService, AerodromeService };
-export { RouteOptions, RouteLeg, RouteTrip, routePlan }
+export { RouteOptions, RouteLeg, RouteTrip, planFlightRoute, routeTripWaypoints };

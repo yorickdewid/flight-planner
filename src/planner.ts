@@ -47,6 +47,19 @@ export interface RouteTrip {
 }
 
 /**
+ * Maps a route trip to an array of waypoints.
+ * 
+ * This function extracts all waypoints from a route trip by taking the start and end
+ * waypoints of each leg and flattening them into a single array.
+ * 
+ * @param routeTrip - The route trip containing legs with start and end waypoints
+ * @returns An array of waypoints representing all points in the route trip
+ */
+export function routeTripWaypoints(routeTrip: RouteTrip): Waypoint[] {
+  return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+}
+
+/**
  * Options for configuring a flight route.
  * 
  * @interface RouteOptions
