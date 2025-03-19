@@ -71,7 +71,7 @@ export interface RouteOptions {
  * @param aircraft - An optional aircraft object.
  * @returns A route trip object.
  */
-export function routePlan(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip {
+export function planFlightRoute(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip {
   const aircraft = options?.aircraft;
 
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
