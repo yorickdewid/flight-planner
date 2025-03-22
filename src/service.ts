@@ -101,6 +101,10 @@ export class WeatherService implements WeatherRepository {
     }
   }
 
+  public async refreshByBbox(bbox: GeoJSON.BBox, extend: number = 35): Promise<void> {
+    await this.refreshData(bbox as GeoJSON.BBox);
+  }
+
   /**
    * Refreshes the METAR stations within a bounding box.
    * 
