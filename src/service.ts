@@ -1,7 +1,7 @@
 import { AerodromeRepository, MetarStation, WeatherRepository } from ".";
 import { Aerodrome } from "./airport";
 import { normalizeICAO } from "./utils";
-import { bbox, buffer, point, nearestPoint } from "@turf/turf";
+import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
 export type FnFetchAerodrome = (icao: string) => Promise<Aerodrome>;
@@ -89,34 +89,48 @@ export class WeatherService implements WeatherRepository {
   }
 
   /**
-   * Refreshes the METAR stations within a bounding box.
+   * Fetches and updates METAR stations based on a search query or bounding box.
+   * Optionally extends the bounding box by a specified distance.
    *
-   * @param bbox - The bounding box as an array of coordinates [minX, minY, maxX, maxY].
-   * @returns A promise that resolves when the data has been refreshed.
+   * @param search - The search string or bounding box to use for fetching METAR stations.
+   * @param extend - Optional distance in kilometers to extend the bounding box (only applies when search is a bounding box).
+   * @returns A promise that resolves when the data has been updated.
    */
-  private async refreshData(search: string | GeoJSON.BBox): Promise<void> {
-    if (this.fetchMetarStation) {
-      const fetchedMetarStations = await this.fetchMetarStation(search);
-      fetchedMetarStations.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
+  public async fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void> {
+    if (!this.fetchMetarStation) {
+      return;
     }
-  }
 
-  public async refreshByBbox(bbox: GeoJSON.BBox, extend: number = 35): Promise<void> {
-    await this.refreshData(bbox as GeoJSON.BBox);
+    let searchQuery = search;
+
+    // Only extend the bounding box if search is a bounding box and extend is defined
+    if (Array.isArray(search) && extend !== undefined) {
+      const bboxPoly = bboxPolygon(search);
+      const featureBuffer = buffer(bboxPoly, extend, { units: 'kilometers' });
+      if (featureBuffer) {
+        searchQuery = bbox(featureBuffer) as GeoJSON.BBox;
+      }
+    }
+
+    const fetchedMetarStations = await this.fetchMetarStation(searchQuery);
+    fetchedMetarStations.forEach(metar =>
+      this.metarStations.set(normalizeICAO(metar.station), metar)
+    );
   }
 
   /**
-   * Refreshes the METAR stations within a bounding box.
+   * Fetches and updates METAR stations within a circular area around a given location.
    * 
-   * @param bbox - The bounding box as an array of coordinates [minX, minY, maxX, maxY].
-   * @returns A promise that resolves when the data has been refreshed.
+   * @param location - The center point coordinates as a GeoJSON Point.
+   * @param radius - Radius in kilometers around the center point. Default is 35km.
+   * @returns A promise that resolves when the stations have been fetched and updated.
    */
-  public async refreshByRadius(location: GeoJSON.Point, radius: number = 35): Promise<void> {
+  public async fetchStationsByRadius(location: GeoJSON.Point, radius: number = 35): Promise<void> {
     const featureBuffer = buffer(point(location.coordinates), radius, { units: 'kilometers' });
 
     if (featureBuffer) {
       const bufferedBbox = bbox(featureBuffer);
-      await this.refreshData(bufferedBbox as GeoJSON.BBox);
+      await this.fetchAndUpdateStations(bufferedBbox as GeoJSON.BBox);
     }
   }
 
@@ -126,25 +140,27 @@ export class WeatherService implements WeatherRepository {
    * @param icao - The ICAO code of the METAR station.
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
-  public async findByICAO(icao: string): Promise<MetarStation | undefined> {
+  public findByICAO(icao: string): MetarStation | undefined {
     const icaoNormalized = normalizeICAO(icao);
 
-    await this.refreshData(icaoNormalized);
     return this.metarStations.get(icaoNormalized);
   }
 
   /**
-   * Finds the nearest METAR station to a location within a specified radius, excluding certain stations.
+   * Finds the nearest METAR station to the specified location.
    * 
-   * @param location - The center location as a GeoJSON point.
-   * @param radius - The radius in kilometers (default is 35).
-   * @param exclude - An optional array of ICAO codes to exclude from the search.
-   * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
+   * @param location - The location as a GeoJSON Point to find the nearest station to.
+   * @param exclude - Optional array of station IDs to exclude from the search.
+   * @returns The nearest METAR station, or undefined if none found or if no candidates available.
    */
-  public async nearestStation(location: GeoJSON.Point, radius: number = 35, exclude: string[] = []): Promise<MetarStation | undefined> {
-    await this.refreshByRadius(location, radius);
-
+  public findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
     const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
+
+    // Return early if there are no candidates
+    if (metarCandidates.length === 0) {
+      return undefined;
+    }
+
     const nearest = nearestPoint(location, featureCollection(metarCandidates.map(metar => {
       return point(metar.location.geometry.coordinates, { station: metar.station });
     })));

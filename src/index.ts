@@ -29,9 +29,10 @@ export interface MetarStation {
  * including METAR (Meteorological Terminal Air Report) stations.
  */
 export interface WeatherRepository {
-  findByICAO(icao: string): Promise<MetarStation | undefined>;
-  refreshByRadius(location: GeoJSON.Point, radius: number): Promise<void>;
-  nearestStation(location: GeoJSON.Point, radius: number, exclude: string[]): Promise<MetarStation | undefined>;
+  fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void>;
+  fetchStationsByRadius(location: GeoJSON.Point, radius: number): Promise<void>;
+  findByICAO(icao: string): MetarStation | undefined;
+  findNearestStation(location: GeoJSON.Point, exclude: string[]): MetarStation | undefined;
 }
 
 /**
