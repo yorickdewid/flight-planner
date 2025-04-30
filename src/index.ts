@@ -3,7 +3,6 @@ import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from
 import { FlightRules, colorizeFlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar.js";
 import { AerodromeService, WeatherService } from "./service.js";
 import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
-import { normalizeICAO, parseRouteString } from "./utils.js";
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.
@@ -23,27 +22,44 @@ export interface MetarStation {
 }
 
 /**
- * Represents a repository for weather information.
- * 
- * This interface provides methods to access and manage weather station data
- * including METAR (Meteorological Terminal Air Report) stations.
- */
-export interface WeatherRepository {
-  fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void>;
-  findByICAO(icao: string): MetarStation | undefined;
-  findNearestStation(location: GeoJSON.Point, exclude: string[]): MetarStation | undefined;
-}
-
-/**
- * Repository interface for aerodrome operations.
+ * Represents a repository for aerodrome operations.
  * Defines methods to retrieve aerodrome information from a data store.
+ *
+ * @interface AerodromeRepository
+ * @property {Function} findByICAO - Method to find an aerodrome by its ICAO code.
  */
 export interface AerodromeRepository {
+  /**
+   * Finds an aerodrome by its ICAO code.
+   * 
+   * @param {string} icao - The ICAO code of the aerodrome to find.
+   * @returns {Promise<Aerodrome | undefined>} A promise that resolves to the aerodrome if found, otherwise undefined.
+   */
   findByICAO(icao: string): Promise<Aerodrome | undefined>;
 }
 
-export { parseMetar, parseRouteString, fromIMetar, normalizeICAO };
+/**
+ * Exports various utility functions and types for flight planning and weather information.
+ * 
+ * @module flight-planner
+ */
+
+/**
+ * Weather-related exports including flight rules, METAR data, and formatting functions.
+ */
 export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, colorizeFlightRules };
+
+/**
+ * Airport and navigation-related exports including waypoints, reporting points, and airport information.
+ */
 export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector };
+
+/**
+ * Service-related exports for handling weather and aerodrome data.
+ */
 export { WeatherService, AerodromeService };
+
+/**
+ * Route planning exports including route options, legs, trips, and planning functions.
+ */
 export { RouteOptions, RouteLeg, RouteTrip, planFlightRoute, routeTripWaypoints };

@@ -1,4 +1,4 @@
-import { AerodromeRepository, MetarStation, WeatherRepository } from "./index.js";
+import { AerodromeRepository, MetarStation } from "./index.js";
 import { Aerodrome } from "./airport.js";
 import { normalizeICAO } from "./utils.js";
 import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
@@ -63,12 +63,24 @@ export class AerodromeService implements AerodromeRepository {
  * @param search - The search string or bounding box to use for fetching METAR stations.
  * @returns A promise that resolves to an array of METAR stations.
  */
-export type FnFetchMetarStation = (search: string | GeoJSON.BBox) => Promise<MetarStation[]>;
+export type FetchMetarStation = (search: string | GeoJSON.BBox) => Promise<MetarStation[]>;
+
+/**
+ * Options for initializing a WeatherService instance.
+ * 
+ * @interface WeatherStationOptions
+ * @property {FetchMetarStation} [fetchFunction] - Optional function to fetch METAR stations.
+ * @property {MetarStation[]} [metarStations] - Optional array of METAR stations to initialize the service with.
+ */
+export interface WeatherStationOptions {
+  fetch?: FetchMetarStation;
+  metarStations?: MetarStation[];
+}
 
 // TODO: This can later be improved with geohashing
-export class WeatherService implements WeatherRepository {
+export class WeatherService {
   private metarStations: Map<string, MetarStation>;
-  private fetchMetarStation?: FnFetchMetarStation;
+  private fetch?: FetchMetarStation;
 
   /**
    * Creates a new instance of the WeatherService class.
@@ -76,17 +88,11 @@ export class WeatherService implements WeatherRepository {
    * @param metarStations - An optional array of METAR stations to initialize the service with.
    * @returns An instance of the WeatherService class.
    */
-  constructor(metarStations: MetarStation[] = []) {
-    this.metarStations = new Map(metarStations.map(metar => [normalizeICAO(metar.station), metar]));
-  }
-
-  /**
-   * Sets the function to fetch METAR stations.
-   * 
-   * @param fnFetchMetarStation - The function to fetch METAR stations.
-   */
-  set fetchFunction(fnFetchMetarStation: FnFetchMetarStation) {
-    this.fetchMetarStation = fnFetchMetarStation;
+  constructor(options: WeatherStationOptions = {}) {
+    this.fetch = options.fetch;
+    this.metarStations = options.metarStations
+      ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.station), metar]))
+      : new Map();
   }
 
   /**
@@ -107,7 +113,7 @@ export class WeatherService implements WeatherRepository {
    * @returns A promise that resolves when the data has been updated.
    */
   public async fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void> {
-    if (!this.fetchMetarStation) return;
+    if (!this.fetch) return;
 
     let searchQuery = search;
 
@@ -120,7 +126,7 @@ export class WeatherService implements WeatherRepository {
       }
     }
 
-    const fetchedMetarStations = await this.fetchMetarStation(searchQuery);
+    const fetchedMetarStations = await this.fetch(searchQuery);
     fetchedMetarStations.forEach(metar =>
       this.metarStations.set(normalizeICAO(metar.station), metar)
     );
@@ -133,9 +139,7 @@ export class WeatherService implements WeatherRepository {
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
   public findByICAO(icao: string): MetarStation | undefined {
-    const icaoNormalized = normalizeICAO(icao);
-
-    return this.metarStations.get(icaoNormalized);
+    return this.metarStations.get(normalizeICAO(icao));
   }
 
   /**
