@@ -34,15 +34,25 @@ export class AerodromeService implements AerodromeRepository {
     return undefined;
   }
 
-  // TOOD: This is not yet part of the interface
-  // TODO: In the future return a NearestAirportResult object including the distance
-  public nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  /**
+   * Finds the nearest aerodrome to the specified location.
+   * 
+   * @param location - The location as a GeoJSON Position to find the nearest aerodrome to.
+   * @param exclude - Optional array of ICAO codes to exclude from the search.
+   * @returns A Promise that resolves to the nearest aerodrome, or undefined if none found.
+   */
+  public async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
     const aerodromeCandidates = Array.from(this.aerodromes.values()).filter(airport => !exclude.includes(airport.ICAO));
+    
+    if (aerodromeCandidates.length === 0) {
+      return undefined;
+    }
 
     const nearest = nearestPoint(location, featureCollection(aerodromeCandidates.map(airport => {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
     })));
 
+    // Use findByICAO to benefit from the fetch mechanism if not found locally
     return this.findByICAO(nearest.properties?.icao);
   }
 }
@@ -97,9 +107,7 @@ export class WeatherService implements WeatherRepository {
    * @returns A promise that resolves when the data has been updated.
    */
   public async fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void> {
-    if (!this.fetchMetarStation) {
-      return;
-    }
+    if (!this.fetchMetarStation) return;
 
     let searchQuery = search;
 
