@@ -232,13 +232,17 @@ export function formatDewpoint(metarData: MetarData): string {
 }
 
 /**
- * Converts a MetarData object to a METAR string.
+ * Formats visibility from a MetarData object to a human-readable string.
  * 
  * @param metarData The MetarData object
- * @returns The METAR string
+ * @returns The visibility as a formatted string
  */
 export function formatVisibility(metarData: MetarData): string {
   if (metarData.visibility === undefined) {
+    // Check if CAVOK (Ceiling And Visibility OK) conditions are present in the raw METAR
+    if (metarData.raw.includes('CAVOK')) {
+      return '10 km+';
+    }
     return '-';
   }
 
