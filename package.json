@@ -1,6 +1,6 @@
 {
   "name": "flight-planner",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Plan and route VFR flights",
   "keywords": [
     "aviation",
@@ -35,10 +35,12 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./*": {
       "import": "./dist/*.js",
+      "require": "./dist/*.js",
       "types": "./dist/*.d.ts"
     }
   },
