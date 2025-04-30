@@ -119,22 +119,6 @@ export class WeatherService implements WeatherRepository {
   }
 
   /**
-   * Fetches and updates METAR stations within a circular area around a given location.
-   * 
-   * @param location - The center point coordinates as a GeoJSON Point.
-   * @param radius - Radius in kilometers around the center point. Default is 35km.
-   * @returns A promise that resolves when the stations have been fetched and updated.
-   */
-  public async fetchStationsByRadius(location: GeoJSON.Point, radius: number = 35): Promise<void> {
-    const featureBuffer = buffer(point(location.coordinates), radius, { units: 'kilometers' });
-
-    if (featureBuffer) {
-      const bufferedBbox = bbox(featureBuffer);
-      await this.fetchAndUpdateStations(bufferedBbox as GeoJSON.BBox);
-    }
-  }
-
-  /**
    * Finds a METAR station by its ICAO code.
    * 
    * @param icao - The ICAO code of the METAR station.
@@ -155,8 +139,6 @@ export class WeatherService implements WeatherRepository {
    */
   public findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
     const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
-
-    // Return early if there are no candidates
     if (metarCandidates.length === 0) {
       return undefined;
     }

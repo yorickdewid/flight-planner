@@ -30,7 +30,6 @@ export interface MetarStation {
  */
 export interface WeatherRepository {
   fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void>;
-  fetchStationsByRadius(location: GeoJSON.Point, radius: number): Promise<void>;
   findByICAO(icao: string): MetarStation | undefined;
   findNearestStation(location: GeoJSON.Point, exclude: string[]): MetarStation | undefined;
 }
