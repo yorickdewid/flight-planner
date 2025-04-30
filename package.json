@@ -24,14 +24,20 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && node dist/test.js",
-    "lint": "eslint src/**/*.ts",
+    "lint": "eslint src/",
     "test": "jest",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint"
   },
   "files": [
-    "dist/**/*"
+    "dist"
   ],
+  "exports": {
+    "./*": {
+      "import": "./dist/*.js",
+      "types": "./dist/*.d.ts"
+    }
+  },
   "dependencies": {
     "@turf/turf": "^7.2.0",
     "metar-taf-parser": "^9.0.1"
