@@ -13,9 +13,9 @@
   },
   "include": [
     "src"
-, "test/test2.mjs"  ],
+  ],
   "exclude": [
     "node_modules",
-    "dist",
+    "dist"
   ]
 }
