@@ -29,14 +29,14 @@ export interface Wind {
 }
 
 /**
- * Calculates the wind vector relative to the given heading.
+ * Calculates the wind vector relative to the given true track.
  *
- * @param wind - An object representing the wind, containing degrees and speed.
- * @param heading - The current heading in degrees.
+ * @param wind - An object representing the wind, containing direction and speed.
+ * @param trueTrack - The current true track in degrees.
  * @returns An object containing the wind angle, headwind, and crosswind components.
  */
-export function calculateWindVector(wind: Wind, heading: number): WindVector { // TODO: heading -> trueTrack
-  const windAngle = wind.direction - heading;
+export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
+  const windAngle = wind.direction - trueTrack;
 
   const windAngleRad = degreesToRadians(windAngle);
   const headwind = wind.speed * Math.cos(windAngleRad);
@@ -52,12 +52,17 @@ export function calculateWindVector(wind: Wind, heading: number): WindVector { /
 /**
  * Calculates the wind correction angle for the given wind, true track, and airspeed.
  *
- * @param wind - An object representing the wind, containing degrees and speed.
+ * @param wind - An object representing the wind, containing direction and speed.
  * @param trueTrack - The true track in degrees.
  * @param airSpeed - The airspeed in knots.
  * @returns The wind correction angle in degrees.
  */
 export function calculateWindCorrectionAngle(wind: Wind, trueTrack: number, airSpeed: number): number {
+  // Formula: WCA = arcsin((wind.speed * sin(wind angle)) / airSpeed)
+  // const windAngleRad = degreesToRadians(wind.direction - trueTrack);
+  // const wcaRad = Math.asin((wind.speed * Math.sin(windAngleRad)) / airSpeed);
+
+  // return radiansToDegrees(wcaRad);
   const windVector = calculateWindVector(wind, trueTrack);
   const wca = radiansToDegrees(windVector.crosswind / airSpeed);
 

@@ -94,6 +94,7 @@ export default function calculateFlightPerformance(
 
   const windVector = calculateWindVector(wind, trueTrack);
   const wca = calculateWindCorrectionAngle(wind, trueTrack, aircraft.cruiseSpeed);
+  // const heading = (trueTrack + wca + 360) % 360; // TODO: Correct for magnetic variation
   const heading = trueTrack + wca; // TODO: Correct for magnetic variation
   const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
   const duration = (distance / groundSpeed) * 60;
