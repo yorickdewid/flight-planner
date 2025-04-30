@@ -1,6 +1,6 @@
 {
   "name": "flight-planner",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Plan and route VFR flights",
   "keywords": [
     "aviation",
@@ -38,10 +38,30 @@
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./*": {
-      "import": "./dist/*.js",
-      "require": "./dist/*.js",
-      "types": "./dist/*.d.ts"
+    "./airport": {
+      "import": "./dist/airport.js",
+      "require": "./dist/airport.js",
+      "types": "./dist/airport.d.ts"
+    },
+    "./metar": {
+      "import": "./dist/metar.js",
+      "require": "./dist/metar.js",
+      "types": "./dist/metar.d.ts"
+    },
+    "./planner": {
+      "import": "./dist/planner.js",
+      "require": "./dist/planner.js",
+      "types": "./dist/planner.d.ts"
+    },
+    "./service": {
+      "import": "./dist/service.js", 
+      "require": "./dist/service.js",
+      "types": "./dist/service.d.ts"
+    },
+    "./utils": {
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.js",
+      "types": "./dist/utils.d.ts"
     }
   },
   "dependencies": {
