@@ -1,5 +1,5 @@
+import { normalizeICAO } from './utils.js';
 import { ICloud, IMetar } from "metar-taf-parser";
-import { normalizeICAO } from "./utils";
 
 /**
  * Enumeration representing different flight rules categories.

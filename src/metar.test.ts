@@ -1,4 +1,4 @@
-import { FlightRules, formatWind, MetarData } from './metar';
+import { FlightRules, formatWind, MetarData } from './metar.js';
 
 describe('formatWind', () => {
   it('should return "Calm" when windDirection is not defined', () => {

@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2024",
-    "module": "ES2022",
-    "moduleResolution": "node",
-    "declaration": true,
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
     "outDir": "./dist",
     "rootDir": "./src",
+    "declaration": true,
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
+    // "isolatedModules": true
   },
   "include": [
     "src"

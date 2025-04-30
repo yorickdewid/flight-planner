@@ -1,6 +1,6 @@
-import { AerodromeRepository, MetarStation, WeatherRepository } from ".";
-import { Aerodrome } from "./airport";
-import { normalizeICAO } from "./utils";
+import { AerodromeRepository, MetarStation, WeatherRepository } from "./index.js";
+import { Aerodrome } from "./airport.js";
+import { normalizeICAO } from "./utils.js";
 import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
@@ -43,7 +43,7 @@ export class AerodromeService implements AerodromeRepository {
    */
   public async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
     const aerodromeCandidates = Array.from(this.aerodromes.values()).filter(airport => !exclude.includes(airport.ICAO));
-    
+
     if (aerodromeCandidates.length === 0) {
       return undefined;
     }

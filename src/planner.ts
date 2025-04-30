@@ -1,5 +1,5 @@
-import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft';
-import { Aerodrome, ReportingPoint, Waypoint } from './airport';
+import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft.js';
+import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
 
 /**
  * Represents a segment of a flight route between two waypoints.

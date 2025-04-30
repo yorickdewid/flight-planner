@@ -1,6 +1,6 @@
+import { calculateWindVector } from './utils.js';
+import { MetarStation } from './index.js';
 import { Feature, Point, GeoJsonProperties } from 'geojson';
-import { calculateWindVector } from './utils';
-import { MetarStation } from '.';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 
 export type WaypointLocation = Feature<Point, GeoJsonProperties>;

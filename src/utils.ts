@@ -1,5 +1,5 @@
-import { AerodromeRepository } from './index';
-import { Aerodrome, ReportingPoint, Waypoint } from "./airport";
+import { AerodromeRepository } from './index.js';
+import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 
 /**

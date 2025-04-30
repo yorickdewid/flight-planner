@@ -1,4 +1,4 @@
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, Wind } from "./utils";
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, Wind } from "./utils.js";
 
 /**
  * Interface representing the performance characteristics of an aircraft.

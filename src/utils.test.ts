@@ -1,4 +1,4 @@
-import { isICAO } from './utils';
+import { isICAO } from './utils.js';
 
 describe('isICAO', () => {
   it('should return true for valid ICAO identifiers', () => {

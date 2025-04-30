@@ -1,9 +1,9 @@
 import { parseMetar } from "metar-taf-parser";
-import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport";
-import { FlightRules, colorizeFlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar";
-import { AerodromeService, WeatherService } from "./service";
-import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner";
-import { normalizeICAO, parseRouteString } from "./utils";
+import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport.js";
+import { FlightRules, colorizeFlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar.js";
+import { AerodromeService, WeatherService } from "./service.js";
+import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
+import { normalizeICAO, parseRouteString } from "./utils.js";
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.

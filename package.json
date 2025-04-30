@@ -1,6 +1,6 @@
 {
   "name": "flight-planner",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "description": "Plan and route VFR flights",
   "keywords": [
     "aviation",
@@ -25,7 +25,7 @@
     "build": "tsc",
     "start": "npm run build && node dist/test.js",
     "lint": "eslint src/",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint"
   },
@@ -40,7 +40,6 @@
     },
     "./airport": {
       "import": "./dist/airport.js",
-      "require": "./dist/airport.js",
       "types": "./dist/airport.d.ts"
     },
     "./metar": {
@@ -55,7 +54,6 @@
     },
     "./service": {
       "import": "./dist/service.js", 
-      "require": "./dist/service.js",
       "types": "./dist/service.d.ts"
     },
     "./utils": {
