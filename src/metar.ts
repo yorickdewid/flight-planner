@@ -78,7 +78,7 @@ export interface Wind {
  * @param metar The METAR object
  * @returns The MetarData object
  */
-export function fromIMetar(metar: IMetar): MetarData {
+function fromIMetar(metar: IMetar): MetarData {
   const observationTime = new Date();
   if (metar.day) {
     observationTime.setUTCDate(metar.day);

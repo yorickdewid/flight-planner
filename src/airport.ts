@@ -229,20 +229,31 @@ export class Aerodrome extends Waypoint {
    * @returns The wind vectors for the runways in descending order of headwind
    */
   get runwayWind(): RunwayWindVector[] | undefined {
-    const metarStation = this.metarStation;
-    if (!metarStation) {
+    if (!this.metarStation) {
       return undefined;
     }
 
-    return this.runways.map(runway => {
-      const windVector = calculateWindVector(metarStation.metar.wind, runway.heading);
+    return this.runways
+      .map(runway => this.calculateRunwayWindVector(runway, this.metarStation!.metar.wind))
+      .sort((a, b) => b.headwind - a.headwind)
+  }
 
-      return {
-        runway,
-        windAngle: windVector.angle,
-        headwind: Math.round(windVector.headwind),
-        crosswind: Math.round(windVector.crosswind),
-      };
-    }).sort((a, b) => b.headwind - a.headwind);
+  /**
+   * Calculates the wind vector for a specific runway.
+   * 
+   * @param runway The runway to calculate the wind vector for
+   * @param wind The current wind data from METAR
+   * @returns The calculated runway wind vector
+   * @private
+   */
+  private calculateRunwayWindVector(runway: Runway, wind: any): RunwayWindVector {
+    const windVector = calculateWindVector(wind, runway.heading);
+
+    return {
+      runway,
+      windAngle: windVector.angle,
+      headwind: Math.round(windVector.headwind),
+      crosswind: Math.round(windVector.crosswind),
+    };
   }
 }

@@ -101,6 +101,12 @@ export class AerodromeService {
     // }
   }
 
+  /**
+   * Refreshes the aerodromes based on the provided search query or bounding box.
+   * 
+   * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing aerodromes.
+   * @param extend - Optional distance in kilometers to extend the bounding box.
+   */
   async update(location: GeoJSON.Position, distance: number = 50): Promise<void> {
     if (!this.repository || !this.repository.fetchByRadius) {
       throw new Error('Repository not set or does not support fetchByRadius');
@@ -131,6 +137,13 @@ export class AerodromeService {
     return this.aerodromes.get(normalizedIcao);
   }
 
+  /**
+   * Finds the nearest aerodrome to the given location.
+   * 
+   * @param location - The geographical location to find the nearest aerodrome to.
+   * @param exclude - An optional array of ICAO codes to exclude from the search.
+   * @returns A promise that resolves to the nearest aerodrome, or undefined if not found.
+   */
   async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
     if (this.aerodromes.size === 0) {
       await this.update(location, 100);
@@ -255,6 +268,7 @@ export class WeatherService {
     }
   }
 
+  // TODO: Check if isICAO
   /**
    * Finds a METAR station by its ICAO code.
    * 
@@ -275,13 +289,12 @@ export class WeatherService {
     return this.metarStations.get(normalizedIcao);
   }
 
-  // TODO: location -> location: GeoJSON.Position
   /**
-   * Finds the nearest METAR station to the specified location.
+   * Finds the nearest METAR station to the given location.
    * 
-   * @param location - The location as a GeoJSON Point to find the nearest station to.
-   * @param exclude - Optional array of station IDs to exclude from the search.
-   * @returns The nearest METAR station, or undefined if none found or if no candidates available.
+   * @param location - The geographical location to find the nearest METAR station to.
+   * @param exclude - An optional array of ICAO codes to exclude from the search.
+   * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
    */
   async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<MetarStation | undefined> {
     // if (this.metarStations.size === 0) {
