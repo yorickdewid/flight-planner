@@ -91,34 +91,55 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
  * @param reportingPoints - The list of reporting points to use for finding reporting points
  * @param routeString - The route string to parse
  * @returns A promise that resolves to an array of waypoints
+ * @throws Error if the route string contains invalid waypoint formats
  */
 export async function parseRouteString(AerodromeRepository: AerodromeRepository, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
   const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
   const routeParts = routeString.toUpperCase().replace(/\s/g, '').split(';');
 
+  // Regular expressions for different waypoint formats
+  const airportDesignatorRegex = /^AD\(([A-Z]{4})\)$/;
+  const reportingPointRegex = /^RP\(([^)]+)\)$/;
+  const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+
   for (const part of routeParts) {
-    if (part.match(/AD\([A-Z]{4}\)/g)) {
-      const icao = part.slice(3, -1);
+    const airportDesignatorMatch = part.match(airportDesignatorRegex);
+    if (airportDesignatorMatch) {
+      const icao = airportDesignatorMatch[1];
       const airport = await AerodromeRepository.findByICAO(icao);
       if (airport) {
         waypoints.push(airport);
       }
-    } else if (isICAO(part)) {
+      continue;
+    }
+
+    if (isICAO(part)) {
       const airport = await AerodromeRepository.findByICAO(part);
       if (airport) {
         waypoints.push(airport);
       }
-    } else if (part.startsWith('RP(') && part.endsWith(')')) { // TODO: use regex
-      const name = part.slice(3, -1);
-      const reportingPoint = reportingPoints.find(rp => rp.name.toUpperCase() === name); // TODO: Also match no ICAO since reporting points belong to a specific airport
+      continue;
+    }
+
+    const reportingPointMatch = part.match(reportingPointRegex);
+    if (reportingPointMatch) {
+      const name = reportingPointMatch[1];
+      const reportingPoint = reportingPoints.find(rp => rp.name.toUpperCase() === name);
       if (reportingPoint) {
         waypoints.push(reportingPoint);
       }
-    } else if (part.startsWith('WP(') && part.endsWith(')')) {
-      const coords = part.slice(3, -1).split(',').map(Number);
-      if (coords.length === 2) {
-        waypoints.push(new Waypoint("<WP>", point(coords)));
+      continue;
+    }
+
+    const waypointMatch = part.match(waypointRegex);
+    if (waypointMatch) {
+      const lat = parseFloat(waypointMatch[1]);
+      const lng = parseFloat(waypointMatch[2]);
+      if (isNaN(lat) || isNaN(lng)) {
+        throw new Error(`Invalid coordinates in waypoint: ${part}`);
       }
+      waypoints.push(new Waypoint("<WP>", point([lng, lat])));
+      continue;
     }
   }
 
