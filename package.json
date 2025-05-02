@@ -30,12 +30,12 @@
     "prepublishOnly": "npm test && npm run lint"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE"
   ],
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
     "./airport": {
@@ -44,21 +44,18 @@
     },
     "./metar": {
       "import": "./dist/metar.js",
-      "require": "./dist/metar.js",
       "types": "./dist/metar.d.ts"
     },
     "./planner": {
       "import": "./dist/planner.js",
-      "require": "./dist/planner.js",
       "types": "./dist/planner.d.ts"
     },
     "./service": {
-      "import": "./dist/service.js", 
+      "import": "./dist/service.js",
       "types": "./dist/service.d.ts"
     },
     "./utils": {
       "import": "./dist/utils.js",
-      "require": "./dist/utils.js",
       "types": "./dist/utils.d.ts"
     }
   },
