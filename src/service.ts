@@ -91,12 +91,20 @@ export abstract class AbstractMetarRepository {
   query(search: string | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
     if (Array.isArray(search)) {
       return this.fetchByBbox(search);
-    } else {
-      return this.fetchByICAO(search);
+    } else if (typeof search === 'string' && search.includes(',')) {
+      const icaoCodes = search.split(',')
+        .map(code => code.trim())
+        .filter(code => isICAO(code)) as ICAO[];
+
+      if (icaoCodes.length > 0) {
+        return this.fetchByICAO(icaoCodes);
+      }
     }
+
+    return this.fetchByICAO([search]);
   }
 
-  abstract fetchByICAO(icao: ICAO): Promise<MetarStation | undefined>;
+  abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation | undefined>;
   abstract fetchByBbox(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
 }
 
