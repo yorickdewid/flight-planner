@@ -240,8 +240,8 @@ export class Aerodrome extends Waypoint {
       return {
         runway,
         windAngle: windVector.angle,
-        headwind: windVector.headwind,
-        crosswind: windVector.crosswind,
+        headwind: Math.round(windVector.headwind),
+        crosswind: Math.round(windVector.crosswind),
       };
     }).sort((a, b) => b.headwind - a.headwind);
   }
