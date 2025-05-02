@@ -134,12 +134,18 @@ export class WeatherService {
   public async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
     if (!this.repository) return;
 
-    if (search === undefined) {
-      const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
+    const fetchByICAOThenSet = async (icao: ICAO[]) => {
+      if (!this.repository) return;
+      if (icao.length === 0) return;
 
-      if (Array.isArray(result)) {
+      const result = await this.repository.fetchByICAO(icao);
+      if (result) {
         result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
       }
+    }
+
+    if (search === undefined) {
+      await fetchByICAOThenSet(Array.from(this.metarStations.keys()));
     } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
       const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
       const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
@@ -147,23 +153,14 @@ export class WeatherService {
         const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
 
         const result = await this.repository.fetchByBbox(extendedBbox);
-        if (Array.isArray(result)) {
+        if (result) {
           result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
         }
       }
     } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
-      const validIcaos = search.filter(code => isICAO(code)) as ICAO[];
-      if (validIcaos.length > 0) {
-        const result = await this.repository.fetchByICAO(validIcaos);
-        if (Array.isArray(result)) {
-          result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
-        }
-      }
+      await fetchByICAOThenSet(search.filter(code => isICAO(code)) as ICAO[]);
     } else if (typeof search === 'string' && isICAO(search)) {
-      const result = await this.repository.fetchByICAO([search]);
-      if (Array.isArray(result)) {
-        result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
-      }
+      await fetchByICAOThenSet([search]);
     }
   }
 
