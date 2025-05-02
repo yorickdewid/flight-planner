@@ -252,18 +252,15 @@ export class Metar {
     const now = new Date();
     const { customMinutes, useStandardRules = true } = options;
 
-    // If custom duration is provided, use it
     if (customMinutes !== undefined) {
       const expirationTime = new Date(this.metarData.observationTime);
       expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + customMinutes);
       return now > expirationTime;
     }
 
-    // Standard aviation rules
     if (useStandardRules) {
       const isSpecial = this.metarData.raw.includes('SPECI');
 
-      // Calculate standard expiration time
       const expirationTime = new Date(this.metarData.observationTime);
 
       // Regular METARs are typically valid for 1 hour
@@ -366,7 +363,6 @@ export class Metar {
    */
   formatVisibility(): string {
     if (this.metarData.visibility === undefined) {
-      // Check if CAVOK (Ceiling And Visibility OK) conditions are present in the raw METAR
       if (this.metarData.raw.includes('CAVOK')) {
         return '10 km+';
       }
@@ -398,7 +394,6 @@ export class Metar {
     if (this.metarData.qnh === undefined) {
       return '-';
     }
-
     return `${this.metarData.qnh.value} ${this.metarData.qnh.unit}`;
   }
 
@@ -411,7 +406,6 @@ export class Metar {
     if (this.ceiling === undefined) {
       return '-';
     }
-
     return `${this.ceiling} ft`;
   }
 
