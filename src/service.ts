@@ -82,7 +82,20 @@ export abstract class AbstractMetarRepository {
     return { station: normalizeICAO(icao), metar: new Metar(metarData), coords };
   }
 
+  /**
+   * Fetches a METAR station by its ICAO code.
+   * 
+   * @param icao - The ICAO code of the METAR station.
+   * @returns A promise that resolves to an array of MetarStation objects.
+   */
   abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation[]>;
+
+  /**
+   * Fetches METAR stations within a bounding box.
+   * 
+   * @param bbox - The bounding box to search within.
+   * @returns A promise that resolves to an array of MetarStation objects.
+   */
   abstract fetchByBbox(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
 }
 
@@ -131,7 +144,7 @@ export class WeatherService {
    * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing METAR stations.
    * @param extend - Optional distance in kilometers to extend the bounding box.
    */
-  public async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
+  async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
     if (!this.repository) return;
 
     const fetchByICAOThenSet = async (icao: ICAO[]) => {
@@ -170,7 +183,7 @@ export class WeatherService {
    * @param icao - The ICAO code of the METAR station.
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
-  public findByICAO(icao: string): MetarStation | undefined {
+  findByICAO(icao: string): MetarStation | undefined {
     return this.metarStations.get(normalizeICAO(icao))
   }
 
@@ -181,7 +194,7 @@ export class WeatherService {
    * @param exclude - Optional array of station IDs to exclude from the search.
    * @returns The nearest METAR station, or undefined if none found or if no candidates available.
    */
-  public findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
+  findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
     const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
     if (metarCandidates.length === 0) {
       return undefined;
