@@ -82,29 +82,6 @@ export abstract class AbstractMetarRepository {
     return { station: normalizeICAO(icao), metar: new Metar(metarData), coords };
   }
 
-  /**
-   * Fetches METAR stations based on a search query or bounding box.
-   * 
-   * @param search - The search string, array of ICAO codes, or bounding box to use for fetching METAR stations.
-   * @returns A promise that resolves to an array of METAR stations, a single station, or undefined.
-   */
-  async query(search: string | string[] | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
-    if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
-      return await this.fetchByBbox(search as GeoJSON.BBox);
-    }
-    else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
-      const validIcaos = search.filter(code => isICAO(code)) as ICAO[];
-      if (validIcaos.length > 0) {
-        return await this.fetchByICAO(validIcaos);
-      }
-      return undefined;
-    } else if (typeof search === 'string' && isICAO(search)) {
-      return this.fetchByICAO([search as ICAO]);
-    }
-
-    return undefined;
-  }
-
   abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation | undefined>;
   abstract fetchByBbox(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
 }
@@ -154,11 +131,12 @@ export class WeatherService {
    * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing METAR stations.
    * @param extend - Optional distance in kilometers to extend the bounding box.
    */
-  public async refreshStations(search?: string | GeoJSON.BBox, extend?: number): Promise<void> {
+  public async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
     if (!this.repository) return;
 
     if (search === undefined) {
-      const result = await this.repository.query(Array.from(this.metarStations.keys()));
+      const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
+
       if (Array.isArray(result)) {
         result.forEach(metar =>
           this.metarStations.set(normalizeICAO(metar.station), metar)
@@ -166,19 +144,33 @@ export class WeatherService {
       } else if (result) {
         this.metarStations.set(normalizeICAO(result.station), result);
       }
-    } else {
-      let searchQuery = search;
+    } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
+      let bboxPoly = bboxPolygon(search as GeoJSON.BBox);
+      const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
+      if (featureBuffer) {
+        const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
 
-      // Only extend the bounding box if search is a bounding box and extend is defined
-      if (Array.isArray(search) && extend !== undefined) {
-        const bboxPoly = bboxPolygon(search);
-        const featureBuffer = buffer(bboxPoly, extend, { units: 'kilometers' });
-        if (featureBuffer) {
-          searchQuery = bbox(featureBuffer) as GeoJSON.BBox;
+        const result = await this.repository.fetchByBbox(extendedBbox);
+        if (Array.isArray(result)) {
+          result.forEach(metar =>
+            this.metarStations.set(normalizeICAO(metar.station), metar)
+          );
         }
       }
-
-      const result = await this.repository.query(searchQuery);
+    } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
+      const validIcaos = search.filter(code => isICAO(code)) as ICAO[];
+      if (validIcaos.length > 0) {
+        const result = await this.repository.fetchByICAO(validIcaos);
+        if (Array.isArray(result)) {
+          result.forEach(metar =>
+            this.metarStations.set(normalizeICAO(metar.station), metar)
+          );
+        } else if (result) {
+          this.metarStations.set(normalizeICAO(result.station), result);
+        }
+      }
+    } else if (typeof search === 'string' && isICAO(search)) {
+      const result = await this.repository.fetchByICAO([search]);
       if (Array.isArray(result)) {
         result.forEach(metar =>
           this.metarStations.set(normalizeICAO(metar.station), metar)
