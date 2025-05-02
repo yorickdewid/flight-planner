@@ -4,7 +4,7 @@ import { normalizeICAO } from "./utils.js";
 import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 import { parseMetar } from "metar-taf-parser";
-import { fromIMetar } from "./metar.js";
+import { fromIMetar, Metar } from "./metar.js";
 
 export type FnFetchAerodrome = (icao: string) => Promise<Aerodrome>;
 
@@ -79,7 +79,7 @@ export abstract class AbstractMetarRepository {
    */
   toMetarStation(icao: ICAO, metar: string, coords: GeoJSON.Position): MetarStation {
     const metarData = fromIMetar(parseMetar(metar));
-    return { station: icao, metarData, coords };
+    return { station: icao, metar: new Metar(metarData), coords };
   }
 
   /**
@@ -178,7 +178,7 @@ export class WeatherService {
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
   public findByICAO(icao: string): MetarStation | undefined {
-    return this.metarStations.get(normalizeICAO(icao));
+    return this.metarStations.get(normalizeICAO(icao))
   }
 
   /**

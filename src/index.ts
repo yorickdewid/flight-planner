@@ -1,5 +1,5 @@
 import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport.js";
-import { FlightRules, MetarData } from "./metar.js";
+import { FlightRules, Metar, MetarData } from "./metar.js";
 import { AerodromeService, WeatherService } from "./service.js";
 import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
 
@@ -16,7 +16,7 @@ export type ICAO = string;
  */
 export interface MetarStation {
   station: ICAO;
-  metarData: MetarData;
+  metar: Metar;
   coords: GeoJSON.Position;
 }
 
