@@ -241,6 +241,17 @@ export class Metar {
   }
 
   /**
+   * Calculates the time elapsed since the METAR observation in seconds.
+   * 
+   * @returns The time elapsed since the observation in seconds
+   */
+  get timeElapsed(): number {
+    const now = new Date();
+    const elapsed = now.getTime() - this.metarData.observationTime.getTime();
+    return Math.floor(elapsed / 1000);
+  }
+
+  /**
    * Checks if the METAR is expired based on either standard expiration rules or a custom duration.
    * 
    * @param options Configuration options
@@ -275,17 +286,6 @@ export class Metar {
     const expirationTime = new Date(this.metarData.observationTime);
     expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + 60);
     return now > expirationTime;
-  }
-
-  /**
-   * Calculates the time elapsed since the METAR observation in seconds.
-   * 
-   * @returns The time elapsed since the observation in seconds
-   */
-  timeElapsed(): number {
-    const now = new Date();
-    const elapsed = now.getTime() - this.metarData.observationTime.getTime();
-    return Math.floor(elapsed / 1000);
   }
 
   /**
