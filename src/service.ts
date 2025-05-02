@@ -77,9 +77,9 @@ export abstract class AbstractMetarRepository {
    * @param coords - The geographical coordinates of the station.
    * @returns A MetarStation object.
    */
-  toMetarStation(icao: ICAO, metar: string, coords: GeoJSON.Position): MetarStation {
+  toMetarStation(icao: string, metar: string, coords: GeoJSON.Position): MetarStation {
     const metarData = fromIMetar(parseMetar(metar));
-    return { station: icao, metar: new Metar(metarData), coords };
+    return { station: normalizeICAO(icao), metar: new Metar(metarData), coords };
   }
 
   /**
