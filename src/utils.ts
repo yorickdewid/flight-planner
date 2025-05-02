@@ -97,7 +97,7 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
     const airportDesignatorMatch = part.match(airportDesignatorRegex);
     if (airportDesignatorMatch) {
       const icao = airportDesignatorMatch[1];
-      const airport = await AerodromeRepository.findByICAO(icao);
+      const airport = await AerodromeRepository.get(icao);
       if (airport) {
         waypoints.push(airport);
       }
@@ -105,7 +105,7 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
     }
 
     if (isICAO(part)) {
-      const airport = await AerodromeRepository.findByICAO(part);
+      const airport = await AerodromeRepository.get(part);
       if (airport) {
         waypoints.push(airport);
       }

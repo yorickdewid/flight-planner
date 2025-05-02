@@ -34,7 +34,7 @@ export interface AerodromeServiceOptions {
 }
 
 export class AerodromeService {
-  private aerodromes: Map<string, Aerodrome>;
+  private aerodromes: Map<ICAO, Aerodrome>;
   private repository?: RepositoryBase<Aerodrome>;
   private weatherService?: WeatherService;
 
@@ -46,11 +46,30 @@ export class AerodromeService {
       : new Map();
   }
 
-  get aerodromesList(): Aerodrome[] {
+  /**
+   * Returns an array of ICAO codes for the aerodromes.
+   * 
+   * @returns An array of ICAO codes.
+   */
+  keys(): ICAO[] {
+    return Array.from(this.aerodromes.keys());
+  }
+
+  /**
+   * Returns an array of aerodromes.
+   * 
+   * @returns An array of Aerodrome objects.
+   */
+  values(): Aerodrome[] {
     return Array.from(this.aerodromes.values());
   }
 
-  async addAerodromes(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
+  /**
+   * Adds aerodromes to the service.
+   * 
+   * @param aerodromes - An array of Aerodrome objects or a single Aerodrome object to add.
+   */
+  async add(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
     let aerodromeArray: Aerodrome[] = [];
     if (Array.isArray(aerodromes)) {
       aerodromeArray = aerodromes;
@@ -70,7 +89,7 @@ export class AerodromeService {
     });
 
     if (this.weatherService) {
-      await this.weatherService.refreshStations(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
+      await this.weatherService.update(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
     }
 
     // if (this.repository && this.repository.fetchByICAO) {
@@ -82,17 +101,23 @@ export class AerodromeService {
     // }
   }
 
-  async refreshByRadius(location: GeoJSON.Position, distance: number = 50): Promise<void> {
+  async update(location: GeoJSON.Position, distance: number = 50): Promise<void> {
     if (!this.repository || !this.repository.fetchByRadius) {
       throw new Error('Repository not set or does not support fetchByRadius');
     }
 
     const result = await this.repository.fetchByRadius(location, distance);
-    await this.addAerodromes(result);
+    await this.add(result);
   }
 
   // TODO: Check if isICAO
-  async findByICAO(icao: string): Promise<Aerodrome | undefined> {
+  /**
+   * Finds an aerodrome by its ICAO code.
+   * 
+   * @param icao - The ICAO code of the aerodrome.
+   * @returns A promise that resolves to the aerodrome, or undefined if not found.
+   */
+  async get(icao: string): Promise<Aerodrome | undefined> {
     const normalizedIcao = normalizeICAO(icao);
 
     const aerodrome = this.aerodromes.get(normalizedIcao);
@@ -100,40 +125,32 @@ export class AerodromeService {
       return aerodrome;
     } else if (this.repository) {
       const result = await this.repository.fetchByICAO([normalizedIcao]);
-      await this.addAerodromes(result);
+      await this.add(result);
     }
 
     return this.aerodromes.get(normalizedIcao);
   }
 
-  async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
     if (this.aerodromes.size === 0) {
-      await this.refreshByRadius(location, 100);
+      await this.update(location, 100);
 
       if (this.aerodromes.size === 0) {
         return undefined;
       }
     }
 
-    const normalizedExclude = exclude.map(icao => icao.toUpperCase());
-    const aerodromeCandidates = Array.from(this.aerodromes.values())
-      .filter(airport => !normalizedExclude.includes(airport.ICAO.toUpperCase()));
-
+    const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
+    const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO)));
     if (aerodromeCandidates.length === 0) {
       return undefined;
     }
 
-    // Create a feature collection of points
-    const points = aerodromeCandidates.map(airport => {
+    const nearest = nearestPoint(location, featureCollection(aerodromeCandidates.map(airport => {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
-    });
+    })));
 
-    const nearest = nearestPoint(location, featureCollection(points));
-    if (!nearest?.properties?.icao) {
-      return undefined;
-    }
-
-    return this.findByICAO(nearest.properties.icao as string);
+    return this.get(nearest.properties.icao as string);
   }
 }
 
@@ -151,7 +168,7 @@ export interface WeatherStationOptions {
 
 // TODO: This can later be improved with geohashing
 export class WeatherService {
-  private metarStations: Map<string, MetarStation>;
+  private metarStations: Map<ICAO, MetarStation>;
   private repository?: RepositoryBase<MetarStation>;
 
   /**
@@ -168,11 +185,20 @@ export class WeatherService {
   }
 
   /**
-   * Returns the METAR stations.
+   * Returns an array of ICAO codes for the METAR stations.
+   * 
+   * @returns An array of ICAO codes.
+   */
+  keys(): ICAO[] {
+    return Array.from(this.metarStations.keys());
+  }
+
+  /**
+   * Returns an array of METAR stations.
    * 
    * @returns An array of METAR stations.
    */
-  get stations(): MetarStation[] {
+  values(): MetarStation[] {
     return Array.from(this.metarStations.values());
   }
 
@@ -181,7 +207,7 @@ export class WeatherService {
    * 
    * @param metar - The METAR station to add.
    */
-  addStations(stations: MetarStation | MetarStation[]): void {
+  async add(stations: MetarStation | MetarStation[]): Promise<void> {
     let metarArray: MetarStation[] = [];
     if (Array.isArray(stations)) {
       metarArray = stations;
@@ -203,14 +229,14 @@ export class WeatherService {
    * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing METAR stations.
    * @param extend - Optional distance in kilometers to extend the bounding box.
    */
-  async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
+  async update(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
     if (!this.repository || !this.repository.fetchByICAO || !this.repository.fetchByBbox) {
       throw new Error('Repository not set or does not support fetchByICAO or fetchByBbox');
     }
 
     if (search === undefined) {
       const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
-      this.addStations(result);
+      await this.add(result);
     } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
       const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
       const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
@@ -218,14 +244,14 @@ export class WeatherService {
         const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
 
         const result = await this.repository.fetchByBbox(extendedBbox);
-        this.addStations(result);
+        await this.add(result);
       }
     } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
       const result = await this.repository.fetchByICAO(search.filter(code => isICAO(code)) as ICAO[]);
-      this.addStations(result);
+      await this.add(result);
     } else if (typeof search === 'string' && isICAO(search)) {
       const result = await this.repository.fetchByICAO([search]);
-      this.addStations(result);
+      await this.add(result);
     }
   }
 
@@ -235,8 +261,18 @@ export class WeatherService {
    * @param icao - The ICAO code of the METAR station.
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
-  findByICAO(icao: string): MetarStation | undefined {
-    return this.metarStations.get(normalizeICAO(icao))
+  async get(icao: string): Promise<MetarStation | undefined> {
+    const normalizedIcao = normalizeICAO(icao);
+
+    const station = this.metarStations.get(normalizedIcao);
+    if (station) {
+      return station;
+    } else if (this.repository) {
+      const result = await this.repository.fetchByICAO([normalizedIcao]);
+      await this.add(result);
+    }
+
+    return this.metarStations.get(normalizedIcao);
   }
 
   // TODO: location -> location: GeoJSON.Position
@@ -247,8 +283,17 @@ export class WeatherService {
    * @param exclude - Optional array of station IDs to exclude from the search.
    * @returns The nearest METAR station, or undefined if none found or if no candidates available.
    */
-  nearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
-    const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
+  async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<MetarStation | undefined> {
+    // if (this.metarStations.size === 0) {
+    //   await this.update(location, 100);
+
+    //   if (this.metarStations.size === 0) {
+    //     return undefined;
+    //   }
+    // }
+
+    const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
+    const metarCandidates = this.values().filter(metar => !normalizedExclude.includes(normalizeICAO(metar.station)));
     if (metarCandidates.length === 0) {
       return undefined;
     }
