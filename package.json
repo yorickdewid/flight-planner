@@ -25,7 +25,7 @@
     "build": "tsc",
     "start": "npm run build && node dist/test.js",
     "lint": "eslint src/",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint"
   },
