@@ -145,7 +145,7 @@ export class WeatherService {
         this.metarStations.set(normalizeICAO(result.station), result);
       }
     } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
-      let bboxPoly = bboxPolygon(search as GeoJSON.BBox);
+      const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
       const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
       if (featureBuffer) {
         const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
