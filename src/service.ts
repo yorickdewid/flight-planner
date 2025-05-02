@@ -82,7 +82,7 @@ export abstract class AbstractMetarRepository {
     return { station: normalizeICAO(icao), metar: new Metar(metarData), coords };
   }
 
-  abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation | undefined>;
+  abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation[]>;
   abstract fetchByBbox(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
 }
 
@@ -138,11 +138,7 @@ export class WeatherService {
       const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
 
       if (Array.isArray(result)) {
-        result.forEach(metar =>
-          this.metarStations.set(normalizeICAO(metar.station), metar)
-        );
-      } else if (result) {
-        this.metarStations.set(normalizeICAO(result.station), result);
+        result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
       }
     } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
       const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
@@ -152,9 +148,7 @@ export class WeatherService {
 
         const result = await this.repository.fetchByBbox(extendedBbox);
         if (Array.isArray(result)) {
-          result.forEach(metar =>
-            this.metarStations.set(normalizeICAO(metar.station), metar)
-          );
+          result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
         }
       }
     } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
@@ -162,21 +156,13 @@ export class WeatherService {
       if (validIcaos.length > 0) {
         const result = await this.repository.fetchByICAO(validIcaos);
         if (Array.isArray(result)) {
-          result.forEach(metar =>
-            this.metarStations.set(normalizeICAO(metar.station), metar)
-          );
-        } else if (result) {
-          this.metarStations.set(normalizeICAO(result.station), result);
+          result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
         }
       }
     } else if (typeof search === 'string' && isICAO(search)) {
       const result = await this.repository.fetchByICAO([search]);
       if (Array.isArray(result)) {
-        result.forEach(metar =>
-          this.metarStations.set(normalizeICAO(metar.station), metar)
-        );
-      } else if (result) {
-        this.metarStations.set(normalizeICAO(result.station), result);
+        result.forEach(metar => this.metarStations.set(normalizeICAO(metar.station), metar));
       }
     }
   }
