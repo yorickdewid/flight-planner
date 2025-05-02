@@ -94,7 +94,7 @@ export function planFlightRoute(waypoints: (Aerodrome | ReportingPoint | Waypoin
     const trueTrack = startWaypoint.getHeadingTo(endWaypoint);
 
     const metarData = startWaypoint.metarStation?.metar.metar; // TODO: fix this later
-    const wind = { direction: metarData?.windDirection || 0, speed: metarData?.windSpeed || 0 };
+    const wind = { direction: metarData?.wind.direction || 0, speed: metarData?.wind.speed || 0 };
 
     return {
       start: startWaypoint,

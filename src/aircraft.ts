@@ -1,4 +1,5 @@
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, Wind } from "./utils.js";
+import { Wind } from "./metar.js";
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from "./utils.js";
 
 /**
  * Interface representing the performance characteristics of an aircraft.

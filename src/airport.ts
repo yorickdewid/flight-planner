@@ -37,7 +37,7 @@ export class Waypoint {
    * 
    * @returns A string representation of the waypoint
    */
-  public toString(): string {
+  toString(): string {
     return `${this.name}`;
   }
 
@@ -47,7 +47,7 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the distance to
    * @returns The distance in nautical miles
    */
-  public getDistanceTo(waypoint: Waypoint): number {
+  getDistanceTo(waypoint: Waypoint): number {
     const distanceInKm = distance(this.location, waypoint.location);
     const distanceInNm = distanceInKm * 0.539957; // TODO: Move to constants
     return distanceInNm;
@@ -59,7 +59,7 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the heading to
    * @returns The heading in degrees
    */
-  public getHeadingTo(waypoint: Waypoint): number {
+  getHeadingTo(waypoint: Waypoint): number {
     const bearingValue = bearing(this.location, waypoint.location);
     return bearingToAzimuth(bearingValue)
   }
@@ -219,7 +219,7 @@ export class Aerodrome extends Waypoint {
    * 
    * @returns A string representation of the airport
    */
-  public toString(): string {
+  toString(): string {
     return `${this.name} (${this.ICAO})`;
   }
 
@@ -228,12 +228,15 @@ export class Aerodrome extends Waypoint {
    * 
    * @returns The wind vectors for the runways in descending order of headwind
    */
-  public runwayWind(): RunwayWindVector[] {
-    const windDirection = this.metarStation?.metar.metar.windDirection ?? 0; // TODO: Metar part is a bit weird
-    const windSpeed = this.metarStation?.metar.metar.windSpeed ?? 0; // TODO: Metar part is a bit weird
+  get runwayWind(): RunwayWindVector[] | undefined {
+    const metarStation = this.metarStation;
+    if (!metarStation) {
+      return undefined;
+    }
 
     return this.runways.map(runway => {
-      const windVector = calculateWindVector({ direction: windDirection, speed: windSpeed }, runway.heading);
+      const windVector = calculateWindVector(metarStation.metar.wind, runway.heading);
+
       return {
         runway,
         windAngle: windVector.angle,

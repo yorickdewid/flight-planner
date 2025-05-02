@@ -7,6 +7,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         visibility: { value: 10000, unit: 'm' },
         clouds: [{ quantity: 'FEW', height: 5000 }]
       };
@@ -19,6 +20,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         visibility: { value: 800, unit: 'm' }
       };
       const metar = new Metar(metarData);
@@ -30,6 +32,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'OVC', height: 300 }]
       };
       const metar = new Metar(metarData);
@@ -43,6 +46,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
       };
       const metar = new Metar(metarData);
       expect(metar.formatQNH()).toBe('-');
@@ -52,6 +56,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         qnh: { value: 1013, unit: 'hPa' }
       };
       const metar = new Metar(metarData);
@@ -62,6 +67,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         qnh: { value: 29.92, unit: 'inHg' }
       };
       const metar = new Metar(metarData);
@@ -75,6 +81,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
       };
       const metar = new Metar(metarData);
       expect(metar.formatCeiling()).toBe('-');
@@ -85,6 +92,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'BKN', height: 3000 }]
       };
       const metar = new Metar(metarData);
@@ -98,6 +106,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
+        wind: { direction: 0, speed: 0 },
       };
       const metar = new Metar(metarData);
       expect(metar.formatWind()).toBe('Calm');
@@ -108,8 +117,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
-        windDirection: 180,
-        windSpeed: 10,
+        wind: { direction: 180, speed: 10 },
       };
       const metar = new Metar(metarData);
       expect(metar.formatWind()).toBe('180° 10kt');
@@ -120,9 +128,7 @@ describe('Metar', () => {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
-        windDirection: 180,
-        windSpeed: 10,
-        windGust: 20,
+        wind: { direction: 180, speed: 10, gust: 20 },
       };
       const metar = new Metar(metarData);
       expect(metar.formatWind()).toBe('180° 10kt gusting 20kt');

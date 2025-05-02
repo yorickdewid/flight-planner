@@ -1,6 +1,7 @@
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 import { AerodromeService } from "./service.js";
+import { Wind } from "./metar.js";
 
 /**
  * Represents a wind vector with angle and decomposed components.
@@ -14,18 +15,6 @@ export interface WindVector {
   angle: number;
   headwind: number;
   crosswind: number;
-}
-
-/**
- * Represents wind conditions.
- * 
- * @interface Wind
- * @property {number} direction - The direction of the wind in degrees (0-359).
- * @property {number} speed - The speed of the wind in knots.
- */
-export interface Wind {
-  direction: number;
-  speed: number;
 }
 
 /**

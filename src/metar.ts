@@ -55,6 +55,24 @@ interface Cloud {
 }
 
 /**
+ * Represents wind conditions.
+ * 
+ * @interface Wind
+ * @property {number} direction - The direction of the wind in degrees (0-359).
+ * @property {number} [directionMin] - The minimum wind direction in degrees (optional).
+ * @property {number} [directionMax] - The maximum wind direction in degrees (optional).
+ * @property {number} speed - The speed of the wind in knots.
+ * @property {number} [gust] - The gust speed in knots (optional).
+ */
+export interface Wind {
+  direction: number;
+  directionMin?: number;
+  directionMax?: number;
+  speed: number;
+  gust?: number;
+}
+
+/**
  * Converts a METAR object to a MetarData object.
  * 
  * @param metar The METAR object
@@ -81,11 +99,13 @@ export function fromIMetar(metar: IMetar): MetarData {
     observationTime: observationTime,
     raw: metar.message,
 
-    windDirection: metar?.wind?.degrees,
-    windDirectionMin: metar?.wind?.minVariation,
-    windDirectionMax: metar?.wind?.maxVariation,
-    windSpeed: metar?.wind?.speed, // TODO: check the unit
-    windGust: metar?.wind?.gust, // TODO: check the unit
+    wind: {
+      direction: metar.wind?.degrees,
+      directionMin: metar.wind?.minVariation,
+      directionMax: metar.wind?.maxVariation,
+      speed: metar.wind?.speed,
+      gust: metar.wind?.gust,
+    } as Wind,
 
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
@@ -132,17 +152,11 @@ export interface MetarData {
   observationTime: Date;
   raw: string;
 
-  windDirection?: number;
-  windDirectionMin?: number;
-  windDirectionMax?: number;
-  windSpeed?: number;
-  windGust?: number;
-
+  wind: Wind;
   temperature?: number;
   dewpoint?: number;
   visibility?: Distance;
   qnh?: Pressure;
-
   clouds?: Cloud[];
 }
 
@@ -199,6 +213,15 @@ export class Metar {
     }
 
     return undefined;
+  }
+
+  /**
+   * Get the temperature in degrees Celsius.
+   * 
+   * @returns The temperature in degrees Celsius
+   */
+  get wind(): Wind {
+    return this.metarData.wind;
   }
 
   /**
@@ -336,17 +359,17 @@ export class Metar {
    * @returns A formatted string describing wind conditions or 'Calm' if no wind direction is present
    */
   formatWind(): string {
-    if (!this.metarData.windDirection) {
+    if (!this.metarData.wind.direction) {
       return 'Calm';
     }
 
-    let windString = `${this.metarData.windDirection}° ${this.metarData.windSpeed}kt`;
-    if (this.metarData.windGust) {
-      windString += ` gusting ${this.metarData.windGust}kt`;
+    let windString = `${this.metarData.wind.direction}° ${this.metarData.wind.speed}kt`;
+    if (this.metarData.wind.gust) {
+      windString += ` gusting ${this.metarData.wind.gust}kt`;
     }
 
-    if (this.metarData.windDirectionMin && this.metarData.windDirectionMax) {
-      windString += ` (${this.metarData.windDirectionMin}° to ${this.metarData.windDirectionMax}°)`;
+    if (this.metarData.wind.directionMin && this.metarData.wind.directionMax) {
+      windString += ` (${this.metarData.wind.directionMin}° to ${this.metarData.wind.directionMax}°)`;
     }
 
     return windString;
