@@ -50,7 +50,7 @@ export class AerodromeService {
     return Array.from(this.aerodromes.values());
   }
 
-  addAerodromes(aerodromes: Aerodrome | Aerodrome[]): void {
+  async addAerodromes(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
     let aerodromeArray: Aerodrome[] = [];
     if (Array.isArray(aerodromes)) {
       aerodromeArray = aerodromes;
@@ -58,14 +58,28 @@ export class AerodromeService {
       aerodromeArray = [aerodromes];
     }
 
-    // TODO: Filter all aerodromes that do not have a metar station set.
-
+    let aerodromeWithoutMetar: Aerodrome[] = [];
     aerodromeArray.forEach(aerodrome => {
       const normalizedICAO = normalizeICAO(aerodrome.ICAO);
       if (isICAO(normalizedICAO)) {
         this.aerodromes.set(normalizedICAO, aerodrome);
+        if (!aerodrome.metarStation) {
+          aerodromeWithoutMetar.push(aerodrome);
+        }
       }
     });
+
+    if (this.weatherService) {
+      await this.weatherService.refreshStations(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
+    }
+
+    // if (this.repository && this.repository.fetchByICAO) {
+    //   const icaoCodes = aerodromeArray.map(aerodrome => normalizeICAO(aerodrome.ICAO));
+    //   const result = await this.repository.fetchByICAO(icaoCodes);
+    //   result.forEach(aerodrome => {
+    //     this.aerodromes.set(normalizeICAO(aerodrome.ICAO), aerodrome);
+    //   });
+    // }
   }
 
   async refreshByRadius(location: GeoJSON.Position, distance: number = 50): Promise<void> {
@@ -74,7 +88,7 @@ export class AerodromeService {
     }
 
     const result = await this.repository.fetchByRadius(location, distance);
-    this.addAerodromes(result);
+    await this.addAerodromes(result);
   }
 
   // TODO: Check if isICAO
@@ -86,8 +100,10 @@ export class AerodromeService {
       return aerodrome;
     } else if (this.repository) {
       const result = await this.repository.fetchByICAO([normalizedIcao]);
-      this.addAerodromes(result);
+      await this.addAerodromes(result);
     }
+
+    return this.aerodromes.get(normalizedIcao);
   }
 
   async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
