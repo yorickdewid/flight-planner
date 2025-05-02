@@ -1,6 +1,6 @@
-import { AerodromeRepository } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
+import { AerodromeService } from "./service.js";
 
 /**
  * Represents a wind vector with angle and decomposed components.
@@ -84,6 +84,8 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
   return Math.sqrt(groundspeedSquared);
 }
 
+// TODO: Remove the async
+// TODO: Remove the AerodromeService dependency
 /**
  * Parses a route string and returns an array of waypoints.
  * 
@@ -93,7 +95,7 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
  * @returns A promise that resolves to an array of waypoints
  * @throws Error if the route string contains invalid waypoint formats
  */
-export async function parseRouteString(AerodromeRepository: AerodromeRepository, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
+export async function parseRouteString(AerodromeRepository: AerodromeService, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
   const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
   const routeParts = routeString.toUpperCase().replace(/\s/g, '').split(';');
 

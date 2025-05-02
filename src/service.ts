@@ -153,9 +153,8 @@ export class WeatherService {
 
     metarArray.forEach(metar => {
       const normalizedICAO = normalizeICAO(metar.station);
-
       if (isICAO(normalizedICAO)) {
-        this.metarStations.set(normalizeICAO(metar.station), metar);
+        this.metarStations.set(normalizedICAO, metar);
       }
     });
   }
