@@ -21,23 +21,6 @@ export interface MetarStation {
 }
 
 /**
- * Represents a repository for aerodrome operations.
- * Defines methods to retrieve aerodrome information from a data store.
- *
- * @interface AerodromeRepository
- * @property {Function} findByICAO - Method to find an aerodrome by its ICAO code.
- */
-export interface AerodromeRepository {
-  /**
-   * Finds an aerodrome by its ICAO code.
-   * 
-   * @param {string} icao - The ICAO code of the aerodrome to find.
-   * @returns {Promise<Aerodrome | undefined>} A promise that resolves to the aerodrome if found, otherwise undefined.
-   */
-  findByICAO(icao: string): Promise<Aerodrome | undefined>;
-}
-
-/**
  * Exports various utility functions and types for flight planning and weather information.
  * 
  * @module flight-planner
