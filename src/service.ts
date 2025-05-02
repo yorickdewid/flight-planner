@@ -19,13 +19,31 @@ export interface RepositoryBase<T> {
   fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 }
 
+/**
+ * AerodromeServiceOptions interface defines the options for initializing the AerodromeService.
+ * 
+ * @interface AerodromeServiceOptions
+ * @property {Aerodrome[]} [aerodromes] - Optional array of aerodromes to initialize the service with.
+ * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
+ * @property {WeatherService} [weatherService] - Optional weather service for fetching METAR data.
+ */
+export interface AerodromeServiceOptions {
+  aerodromes?: Aerodrome[];
+  repository?: RepositoryBase<Aerodrome>;
+  weatherService?: WeatherService;
+}
+
 export class AerodromeService {
   private aerodromes: Map<string, Aerodrome>;
   private repository?: RepositoryBase<Aerodrome>;
   private weatherService?: WeatherService;
 
-  constructor(aerodromes: Aerodrome[] = []) {
-    this.aerodromes = new Map(aerodromes.map(aerodrome => [aerodrome.ICAO, aerodrome]));
+  constructor(options: AerodromeServiceOptions = {}) {
+    this.repository = options.repository;
+    this.weatherService = options.weatherService;
+    this.aerodromes = options.aerodromes
+      ? new Map(options.aerodromes.map(aerodrome => [normalizeICAO(aerodrome.ICAO), aerodrome]))
+      : new Map();
   }
 
   get aerodromesList(): Aerodrome[] {
