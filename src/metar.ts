@@ -278,6 +278,17 @@ export class Metar {
   }
 
   /**
+   * Calculates the time elapsed since the METAR observation in seconds.
+   * 
+   * @returns The time elapsed since the observation in seconds
+   */
+  timeElapsed(): number {
+    const now = new Date();
+    const elapsed = now.getTime() - this.metarData.observationTime.getTime();
+    return Math.floor(elapsed / 1000);
+  }
+
+  /**
    * Formats the observation time of the METAR into a human-readable string.
    * 
    * @param locale Optional locale string for formatting
