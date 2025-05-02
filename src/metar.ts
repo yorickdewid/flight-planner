@@ -1,5 +1,5 @@
 import { normalizeICAO } from './utils.js';
-import { ICloud, IMetar } from "metar-taf-parser";
+import { ICloud, IMetar, parseMetar } from "metar-taf-parser";
 
 /**
  * Enumeration representing different flight rules categories.
@@ -124,6 +124,11 @@ export function fromIMetar(metar: IMetar): MetarData {
       height: cloud.height,
     })) as Cloud[],
   }
+}
+
+export function createMetarFromRaw(raw: string): Metar {
+  const metar = parseMetar(raw);
+  return new Metar(fromIMetar(metar));
 }
 
 /**
