@@ -149,6 +149,11 @@ export interface MetarData {
 export class Metar {
   private metarData: MetarData;
 
+  /**
+   * Creates an instance of the Metar class.
+   * 
+   * @param metarData - The METAR data object
+   */
   constructor(metarData: MetarData) {
     this.metarData = metarData;
   }
@@ -233,6 +238,46 @@ export class Metar {
 
     // Default to VFR when all other conditions are not met
     return FlightRules.VFR;
+  }
+
+  /**
+   * Checks if the METAR is expired based on either standard expiration rules or a custom duration.
+   * 
+   * @param options Configuration options
+   * @param options.customMinutes Optional custom validity period in minutes
+   * @param options.useStandardRules Whether to use standard aviation rules (default: true)
+   * @returns True if the METAR is expired, false otherwise
+   */
+  isExpired(options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
+    const now = new Date();
+    const { customMinutes, useStandardRules = true } = options;
+
+    // If custom duration is provided, use it
+    if (customMinutes !== undefined) {
+      const expirationTime = new Date(this.metarData.observationTime);
+      expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + customMinutes);
+      return now > expirationTime;
+    }
+
+    // Standard aviation rules
+    if (useStandardRules) {
+      const isSpecial = this.metarData.raw.includes('SPECI');
+
+      // Calculate standard expiration time
+      const expirationTime = new Date(this.metarData.observationTime);
+
+      // Regular METARs are typically valid for 1 hour
+      // SPECIs are valid until the next report (usually the next regular METAR)
+      const expirationMinutes = isSpecial ? 30 : 60;
+      expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + expirationMinutes);
+
+      return now > expirationTime;
+    }
+
+    // Fallback to the old behavior with a default of 60 minutes
+    const expirationTime = new Date(this.metarData.observationTime);
+    expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + 60);
+    return now > expirationTime;
   }
 
   /**

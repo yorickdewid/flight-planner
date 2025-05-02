@@ -60,14 +60,6 @@ export class AerodromeService implements AerodromeRepository {
 }
 
 /**
- * Represents a function that fetches METAR stations.
- * 
- * @param search - The search string or bounding box to use for fetching METAR stations.
- * @returns A promise that resolves to an array of METAR stations.
- */
-export type FetchMetarStation = (search: string | GeoJSON.BBox) => Promise<MetarStation[]>;
-
-/**
  * Abstract class representing a repository for METAR stations.
  * 
  * @abstract
@@ -96,7 +88,7 @@ export abstract class AbstractMetarRepository {
    * @param search - The search string or bounding box to use for fetching METAR stations.
    * @returns A promise that resolves to an array of METAR stations.
    */
-  fetch(search: string | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
+  query(search: string | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
     if (Array.isArray(search)) {
       return this.fetchByBbox(search);
     } else {
@@ -112,18 +104,18 @@ export abstract class AbstractMetarRepository {
  * Options for initializing a WeatherService instance.
  * 
  * @interface WeatherStationOptions
- * @property {AbstractMetarRepository} [fetchFunction] - Optional function to fetch METAR stations.
  * @property {MetarStation[]} [metarStations] - Optional array of METAR stations to initialize the service with.
+ * @property {AbstractMetarRepository} [repository] - Optional repository for fetching METAR data.
  */
 export interface WeatherStationOptions {
-  fetch?: AbstractMetarRepository;
   metarStations?: MetarStation[];
+  repository?: AbstractMetarRepository;
 }
 
 // TODO: This can later be improved with geohashing
 export class WeatherService {
   private metarStations: Map<string, MetarStation>;
-  private fetch?: AbstractMetarRepository;
+  private repository?: AbstractMetarRepository;
 
   /**
    * Creates a new instance of the WeatherService class.
@@ -132,7 +124,7 @@ export class WeatherService {
    * @returns An instance of the WeatherService class.
    */
   constructor(options: WeatherStationOptions = {}) {
-    this.fetch = options.fetch;
+    this.repository = options.repository;
     this.metarStations = options.metarStations
       ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.station), metar]))
       : new Map();
@@ -156,7 +148,7 @@ export class WeatherService {
    * @returns A promise that resolves when the data has been updated.
    */
   public async fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void> {
-    if (!this.fetch) return;
+    if (!this.repository) return;
 
     let searchQuery = search;
 
@@ -169,7 +161,7 @@ export class WeatherService {
       }
     }
 
-    const result = await this.fetch.fetch(searchQuery);
+    const result = await this.repository.query(searchQuery);
     if (Array.isArray(result)) {
       result.forEach(metar =>
         this.metarStations.set(normalizeICAO(metar.station), metar)
