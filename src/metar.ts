@@ -289,6 +289,15 @@ export class Metar {
   }
 
   /**
+   * Returns the raw METAR string.
+   * 
+   * @returns The raw METAR string
+   */
+  public toString(): string {
+    return this.metarData.raw;
+  }
+
+  /**
    * Formats the observation time of the METAR into a human-readable string.
    * 
    * @param locale Optional locale string for formatting
