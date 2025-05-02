@@ -281,6 +281,39 @@ export class Metar {
   }
 
   /**
+   * Formats the observation time of the METAR into a human-readable string.
+   * 
+   * @param locale Optional locale string for formatting
+   * @returns A formatted string representing the observation time
+   */
+  formatObservationTime(locale?: string): string {
+    if (!locale) {
+      const date = this.metarData.observationTime;
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+    }
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+      timeZone: 'UTC',
+      timeZoneName: 'short',
+    };
+    return this.metarData.observationTime.toLocaleString(locale, options);
+  }
+
+  /**
    * Formats wind information from the METAR data into a human-readable string.
    * 
    * @returns A formatted string describing wind conditions or 'Calm' if no wind direction is present
