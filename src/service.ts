@@ -77,11 +77,25 @@ export type FetchMetarStation = (search: string | GeoJSON.BBox) => Promise<Metar
  * @property {Function} fetchByBbox - Fetches METAR stations within a bounding box.
  */
 export abstract class AbstractMetarRepository {
+  /**
+   * Converts a METAR string to a MetarStation object.
+   * 
+   * @param icao - The ICAO code of the METAR station.
+   * @param metar - The METAR string to convert.
+   * @param coords - The geographical coordinates of the station.
+   * @returns A MetarStation object.
+   */
   toMetarStation(icao: ICAO, metar: string, coords: GeoJSON.Position): MetarStation {
     const metarData = fromIMetar(parseMetar(metar));
-    return new MetarStation(icao, metarData, coords);
+    return { station: icao, metarData, coords };
   }
 
+  /**
+   * Fetches METAR stations based on a search query or bounding box.
+   * 
+   * @param search - The search string or bounding box to use for fetching METAR stations.
+   * @returns A promise that resolves to an array of METAR stations.
+   */
   fetch(search: string | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
     if (Array.isArray(search)) {
       return this.fetchByBbox(search);
@@ -120,7 +134,7 @@ export class WeatherService {
   constructor(options: WeatherStationOptions = {}) {
     this.fetch = options.fetch;
     this.metarStations = options.metarStations
-      ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.ICAO), metar]))
+      ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.station), metar]))
       : new Map();
   }
 
@@ -158,10 +172,10 @@ export class WeatherService {
     const result = await this.fetch.fetch(searchQuery);
     if (Array.isArray(result)) {
       result.forEach(metar =>
-        this.metarStations.set(normalizeICAO(metar.ICAO), metar)
+        this.metarStations.set(normalizeICAO(metar.station), metar)
       );
     } else if (result) {
-      this.metarStations.set(normalizeICAO(result.ICAO), result);
+      this.metarStations.set(normalizeICAO(result.station), result);
     }
   }
 
@@ -183,13 +197,13 @@ export class WeatherService {
    * @returns The nearest METAR station, or undefined if none found or if no candidates available.
    */
   public findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
-    const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.ICAO));
+    const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
     if (metarCandidates.length === 0) {
       return undefined;
     }
 
     const nearest = nearestPoint(location, featureCollection(metarCandidates.map(metar => {
-      return point(metar.location, { station: metar.ICAO });
+      return point(metar.coords, { station: metar.station });
     })));
 
     return this.metarStations.get(nearest.properties?.station);

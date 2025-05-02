@@ -1,8 +1,9 @@
-import { parseMetar } from "metar-taf-parser";
 import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport.js";
-import { FlightRules, colorizeFlightRules, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, fromIMetar, MetarData } from "./metar.js";
+import { FlightRules, MetarData } from "./metar.js";
 import { AerodromeService, WeatherService } from "./service.js";
 import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
+
+export type ICAO = string;
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.
@@ -11,14 +12,12 @@ import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints 
  * @property {string} station - The identifier for the METAR station.
  * @property {MetarData} metarData - The METAR data associated with the station.
  * @property {string} [rawTaf] - The raw TAF (Terminal Aerodrome Forecast) data, if available.
- * @property {GeoJSON.Feature<GeoJSON.Point>} location - The geographical location of the station.
- * @todo Change location type to GeoJSON.Position
+ * @property {GeoJSON.Position} coords - The geographical location of the station.
  */
 export interface MetarStation {
-  station: string;
+  station: ICAO;
   metarData: MetarData;
-  rawTaf?: string;
-  location: GeoJSON.Feature<GeoJSON.Point>; // TOOD: Change to GeoJSON.Position
+  coords: GeoJSON.Position;
 }
 
 /**
@@ -47,7 +46,7 @@ export interface AerodromeRepository {
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export { FlightRules, MetarData, formatCeiling, formatQNH, formatTemperature, formatVisibility, formatWind, colorizeFlightRules };
+export { FlightRules, MetarData };
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
