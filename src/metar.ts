@@ -247,7 +247,25 @@ export class Metar {
    */
   get timeElapsed(): number {
     const now = new Date();
-    const elapsed = now.getTime() - this.metarData.observationTime.getTime();
+    const nowUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds(),
+      now.getUTCMilliseconds()
+    );
+    const observationUTC = Date.UTC(
+      this.metarData.observationTime.getUTCFullYear(),
+      this.metarData.observationTime.getUTCMonth(),
+      this.metarData.observationTime.getUTCDate(),
+      this.metarData.observationTime.getUTCHours(),
+      this.metarData.observationTime.getUTCMinutes(),
+      this.metarData.observationTime.getUTCSeconds(),
+      this.metarData.observationTime.getUTCMilliseconds()
+    );
+    const elapsed = nowUTC - observationUTC;
     return Math.floor(elapsed / 1000);
   }
 
