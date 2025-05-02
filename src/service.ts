@@ -1,6 +1,6 @@
 import { AerodromeRepository, ICAO, MetarStation } from "./index.js";
 import { Aerodrome } from "./airport.js";
-import { normalizeICAO } from "./utils.js";
+import { isICAO, normalizeICAO } from "./utils.js";
 import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 import { parseMetar } from "metar-taf-parser";
@@ -85,23 +85,24 @@ export abstract class AbstractMetarRepository {
   /**
    * Fetches METAR stations based on a search query or bounding box.
    * 
-   * @param search - The search string or bounding box to use for fetching METAR stations.
-   * @returns A promise that resolves to an array of METAR stations.
+   * @param search - The search string, array of ICAO codes, or bounding box to use for fetching METAR stations.
+   * @returns A promise that resolves to an array of METAR stations, a single station, or undefined.
    */
-  query(search: string | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
-    if (Array.isArray(search)) {
-      return this.fetchByBbox(search);
-    } else if (typeof search === 'string' && search.includes(',')) {
-      const icaoCodes = search.split(',')
-        .map(code => code.trim())
-        .filter(code => isICAO(code)) as ICAO[];
-
-      if (icaoCodes.length > 0) {
-        return this.fetchByICAO(icaoCodes);
+  async query(search: string | string[] | GeoJSON.BBox): Promise<MetarStation[] | MetarStation | undefined> {
+    if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
+      return await this.fetchByBbox(search as GeoJSON.BBox);
+    }
+    else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
+      const validIcaos = search.filter(code => isICAO(code)) as ICAO[];
+      if (validIcaos.length > 0) {
+        return await this.fetchByICAO(validIcaos);
       }
+      return undefined;
+    } else if (typeof search === 'string' && isICAO(search)) {
+      return this.fetchByICAO([search as ICAO]);
     }
 
-    return this.fetchByICAO([search]);
+    return undefined;
   }
 
   abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation | undefined>;
@@ -148,34 +149,43 @@ export class WeatherService {
   }
 
   /**
-   * Fetches and updates METAR stations based on a search query or bounding box.
-   * Optionally extends the bounding box by a specified distance.
-   *
-   * @param search - The search string or bounding box to use for fetching METAR stations.
-   * @param extend - Optional distance in kilometers to extend the bounding box (only applies when search is a bounding box).
-   * @returns A promise that resolves when the data has been updated.
+   * Refreshes the METAR stations based on the provided search query or bounding box.
+   * 
+   * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing METAR stations.
+   * @param extend - Optional distance in kilometers to extend the bounding box.
    */
-  public async fetchAndUpdateStations(search: string | GeoJSON.BBox, extend?: number): Promise<void> {
+  public async refreshStations(search?: string | GeoJSON.BBox, extend?: number): Promise<void> {
     if (!this.repository) return;
 
-    let searchQuery = search;
-
-    // Only extend the bounding box if search is a bounding box and extend is defined
-    if (Array.isArray(search) && extend !== undefined) {
-      const bboxPoly = bboxPolygon(search);
-      const featureBuffer = buffer(bboxPoly, extend, { units: 'kilometers' });
-      if (featureBuffer) {
-        searchQuery = bbox(featureBuffer) as GeoJSON.BBox;
+    if (search === undefined) {
+      const result = await this.repository.query(Array.from(this.metarStations.keys()));
+      if (Array.isArray(result)) {
+        result.forEach(metar =>
+          this.metarStations.set(normalizeICAO(metar.station), metar)
+        );
+      } else if (result) {
+        this.metarStations.set(normalizeICAO(result.station), result);
       }
-    }
+    } else {
+      let searchQuery = search;
 
-    const result = await this.repository.query(searchQuery);
-    if (Array.isArray(result)) {
-      result.forEach(metar =>
-        this.metarStations.set(normalizeICAO(metar.station), metar)
-      );
-    } else if (result) {
-      this.metarStations.set(normalizeICAO(result.station), result);
+      // Only extend the bounding box if search is a bounding box and extend is defined
+      if (Array.isArray(search) && extend !== undefined) {
+        const bboxPoly = bboxPolygon(search);
+        const featureBuffer = buffer(bboxPoly, extend, { units: 'kilometers' });
+        if (featureBuffer) {
+          searchQuery = bbox(featureBuffer) as GeoJSON.BBox;
+        }
+      }
+
+      const result = await this.repository.query(searchQuery);
+      if (Array.isArray(result)) {
+        result.forEach(metar =>
+          this.metarStations.set(normalizeICAO(metar.station), metar)
+        );
+      } else if (result) {
+        this.metarStations.set(normalizeICAO(result.station), result);
+      }
     }
   }
 
