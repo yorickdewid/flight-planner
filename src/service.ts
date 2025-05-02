@@ -3,100 +3,104 @@ import { Aerodrome } from "./airport.js";
 import { isICAO, normalizeICAO } from "./utils.js";
 import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
-import { parseMetar } from "metar-taf-parser";
-import { fromIMetar, Metar } from "./metar.js";
 
-export type FnFetchAerodrome = (icao: string) => Promise<Aerodrome>;
+/**
+ * RepositoryBase interface defines the methods for fetching data from a repository.
+ * 
+ * @interface RepositoryBase<T>
+ * @template T - The type of data to be fetched.
+ * @property {function(ICAO[]): Promise<T[]>} fetchByICAO - Fetches data by ICAO codes.
+ * @property {function(GeoJSON.BBox): Promise<T[]>} [fetchByBbox] - Optional method to fetch data by bounding box.
+ * @property {function(GeoJSON.Position, number): Promise<T[]>} [fetchByRadius] - Optional method to fetch data by radius.
+ */
+export interface RepositoryBase<T> {
+  fetchByICAO(icao: ICAO[]): Promise<T[]>;
+  fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
+  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
+}
 
-// TODO: Copy from byteflight app
 export class AerodromeService {
   private aerodromes: Map<string, Aerodrome>;
-  private fetchAerodrome?: FnFetchAerodrome;
+  private repository?: RepositoryBase<Aerodrome>;
+  private weatherService?: WeatherService;
 
   constructor(aerodromes: Aerodrome[] = []) {
     this.aerodromes = new Map(aerodromes.map(aerodrome => [aerodrome.ICAO, aerodrome]));
   }
 
-  set fetchFunction(fnFetchAerodrome: FnFetchAerodrome) {
-    this.fetchAerodrome = fnFetchAerodrome;
+  get aerodromesList(): Aerodrome[] {
+    return Array.from(this.aerodromes.values());
   }
 
-  async findByICAO(icao: string): Promise<Aerodrome | undefined> {
-    const icaoNormalized = normalizeICAO(icao);
-
-    const aerodrome = this.aerodromes.get(icaoNormalized);
-    if (aerodrome) {
-      return aerodrome;
-    } else if (this.fetchAerodrome) {
-      const fetchedAerodrome = await this.fetchAerodrome(icaoNormalized);
-      this.aerodromes.set(icaoNormalized, fetchedAerodrome);
-      return fetchedAerodrome;
+  addAerodromes(aerodromes: Aerodrome | Aerodrome[]): void {
+    let aerodromeArray: Aerodrome[] = [];
+    if (Array.isArray(aerodromes)) {
+      aerodromeArray = aerodromes;
+    } else {
+      aerodromeArray = [aerodromes];
     }
 
-    return undefined;
+    // TODO: Filter all aerodromes that do not have a metar station set.
+
+    aerodromeArray.forEach(aerodrome => {
+      const normalizedICAO = normalizeICAO(aerodrome.ICAO);
+      if (isICAO(normalizedICAO)) {
+        this.aerodromes.set(normalizedICAO, aerodrome);
+      }
+    });
   }
 
-  /**
-   * Finds the nearest aerodrome to the specified location.
-   * 
-   * @param location - The location as a GeoJSON Position to find the nearest aerodrome to.
-   * @param exclude - Optional array of ICAO codes to exclude from the search.
-   * @returns A Promise that resolves to the nearest aerodrome, or undefined if none found.
-   */
-  public async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    const aerodromeCandidates = Array.from(this.aerodromes.values()).filter(airport => !exclude.includes(airport.ICAO));
+  async refreshByRadius(location: GeoJSON.Position, distance: number = 50): Promise<void> {
+    if (!this.repository || !this.repository.fetchByRadius) {
+      throw new Error('Repository not set or does not support fetchByRadius');
+    }
+
+    const result = await this.repository.fetchByRadius(location, distance);
+    this.addAerodromes(result);
+  }
+
+  // TODO: Check if isICAO
+  async findByICAO(icao: string): Promise<Aerodrome | undefined> {
+    const normalizedIcao = normalizeICAO(icao);
+
+    const aerodrome = this.aerodromes.get(normalizedIcao);
+    if (aerodrome) {
+      return aerodrome;
+    } else if (this.repository) {
+      const result = await this.repository.fetchByICAO([normalizedIcao]);
+      this.addAerodromes(result);
+    }
+  }
+
+  async nearestAerodrome(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
+    if (this.aerodromes.size === 0) {
+      await this.refreshByRadius(location, 100);
+
+      if (this.aerodromes.size === 0) {
+        return undefined;
+      }
+    }
+
+    const normalizedExclude = exclude.map(icao => icao.toUpperCase());
+    const aerodromeCandidates = Array.from(this.aerodromes.values())
+      .filter(airport => !normalizedExclude.includes(airport.ICAO.toUpperCase()));
 
     if (aerodromeCandidates.length === 0) {
       return undefined;
     }
 
-    const nearest = nearestPoint(location, featureCollection(aerodromeCandidates.map(airport => {
+    // Create a feature collection of points
+    const points = aerodromeCandidates.map(airport => {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
-    })));
+    });
 
-    // Use findByICAO to benefit from the fetch mechanism if not found locally
-    return this.findByICAO(nearest.properties?.icao);
+    const nearest = nearestPoint(location, featureCollection(points));
+    if (!nearest?.properties?.icao) {
+      return undefined;
+    }
+
+    return this.findByICAO(nearest.properties.icao as string);
   }
-}
-
-/**
- * Abstract class representing a repository for METAR stations.
- * 
- * @abstract
- * @class AbstractMetarRepository
- * @property {Function} toMetarStation - Converts a METAR string to a MetarStation object.
- * @property {Function} fetchByICAO - Fetches a METAR station by its ICAO code.
- * @property {Function} fetchByBbox - Fetches METAR stations within a bounding box.
- */
-export abstract class AbstractMetarRepository {
-  /**
-   * Converts a METAR string to a MetarStation object.
-   * 
-   * @param icao - The ICAO code of the METAR station.
-   * @param metar - The METAR string to convert.
-   * @param coords - The geographical coordinates of the station.
-   * @returns A MetarStation object.
-   */
-  toMetarStation(icao: string, metar: string, coords: GeoJSON.Position): MetarStation {
-    const metarData = fromIMetar(parseMetar(metar));
-    return { station: normalizeICAO(icao), metar: new Metar(metarData), coords };
-  }
-
-  /**
-   * Fetches a METAR station by its ICAO code.
-   * 
-   * @param icao - The ICAO code of the METAR station.
-   * @returns A promise that resolves to an array of MetarStation objects.
-   */
-  abstract fetchByICAO(icao: ICAO[]): Promise<MetarStation[]>;
-
-  /**
-   * Fetches METAR stations within a bounding box.
-   * 
-   * @param bbox - The bounding box to search within.
-   * @returns A promise that resolves to an array of MetarStation objects.
-   */
-  abstract fetchByBbox(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
 }
 
 /**
@@ -108,13 +112,13 @@ export abstract class AbstractMetarRepository {
  */
 export interface WeatherStationOptions {
   metarStations?: MetarStation[];
-  repository?: AbstractMetarRepository;
+  repository?: RepositoryBase<MetarStation>;
 }
 
 // TODO: This can later be improved with geohashing
 export class WeatherService {
   private metarStations: Map<string, MetarStation>;
-  private repository?: AbstractMetarRepository;
+  private repository?: RepositoryBase<MetarStation>;
 
   /**
    * Creates a new instance of the WeatherService class.
@@ -166,7 +170,9 @@ export class WeatherService {
    * @param extend - Optional distance in kilometers to extend the bounding box.
    */
   async refreshStations(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
-    if (!this.repository) return;
+    if (!this.repository || !this.repository.fetchByICAO || !this.repository.fetchByBbox) {
+      throw new Error('Repository not set or does not support fetchByICAO or fetchByBbox');
+    }
 
     if (search === undefined) {
       const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
@@ -199,6 +205,7 @@ export class WeatherService {
     return this.metarStations.get(normalizeICAO(icao))
   }
 
+  // TODO: location -> location: GeoJSON.Position
   /**
    * Finds the nearest METAR station to the specified location.
    * 
@@ -206,7 +213,7 @@ export class WeatherService {
    * @param exclude - Optional array of station IDs to exclude from the search.
    * @returns The nearest METAR station, or undefined if none found or if no candidates available.
    */
-  findNearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
+  nearestStation(location: GeoJSON.Point, exclude: string[] = []): MetarStation | undefined {
     const metarCandidates = this.stations.filter(metar => !exclude.includes(metar.station));
     if (metarCandidates.length === 0) {
       return undefined;
