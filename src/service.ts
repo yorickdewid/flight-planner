@@ -91,7 +91,7 @@ export class AerodromeService {
       aerodromeArray = [aerodromes];
     }
 
-    let aerodromeWithoutMetar: Aerodrome[] = [];
+    const aerodromeWithoutMetar: Aerodrome[] = [];
     aerodromeArray.forEach(aerodrome => {
       const normalizedICAO = normalizeICAO(aerodrome.ICAO);
       if (isICAO(normalizedICAO)) {
