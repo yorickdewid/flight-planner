@@ -1,5 +1,5 @@
 import { calculateWindVector } from './utils.js';
-import { MetarStation } from './index.js';
+import { ICAO, MetarStation } from './index.js';
 import { Feature, Point, GeoJsonProperties } from 'geojson';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 
@@ -189,29 +189,47 @@ export interface RunwayWindVector {
   crosswind: number;
 }
 
+/**
+ * Options for creating an Aerodrome instance.
+ * 
+ * @interface AerodromeOptions
+ * @property {string} [IATA] - The IATA code of the airport (optional).
+ * @property {Frequency[]} [frequencies] - An array of frequencies associated with the airport (optional).
+ */
 export interface AerodromeOptions {
+  ICAO: ICAO;
   IATA?: string;
+  name: string;
+  location: WaypointLocation;
+  runways: Runway[];
   frequencies?: Frequency[];
+  elevation?: number;
 }
 
+/**
+ * Represents an aerodrome (airport) in the flight planning system.
+ * 
+ * @extends Waypoint
+ */
 export class Aerodrome extends Waypoint {
-  public ICAO: string;
-  public runways: Runway[];
-  public frequencies: Frequency[];
+  private options: AerodromeOptions;
 
   /**
-   * @param name The name of the airport
-   * @param ICAO The ICAO code of the airport
-   * @param location The location of the airport
-   * @param runways The runways of the airport
-   * @param frequencies The frequencies of the airport
-   * @returns An instance of the Airport class
+   * @param options The options for creating the Aerodrome instance
+   * @returns An instance of the Aerodrome class
    */
-  constructor(name: string, ICAO: string, location: WaypointLocation, runways: Runway[], options?: AerodromeOptions) {
-    super(name, location);
-    this.ICAO = ICAO;
-    this.runways = runways;
-    this.frequencies = options?.frequencies || [];
+  constructor(options: AerodromeOptions) {
+    super(options.name, options.location);
+    this.options = options;
+  }
+
+  /**
+   * Returns the IATA code of the airport.
+   * 
+   * @returns The IATA code of the airport
+   */
+  get ICAO(): ICAO {
+    return this.options.ICAO;
   }
 
   /**
@@ -220,7 +238,7 @@ export class Aerodrome extends Waypoint {
    * @returns A string representation of the airport
    */
   toString(): string {
-    return `${this.name} (${this.ICAO})`;
+    return `${this.name} (${this.options.ICAO})`;
   }
 
   /**
@@ -233,7 +251,7 @@ export class Aerodrome extends Waypoint {
       return undefined;
     }
 
-    return this.runways
+    return this.options.runways
       .map(runway => this.calculateRunwayWindVector(runway, this.metarStation!.metar.wind))
       .sort((a, b) => b.headwind - a.headwind)
   }

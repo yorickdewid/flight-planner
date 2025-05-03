@@ -33,11 +33,25 @@ export interface AerodromeServiceOptions {
   weatherService?: WeatherService;
 }
 
+/**
+ * AerodromeService class provides methods to manage and retrieve aerodrome data.
+ * 
+ * @class AerodromeService
+ * @property {Map<ICAO, Aerodrome>} aerodromes - A map of ICAO codes to Aerodrome objects.
+ * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
+ * @property {WeatherService} [weatherService] - Optional weather service for fetching METAR data.
+ */
 export class AerodromeService {
   private aerodromes: Map<ICAO, Aerodrome>;
   private repository?: RepositoryBase<Aerodrome>;
   private weatherService?: WeatherService;
 
+  /**
+   * Creates a new instance of the AerodromeService class.
+   * 
+   * @param options - An object containing optional properties for initializing the service.
+   * @returns An instance of the AerodromeService class.
+   */
   constructor(options: AerodromeServiceOptions = {}) {
     this.repository = options.repository;
     this.weatherService = options.weatherService;
