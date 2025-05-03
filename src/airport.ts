@@ -1,5 +1,6 @@
 import { calculateWindVector } from './utils.js';
 import { ICAO, MetarStation } from './index.js';
+import { Wind } from './metar.js';
 import { Feature, Point, GeoJsonProperties } from 'geojson';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 
@@ -282,7 +283,7 @@ export class Aerodrome extends Waypoint {
    * @returns The calculated runway wind vector
    * @private
    */
-  private calculateRunwayWindVector(runway: Runway, wind: any): RunwayWindVector {
+  private calculateRunwayWindVector(runway: Runway, wind: Wind): RunwayWindVector {
     const windVector = calculateWindVector(wind, runway.heading);
 
     return {
