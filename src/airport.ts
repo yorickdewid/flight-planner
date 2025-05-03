@@ -224,12 +224,30 @@ export class Aerodrome extends Waypoint {
   }
 
   /**
-   * Returns the IATA code of the airport.
-   * 
-   * @returns The IATA code of the airport
+   * Returns the ICAO code of the airport.
+   *
+   * @returns The ICAO code of the airport
    */
   get ICAO(): ICAO {
     return this.options.ICAO;
+  }
+
+  /**
+   * Returns the runways of the airport.
+   *
+   * @returns An array of runways associated with the airport
+   */
+  get runways(): Runway[] {
+    return this.options.runways;
+  }
+
+  /**
+   * Returns the frequencies of the airport.
+   *
+   * @returns An array of frequencies associated with the airport
+   */
+  get frequencies(): Frequency[] | undefined {
+    return this.options.frequencies;
   }
 
   /**
