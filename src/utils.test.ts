@@ -11,11 +11,12 @@ describe('isICAO', () => {
     expect(isICAO('LFPG')).toBe(true);
     expect(isICAO('KJFK')).toBe(true);
     expect(isICAO('EHRD')).toBe(true);
+    expect(isICAO('egll')).toBe(true);
   });
 
   it('should return false for invalid ICAO identifiers', () => {
     expect(isICAO('EHAM1')).toBe(false);
-    expect(isICAO('eham')).toBe(false);
+    expect(isICAO('ehams')).toBe(false);
     expect(isICAO('EH AM')).toBe(false);
     expect(isICAO('')).toBe(false);
   });

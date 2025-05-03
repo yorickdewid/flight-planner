@@ -144,7 +144,7 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
  * @returns True if the string is a valid ICAO code, false otherwise
  */
 export function isICAO(icao: string): boolean {
-  return /^[A-Z]{4}$/.test(icao);
+  return /^[A-Z]{4}$/.test(normalizeICAO(icao));
 }
 
 /**
