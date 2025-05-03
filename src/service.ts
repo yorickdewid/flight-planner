@@ -103,16 +103,21 @@ export class AerodromeService {
     });
 
     if (this.weatherService) {
+      // TODO: We're better off using a bounding box to fetch the METAR stations
       await this.weatherService.update(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
     }
 
-    // if (this.repository && this.repository.fetchByICAO) {
-    //   const icaoCodes = aerodromeArray.map(aerodrome => normalizeICAO(aerodrome.ICAO));
-    //   const result = await this.repository.fetchByICAO(icaoCodes);
-    //   result.forEach(aerodrome => {
-    //     this.aerodromes.set(normalizeICAO(aerodrome.ICAO), aerodrome);
-    //   });
-    // }
+    if (this.weatherService && aerodromeWithoutMetar.length > 0) {
+      for (const aerodrome of aerodromeWithoutMetar) {
+        if (aerodrome.location && aerodrome.location.geometry && aerodrome.location.geometry.coordinates) {
+          const nearestMetar = await this.weatherService.nearest(aerodrome.location.geometry.coordinates);
+          if (nearestMetar) {
+            aerodrome.metarStation = nearestMetar;
+            this.aerodromes.set(normalizeICAO(aerodrome.ICAO), aerodrome);
+          }
+        }
+      }
+    }
   }
 
   /**
