@@ -51,6 +51,7 @@ describe('Metar', () => {
       const metar = new Metar(metarData);
       expect(metar.formatQNH()).toBe('-');
     });
+
     it('should return formatted QNH when present', () => {
       const metarData: MetarData = {
         station: 'TEST',
@@ -62,6 +63,7 @@ describe('Metar', () => {
       const metar = new Metar(metarData);
       expect(metar.formatQNH()).toBe('1013 hPa');
     });
+
     it('should return formatted QNH in inches when present', () => {
       const metarData: MetarData = {
         station: 'TEST',
@@ -120,7 +122,7 @@ describe('Metar', () => {
         wind: { direction: 180, speed: 10 },
       };
       const metar = new Metar(metarData);
-      expect(metar.formatWind()).toBe('180° 10kt');
+      expect(metar.formatWind()).toBe('180° with 10kt');
     });
 
     it('should include gusting wind speed when windGust is defined', () => {
@@ -131,7 +133,18 @@ describe('Metar', () => {
         wind: { direction: 180, speed: 10, gust: 20 },
       };
       const metar = new Metar(metarData);
-      expect(metar.formatWind()).toBe('180° 10kt gusting 20kt');
+      expect(metar.formatWind()).toBe('180° with 10kt gusting 20kt');
+    });
+
+    it('should include variable wind direction when windDirection is an array', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 350, speed: 12, directionMin: 340, directionMax: 360 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatWind()).toBe('350° with 12kt variable between 340° and 360°');
     });
   });
 });
