@@ -1,6 +1,19 @@
 import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
 import { normalizeTrack } from './utils.js';
+import { Wind } from './metar.js';
+
+/**
+ * Represents a course vector with distance and track.
+ *
+ * @interface CourseVector
+ * @property {number} distance - The distance of the course vector in nautical miles.
+ * @property {number} track - The track heading in degrees.
+ */
+export interface CourseVector {
+  distance: number;
+  track: number;
+}
 
 /**
  * Represents a segment of a flight route between two waypoints.
@@ -17,10 +30,8 @@ import { normalizeTrack } from './utils.js';
 export interface RouteLeg {
   start: Waypoint;
   end: Waypoint;
-  distance: number;
-  trueTrack: number;
-  windDirection: number | undefined;
-  windSpeed: number | undefined;
+  course: CourseVector;
+  wind: Wind | undefined
   performance?: AircraftPerformance;
 }
 
@@ -56,7 +67,7 @@ export interface RouteTrip {
  * @param routeTrip - The route trip containing legs with start and end waypoints
  * @returns An array of waypoints representing all points in the route trip
  */
-export function routeTripWaypoints(routeTrip: RouteTrip): Waypoint[] {
+export const routeTripWaypoints = (routeTrip: RouteTrip): Waypoint[] => {
   return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
 }
 
@@ -97,26 +108,26 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
-    const distance = startWaypoint.distanceTo(endWaypoint);
-    const trueTrack = normalizeTrack(startWaypoint.headingTo(endWaypoint));
+    const course = {
+      distance: startWaypoint.distanceTo(endWaypoint),
+      track: normalizeTrack(startWaypoint.headingTo(endWaypoint)),
+    }
 
     const wind = startWaypoint.metarStation?.metar.wind;
     const performance = aircraft && wind
-      ? calculateFlightPerformance(aircraft, distance, trueTrack, wind)
+      ? calculateFlightPerformance(aircraft, course.distance, course.track, wind) // TODO: Add altitude, change method to accept 'course' object
       : undefined;
 
     return {
       start: startWaypoint,
       end: endWaypoint,
-      distance,
-      trueTrack,
-      windDirection: wind?.direction,
-      windSpeed: wind?.speed,
+      course,
+      wind,
       performance,
     };
   });
 
-  const totalDistance = legs.reduce((acc, leg) => acc + leg.distance, 0);
+  const totalDistance = legs.reduce((acc, leg) => acc + leg.course.distance, 0);
   const totalDuration = legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0);
   const totalFuelConsumption = legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0);
 
