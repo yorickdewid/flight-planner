@@ -98,7 +98,6 @@ function fromIMetar(metar: IMetar): MetarData {
     station: normalizeICAO(metar.station),
     observationTime: observationTime,
     raw: metar.message,
-
     wind: {
       direction: metar.wind?.degrees,
       directionMin: metar.wind?.minVariation,
@@ -106,10 +105,8 @@ function fromIMetar(metar: IMetar): MetarData {
       speed: metar.wind?.speed,
       gust: metar.wind?.gust,
     } as Wind,
-
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
-
     visibility: metar.visibility ? {
       value: metar.visibility.value,
       unit: metar.visibility.unit === 'm' ? 'm' : 'sm',
@@ -125,6 +122,12 @@ function fromIMetar(metar: IMetar): MetarData {
   }
 }
 
+/**
+ * Creates a Metar object from a raw METAR string.
+ * 
+ * @param raw The raw METAR string
+ * @returns A Metar object
+ */
 export function createMetarFromRaw(raw: string): Metar {
   const metar = parseMetar(raw);
   return new Metar(fromIMetar(metar));
