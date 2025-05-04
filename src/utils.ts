@@ -143,7 +143,7 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
  * @param icao - The string to check
  * @returns True if the string is a valid ICAO code, false otherwise
  */
-export function isICAO(icao: string): boolean {
+export const isICAO = (icao: string): boolean => {
   return /^[A-Z]{4}$/.test(normalizeICAO(icao));
 }
 
@@ -153,6 +153,16 @@ export function isICAO(icao: string): boolean {
  * @param icao - The ICAO code to normalize
  * @returns The normalized ICAO code
  */
-export function normalizeICAO(icao: string): string {
+export const normalizeICAO = (icao: string): string => {
   return icao.toUpperCase();
+}
+
+/**
+ * Normalizes the given track angle to a value between 0 and 360 degrees.
+ * 
+ * @param track - The track angle to normalize
+ * @returns The normalized track angle
+ */
+export const normalizeTrack = (track: number): number => {
+  return ((track % 360) + 360) % 360;
 }

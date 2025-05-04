@@ -1,5 +1,6 @@
 import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
+import { normalizeTrack } from './utils.js';
 
 /**
  * Represents a segment of a flight route between two waypoints.
@@ -80,30 +81,37 @@ export interface RouteOptions {
 /**
  * Plans a route between the given waypoints.
  * 
- * @param waypoints - An array of waypoints.
- * @param aircraft - An optional aircraft object.
- * @returns A route trip object.
+ * @param waypoints - An array of waypoints to use in the route.
+ * @param options - Optional configuration options for the flight route.
+ * @returns A route trip object with legs, distances, durations, and fuel calculations.
+ * @throws Error if the waypoints array contains fewer than 2 points.
  */
-export function planFlightRoute(waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip {
+export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip => {
+  if (!Array.isArray(waypoints) || waypoints.length < 2) {
+    throw new Error('At least 2 waypoints are required to plan a flight route');
+  }
+
   const aircraft = options?.aircraft;
 
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
     const distance = startWaypoint.getDistanceTo(endWaypoint);
-    const trueTrack = startWaypoint.getHeadingTo(endWaypoint);
+    const trueTrack = normalizeTrack(startWaypoint.getHeadingTo(endWaypoint));
 
-    const metarData = startWaypoint.metarStation?.metar.metar; // TODO: fix this later
-    const wind = { direction: metarData?.wind.direction || 0, speed: metarData?.wind.speed || 0 };
+    const wind = startWaypoint.metarStation?.metar.wind;
+    const performance = aircraft && wind
+      ? calculateFlightPerformance(aircraft, distance, trueTrack, wind)
+      : undefined;
 
     return {
       start: startWaypoint,
       end: endWaypoint,
-      distance: distance,
-      trueTrack: trueTrack,
-      windDirection: wind.direction,
-      windSpeed: wind.speed,
-      performance: aircraft ? calculateFlightPerformance(aircraft, distance, trueTrack, wind) : undefined,
+      distance,
+      trueTrack,
+      windDirection: wind?.direction,
+      windSpeed: wind?.speed,
+      performance,
     };
   });
 
