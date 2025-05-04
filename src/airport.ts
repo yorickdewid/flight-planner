@@ -48,7 +48,7 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the distance to
    * @returns The distance in nautical miles
    */
-  getDistanceTo(waypoint: Waypoint): number {
+  distanceTo(waypoint: Waypoint): number {
     const distanceInKm = distance(this.location, waypoint.location);
     const distanceInNm = distanceInKm * 0.539957; // TODO: Move to constants
     return distanceInNm;
@@ -60,7 +60,7 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the heading to
    * @returns The heading in degrees
    */
-  getHeadingTo(waypoint: Waypoint): number {
+  headingTo(waypoint: Waypoint): number {
     const bearingValue = bearing(this.location, waypoint.location);
     return bearingToAzimuth(bearingValue)
   }

@@ -96,8 +96,8 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
-    const distance = startWaypoint.getDistanceTo(endWaypoint);
-    const trueTrack = normalizeTrack(startWaypoint.getHeadingTo(endWaypoint));
+    const distance = startWaypoint.distanceTo(endWaypoint);
+    const trueTrack = normalizeTrack(startWaypoint.headingTo(endWaypoint));
 
     const wind = startWaypoint.metarStation?.metar.wind;
     const performance = aircraft && wind
