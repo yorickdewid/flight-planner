@@ -1,6 +1,6 @@
-import calculateFlightPerformance, { Aircraft, AircraftPerformance, calculateFuelConsumption } from './aircraft.js';
+import { Aircraft, AircraftPerformance } from './aircraft.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
-import { normalizeTrack } from './utils.js';
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
 
 /**
@@ -110,21 +110,52 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   const aircraft = options?.aircraft;
   const departureDate = options?.departureDate || new Date();
 
+  const calculateFuelConsumption = (aircraft: Aircraft, duration: number): number | undefined => {
+    return aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
+  }
+
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
 
+    const distance = startWaypoint.distanceTo(endWaypoint);
+    const track = normalizeTrack(startWaypoint.headingTo(endWaypoint));
+
     const course = {
-      distance: startWaypoint.distanceTo(endWaypoint),
-      track: normalizeTrack(startWaypoint.headingTo(endWaypoint)),
+      distance,
+      track,
       altitude: options?.altitude,
+    } as CourseVector;
+
+    // TODO: 
+    // const temperature = startWaypoint.metarStation?.metar.temperature;
+    const wind = startWaypoint.metarStation?.metar.wind;
+
+    let performance: AircraftPerformance | undefined = undefined;
+    if (aircraft?.cruiseSpeed && wind) {
+      const windVector = calculateWindVector(wind, course.track);
+      const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
+      const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
+      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
+      const duration = (course.distance / groundSpeed) * 60;
+      const fuelConsumption = calculateFuelConsumption(aircraft, duration);
+
+      performance = {
+        headWind: windVector.headwind,
+        crossWind: windVector.crosswind,
+        trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
+        windCorrectionAngle: wca,
+        heading: heading,
+        groundSpeed: groundSpeed,
+        duration: duration,
+        fuelConsumption: fuelConsumption
+      };
     }
 
-    const wind = startWaypoint.metarStation?.metar.wind;
-    const performance = aircraft && wind
-      ? calculateFlightPerformance(aircraft, course.distance, course.track, wind) // TODO: Add altitude, change method to accept 'course' object
+    const arrivalDate = performance
+      ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
       : undefined;
 
-    const arrivalDate = performance ? new Date(departureDate.getTime() + performance.duration * 60 * 1000) : undefined;
+    // TODO: Add fuel consumption to leg
     return {
       start: startWaypoint,
       end: endWaypoint,
@@ -135,9 +166,15 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
     };
   });
 
-  const totalDistance = legs.reduce((acc, leg) => acc + leg.course.distance, 0);
-  const totalDuration = legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0);
-  const totalFuelConsumption = legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0);
+  let totalDistance = 0;
+  let totalDuration = 0;
+  let totalFuelConsumption = 0;
+
+  for (const leg of legs) {
+    totalDistance += leg.course.distance;
+    totalDuration += leg.performance?.duration || 0;
+    totalFuelConsumption += leg.performance?.fuelConsumption || 0;
+  }
 
   const reserveFuelDuration = options?.reserveFuelDuration ?? 30;
   const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
@@ -147,11 +184,11 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
 
   return {
     route: legs,
-    totalDistance: totalDistance,
-    totalDuration: totalDuration,
-    totalFuelConsumption: totalFuelConsumption,
-    totalFuelRequired: totalFuelRequired,
-    departureDate: departureDate,
-    arrivalDate: arrivalDate,
+    totalDistance,
+    totalDuration,
+    totalFuelConsumption,
+    totalFuelRequired,
+    departureDate,
+    arrivalDate,
   };
 }

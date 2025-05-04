@@ -1,6 +1,3 @@
-import { Wind } from "./metar.js";
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from "./utils.js";
-
 /**
  * Interface representing the performance characteristics of an aircraft.
  * 
@@ -53,62 +50,4 @@ export interface Aircraft {
   fuelConsumption?: number; // in liters per hour
   engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
   maxTakeoffWeight?: number; // in kilograms
-}
-
-/**
- * Calculates the fuel consumption for a given aircraft and flight duration.
- * 
- * @param aircraft - The aircraft for which to calculate fuel consumption
- * @param duration - The flight duration in minutes
- * @returns The fuel consumption in liters, or undefined if the aircraft has no fuel consumption data
- */
-export function calculateFuelConsumption(aircraft: Aircraft, duration: number): number | undefined {
-  if (duration < 0) {
-    throw new Error('Duration cannot be negative');
-  }
-
-  if (!aircraft?.fuelConsumption) {
-    return undefined;
-  }
-
-  return aircraft.fuelConsumption * (duration / 60);
-}
-
-/**
- * Calculates the flight performance for the given aircraft, distance, true track, and wind.
- * 
- * @param aircraft - The aircraft object.
- * @param distance - The distance in nautical miles.
- * @param trueTrack - The true track in degrees.
- * @param wind - The wind object.
- * @returns The aircraft performance object.
- */
-export default function calculateFlightPerformance(
-  aircraft: Aircraft,
-  distance: number,
-  trueTrack: number,
-  wind: Wind
-): AircraftPerformance | undefined {
-  if (!aircraft.cruiseSpeed) {
-    return undefined;
-  }
-
-  const windVector = calculateWindVector(wind, trueTrack);
-  const wca = calculateWindCorrectionAngle(wind, trueTrack, aircraft.cruiseSpeed);
-  // const heading = (trueTrack + wca + 360) % 360; // TODO: Correct for magnetic variation
-  const heading = trueTrack + wca; // TODO: Correct for magnetic variation
-  const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
-  const duration = (distance / groundSpeed) * 60;
-  const fuelConsumption = calculateFuelConsumption(aircraft, duration);
-
-  return {
-    headWind: windVector.headwind,
-    crossWind: windVector.crosswind,
-    trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
-    windCorrectionAngle: wca,
-    heading: heading,
-    groundSpeed: groundSpeed,
-    duration: duration,
-    fuelConsumption: fuelConsumption
-  };
 }
