@@ -102,12 +102,10 @@ export class AerodromeService {
       }
     });
 
-    if (this.weatherService) {
+    if (this.weatherService && aerodromeWithoutMetar.length > 0) {
       // TODO: We're better off using a bounding box to fetch the METAR stations
       await this.weatherService.update(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
-    }
 
-    if (this.weatherService && aerodromeWithoutMetar.length > 0) {
       for (const aerodrome of aerodromeWithoutMetar) {
         if (aerodrome.location && aerodrome.location.geometry && aerodrome.location.geometry.coordinates) {
           const nearestMetar = await this.weatherService.nearest(aerodrome.location.geometry.coordinates);
