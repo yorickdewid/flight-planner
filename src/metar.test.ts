@@ -66,13 +66,26 @@ describe('Metar', () => {
       expect(metar.flightRuleColor).toBe('purple');
     });
 
-    it('should return "blue" for IFR', () => {
+    it('should return "red" for IFR', () => {
       const metarData: MetarData = {
         station: 'TEST',
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        clouds: [{ quantity: 'OVC', height: 3000 }]
+        visibility: { value: 4000, unit: 'm' },
+        clouds: [{ quantity: 'OVC', height: 700 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.flightRuleColor).toBe('red');
+    });
+
+    it('should return "blue" for MVFR', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        clouds: [{ quantity: 'OVC', height: 2500 }]
       };
       const metar = new Metar(metarData);
       expect(metar.flightRuleColor).toBe('blue');
