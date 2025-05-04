@@ -76,6 +76,7 @@ export interface RouteOptions {
   aircraft?: Aircraft;
   alternate?: Aerodrome;
   reserveFuel?: number;
+  reserveFuelDuration?: number;
 }
 
 /**
@@ -119,7 +120,8 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   const totalDuration = legs.reduce((acc, leg) => acc + (leg.performance?.duration || 0), 0);
   const totalFuelConsumption = legs.reduce((acc, leg) => acc + (leg.performance?.fuelConsumption || 0), 0);
 
-  const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, 30) : 0);
+  const reserveFuelDuration = options?.reserveFuelDuration ?? 30;
+  const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
   const totalFuelRequired = totalFuelConsumption + (reserveFuel || 0);
 
   const departureDate = options?.departureDate || new Date();
