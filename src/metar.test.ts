@@ -147,4 +147,29 @@ describe('Metar', () => {
       expect(metar.formatWind()).toBe('350° with 12kt variable between 340° and 360°');
     });
   });
+
+  describe('formatVisibility', () => {
+    it('should return "No visibility" when no visibility is present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatVisibility()).toBe('-');
+    });
+
+    it('should return formatted visibility when present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        visibility: { value: 9999, unit: 'm' }
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatVisibility()).toBe('10 km+');
+    });
+  });
 });
