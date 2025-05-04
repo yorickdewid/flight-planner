@@ -467,8 +467,11 @@ export class Metar {
 
   /**
    * Formats cloud information into a human-readable string.
+   * The clouds are sorted by height with the lowest clouds first.
+   * Clouds with undefined heights appear at the end of the list.
    * 
-   * @returns A formatted string describing the clouds, or '-' if no clouds are reported
+   * @returns A formatted string describing the clouds (sorted by height, lowest first), 
+   *          or '-' if no clouds are reported
    */
   formatClouds(): string {
     if (this.metarData.clouds === undefined) {
@@ -477,7 +480,14 @@ export class Metar {
     if (this.metarData.clouds.length === 0) {
       return '-';
     }
-    return this.metarData.clouds.map(cloud => {
+
+    const sortedClouds = [...this.metarData.clouds].sort((a, b) => {
+      if (a.height === undefined) return 1;
+      if (b.height === undefined) return -1;
+      return a.height - b.height;
+    });
+
+    return sortedClouds.map(cloud => {
       if (cloud.height) {
         return `${cloud.quantity} ${cloud.height} ft`;
       }
