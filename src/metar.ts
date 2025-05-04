@@ -466,6 +466,26 @@ export class Metar {
   }
 
   /**
+   * Formats cloud information into a human-readable string.
+   * 
+   * @returns A formatted string describing the clouds, or '-' if no clouds are reported
+   */
+  formatClouds(): string {
+    if (this.metarData.clouds === undefined) {
+      return '-';
+    }
+    if (this.metarData.clouds.length === 0) {
+      return '-';
+    }
+    return this.metarData.clouds.map(cloud => {
+      if (cloud.height) {
+        return `${cloud.quantity} ${cloud.height} ft`;
+      }
+      return cloud.quantity;
+    }).join(', ');
+  }
+
+  /**
    * Determines the color associated with the current flight rules.
    * 
    * @returns A string representing the color associated with the flight rules:
