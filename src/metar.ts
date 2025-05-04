@@ -375,20 +375,19 @@ export class Metar {
    * @returns A formatted string describing wind conditions or 'Calm' if no wind direction is present
    */
   formatWind(): string {
-    if (!this.metarData.wind.direction) {
-      return 'Calm';
+    if (this.metarData.wind.direction) {
+      let windString = `${this.metarData.wind.direction}° with ${this.metarData.wind.speed}kt`;
+      if (this.metarData.wind.gust) {
+        windString += ` gusting ${this.metarData.wind.gust}kt`;
+      }
+
+      if (this.metarData.wind.directionMin && this.metarData.wind.directionMax) {
+        windString += ` variable between ${this.metarData.wind.directionMin}° and ${this.metarData.wind.directionMax}°`;
+      }
+      return windString;
     }
 
-    let windString = `${this.metarData.wind.direction}° ${this.metarData.wind.speed}kt`;
-    if (this.metarData.wind.gust) {
-      windString += ` gusting ${this.metarData.wind.gust}kt`;
-    }
-
-    if (this.metarData.wind.directionMin && this.metarData.wind.directionMax) {
-      windString += ` (${this.metarData.wind.directionMin}° to ${this.metarData.wind.directionMax}°)`;
-    }
-
-    return windString;
+    return 'Calm';
   }
 
   /**
