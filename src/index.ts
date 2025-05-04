@@ -6,6 +6,36 @@ import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints 
 export type ICAO = string;
 
 /**
+ * Represents an aircraft with its specifications and characteristics.
+ * 
+ * @interface Aircraft
+ * @property {string} [manufacturer] - The manufacturer of the aircraft.
+ * @property {string} [model] - The model of the aircraft.
+ * @property {string} [registration] - The registration identifier of the aircraft.
+ * @property {number} [numberOfEngines] - The number of engines the aircraft has.
+ * @property {string[]} [avionics] - Array of avionics systems (e.g., 'Garmin G1000', 'Bendix King').
+ * @property {number} [cruiseSpeed] - The cruising speed of the aircraft in knots.
+ * @property {number} [range] - The maximum range of the aircraft in nautical miles.
+ * @property {number} [fuelCapacity] - The fuel capacity of the aircraft in liters.
+ * @property {number} [fuelConsumption] - The fuel consumption rate in liters per hour.
+ * @property {'piston' | 'turboprop' | 'jet'} [engineType] - The type of engine used in the aircraft.
+ * @property {number} [maxTakeoffWeight] - The maximum takeoff weight of the aircraft in kilograms.
+ */
+export interface Aircraft {
+  manufacturer?: string;
+  model?: string;
+  registration?: string;
+  numberOfEngines?: number;
+  avionics?: string[]; // array of avionics systems (e.g., 'Garmin G1000', 'Bendix King')
+  cruiseSpeed?: number; // in knots
+  range?: number; // in nautical miles
+  fuelCapacity?: number; // in liters
+  fuelConsumption?: number; // in liters per hour
+  engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
+  maxTakeoffWeight?: number; // in kilograms
+}
+
+/**
  * Represents a METAR (Meteorological Aerodrome Report) station.
  *
  * @interface MetarStation
