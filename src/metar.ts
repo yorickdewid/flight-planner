@@ -487,9 +487,18 @@ export class Metar {
       return a.height - b.height;
     });
 
+    const cloudQuantityMap: Record<string, string> = {
+      'SKC': 'Clear',
+      'FEW': 'Few',
+      'BKN': 'Broken',
+      'SCT': 'Scattered',
+      'OVC': 'Overcast',
+      'NSC': 'No Significant Clouds',
+    };
+
     return sortedClouds.map(cloud => {
       if (cloud.height) {
-        return `${cloud.quantity} ${cloud.height} ft`;
+        return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
       }
       return cloud.quantity;
     }).join(', ');
