@@ -1,9 +1,9 @@
-import { ReportingPoint, Aerodrome } from './airport.js';
-import { isICAO, parseRouteString } from './utils.js';
-import { describe, it, expect, beforeEach } from '@jest/globals';
-import { jest } from '@jest/globals';
-import { point } from '@turf/turf';
-import { AerodromeService } from './service.js';
+// import { ReportingPoint, Aerodrome } from './airport.js';
+import { isICAO, normalizeICAO } from './utils.js';
+import { describe, it, expect } from '@jest/globals';
+// import { jest } from '@jest/globals';
+// import { point } from '@turf/turf';
+// import { AerodromeService } from './service.js';
 
 describe('isICAO', () => {
   it('should return true for valid ICAO identifiers', () => {
@@ -23,6 +23,30 @@ describe('isICAO', () => {
 
   it('should handle edge cases', () => {
     expect(isICAO('ZZZZ')).toBe(true);
+  });
+});
+
+describe('normalizeICAO', () => {
+  it('should convert lowercase ICAO codes to uppercase', () => {
+    expect(normalizeICAO('eham')).toBe('EHAM');
+    expect(normalizeICAO('lfpg')).toBe('LFPG');
+    expect(normalizeICAO('kjfk')).toBe('KJFK');
+  });
+
+  it('should convert mixed case ICAO codes to uppercase', () => {
+    expect(normalizeICAO('eHaM')).toBe('EHAM');
+    expect(normalizeICAO('LfPg')).toBe('LFPG');
+    expect(normalizeICAO('kJfK')).toBe('KJFK');
+  });
+
+  it('should leave uppercase ICAO codes unchanged', () => {
+    expect(normalizeICAO('EHAM')).toBe('EHAM');
+    expect(normalizeICAO('LFPG')).toBe('LFPG');
+    expect(normalizeICAO('KJFK')).toBe('KJFK');
+  });
+
+  it('should handle empty strings', () => {
+    expect(normalizeICAO('')).toBe('');
   });
 });
 
