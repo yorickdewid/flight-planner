@@ -118,7 +118,6 @@ function fromIMetar(metar: IMetar): MetarData {
       value: metar.altimeter.value,
       unit: metar.altimeter.unit === 'hPa' ? 'hPa' : 'inHg'
     } as Pressure : undefined,
-
     clouds: metar.clouds?.map((cloud: ICloud) => ({
       quantity: cloud.quantity,
       height: cloud.height,
@@ -156,7 +155,6 @@ export interface MetarData {
   station: string;
   observationTime: Date;
   raw: string;
-
   wind: Wind;
   temperature?: number;
   dewpoint?: number;
@@ -221,12 +219,22 @@ export class Metar {
   }
 
   /**
-   * Get the temperature in degrees Celsius.
-   * 
-   * @returns The temperature in degrees Celsius
+   * Get the wind information from the METAR data.
+   *
+   * @returns The wind information object
    */
   get wind(): Wind {
     return this.metarData.wind;
+  }
+
+  /**
+   * Get the cloud information from the METAR data.
+   *
+   *
+   * @returns An array of cloud objects, or undefined if no clouds are reported
+   */
+  get clouds(): Cloud[] | undefined {
+    return this.metarData.clouds;
   }
 
   /**
