@@ -372,9 +372,13 @@ export class Metar {
   /**
    * Formats wind information from the METAR data into a human-readable string.
    * 
-   * @returns A formatted string describing wind conditions or 'Calm' if no wind direction is present
+   * @returns A formatted string describing wind conditions or 'Calm' if wind speed is 0
    */
   formatWind(): string {
+    if (this.metarData.wind.speed === 0) {
+      return 'Calm';
+    }
+
     if (this.metarData.wind.direction) {
       let windString = `${this.metarData.wind.direction}° with ${this.metarData.wind.speed}kt`;
       if (this.metarData.wind.gust) {

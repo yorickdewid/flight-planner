@@ -80,7 +80,7 @@ describe('Metar', () => {
   });
 
   describe('formatQNH', () => {
-    it('should return "No QNH" when no QNH is present', () => {
+    it('should return "-" when no QNH is present', () => {
       const metarData: MetarData = {
         station: 'TEST',
         observationTime: new Date(),
@@ -210,6 +210,17 @@ describe('Metar', () => {
       const metar = new Metar(metarData);
       expect(metar.formatVisibility()).toBe('10 km+');
     });
+
+    it('should handle CAVOK condition correctly', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'EGLL 291020Z 24015KT CAVOK 18/09 Q1022',
+        wind: { direction: 240, speed: 15 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatVisibility()).toBe('10 km+');
+    });
   });
 
   describe('formatTemperature', () => {
@@ -237,8 +248,8 @@ describe('Metar', () => {
     });
   });
 
-  describe('formatDewPoint', () => {
-    it('should return "No dew point" when no dew point is present', () => {
+  describe('formatDewpoint', () => {
+    it('should return "-" when no dew point is present', () => {
       const metarData: MetarData = {
         station: 'TEST',
         observationTime: new Date(),
