@@ -172,4 +172,110 @@ describe('Metar', () => {
       expect(metar.formatVisibility()).toBe('10 km+');
     });
   });
+
+  describe('formatTemperature', () => {
+    it('should return "No temperature" when no temperature is present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatTemperature()).toBe('-');
+    });
+
+    it('should return formatted temperature when present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        temperature: 23
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatTemperature()).toBe('23°C');
+    });
+  });
+
+  describe('formatDewPoint', () => {
+    it('should return "No dew point" when no dew point is present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatDewpoint()).toBe('-');
+    });
+
+    it('should return formatted dew point when present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        dewpoint: 15
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatDewpoint()).toBe('15°C');
+    });
+  });
+
+  describe('formatClouds', () => {
+    it('should return "No clouds" when no clouds are present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatClouds()).toBe('-');
+    });
+
+    it('should return formatted clouds when present', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        clouds: [{ quantity: 'BKN', height: 3000 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatClouds()).toBe('Broken at 3000 ft');
+    });
+
+    it('should return formatted clouds with multiple layers', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        clouds: [
+          { quantity: 'BKN', height: 3000 },
+          { quantity: 'OVC', height: 5000 }
+        ]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatClouds()).toBe('Broken at 3000 ft, Overcast at 5000 ft');
+    });
+
+    it('should return formatted clouds with different quantities', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        clouds: [
+          { quantity: 'FEW', height: 1000 },
+          { quantity: 'SCT', height: 2000 },
+          { quantity: 'BKN', height: 3000 }
+        ]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.formatClouds()).toBe('Few at 1000 ft, Scattered at 2000 ft, Broken at 3000 ft');
+    });
+  });
 });
