@@ -9,10 +9,12 @@ import { Wind } from './metar.js';
  * @interface CourseVector
  * @property {number} distance - The distance of the course vector in nautical miles.
  * @property {number} track - The track heading in degrees.
+ * @property {number | undefined} altitude - The altitude in feet, if available.
  */
 export interface CourseVector {
   distance: number;
   track: number;
+  altitude?: number;
 }
 
 /**
@@ -25,13 +27,15 @@ export interface CourseVector {
  * @property {number} trueTrack - The true track heading in degrees
  * @property {number | undefined} windDirection - The wind direction in degrees, if available
  * @property {number | undefined} windSpeed - The wind speed in knots, if available
+ * @property {Date | undefined} arrivalDate - The estimated arrival date and time at the end waypoint
  * @property {AircraftPerformance} [performance] - Optional performance calculations for this leg
  */
 export interface RouteLeg {
   start: Waypoint;
   end: Waypoint;
   course: CourseVector;
-  wind: Wind | undefined
+  wind?: Wind;
+  arrivalDate?: Date;
   performance?: AircraftPerformance;
 }
 
@@ -67,7 +71,7 @@ export interface RouteTrip {
  * @param routeTrip - The route trip containing legs with start and end waypoints
  * @returns An array of waypoints representing all points in the route trip
  */
-export const routeTripWaypoints = (routeTrip: RouteTrip): Waypoint[] => {
+export const routeTripWaypoints = (routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] => {
   return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
 }
 
@@ -104,6 +108,7 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   }
 
   const aircraft = options?.aircraft;
+  const departureDate = options?.departureDate || new Date();
 
   const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
     const endWaypoint = waypoints[i + 1];
@@ -111,6 +116,7 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
     const course = {
       distance: startWaypoint.distanceTo(endWaypoint),
       track: normalizeTrack(startWaypoint.headingTo(endWaypoint)),
+      altitude: options?.altitude,
     }
 
     const wind = startWaypoint.metarStation?.metar.wind;
@@ -118,11 +124,13 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
       ? calculateFlightPerformance(aircraft, course.distance, course.track, wind) // TODO: Add altitude, change method to accept 'course' object
       : undefined;
 
+    const arrivalDate = performance ? new Date(departureDate.getTime() + performance.duration * 60 * 1000) : undefined;
     return {
       start: startWaypoint,
       end: endWaypoint,
       course,
       wind,
+      arrivalDate,
       performance,
     };
   });
@@ -135,7 +143,6 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
   const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
   const totalFuelRequired = totalFuelConsumption + (reserveFuel || 0);
 
-  const departureDate = options?.departureDate || new Date();
   const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
 
   return {
