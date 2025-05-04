@@ -61,9 +61,11 @@
   },
   "dependencies": {
     "@turf/turf": "^7.2.0",
+    "convert-units": "^2.3.4",
     "metar-taf-parser": "^9.0.1"
   },
   "devDependencies": {
+    "@types/convert-units": "^2.3.11",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.3",
     "@typescript-eslint/eslint-plugin": "^8.19.0",

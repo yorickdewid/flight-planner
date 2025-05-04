@@ -1,5 +1,6 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, IMetar, parseMetar } from "metar-taf-parser";
+import convert from 'convert-units';
 
 /**
  * Enumeration representing different flight rules categories.
@@ -252,8 +253,7 @@ export class Metar {
     if (this.metarData.visibility !== undefined) {
       visibilityMeters = this.metarData.visibility.value;
       if (this.metarData.visibility.unit === 'sm') {
-        // Convert statute miles to meters
-        visibilityMeters *= 1609.34;
+        visibilityMeters = convert(visibilityMeters).from('mi').to('m');
       }
     }
 
