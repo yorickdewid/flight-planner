@@ -516,7 +516,7 @@ export class Metar {
    *          - 'purple' for LIFR (Low Instrument Flight Rules)
    *          - 'black' for any undefined flight rules
    */
-  flightRuleColor(): string {
+  get flightRuleColor(): string {
     switch (this.flightRule) {
       case FlightRules.VFR:
         return 'green';

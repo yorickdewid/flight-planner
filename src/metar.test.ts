@@ -40,6 +40,45 @@ describe('Metar', () => {
     });
   });
 
+  describe('flightRuleColor', () => {
+    it('should return "green" for VFR', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        visibility: { value: 10000, unit: 'm' },
+        clouds: [{ quantity: 'FEW', height: 5000 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.flightRuleColor).toBe('green');
+    });
+
+    it('should return "purple" for LIFR', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        visibility: { value: 800, unit: 'm' }
+      };
+      const metar = new Metar(metarData);
+      expect(metar.flightRuleColor).toBe('purple');
+    });
+
+    it('should return "blue" for IFR', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        clouds: [{ quantity: 'OVC', height: 3000 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.flightRuleColor).toBe('blue');
+    });
+  });
+
   describe('formatQNH', () => {
     it('should return "No QNH" when no QNH is present', () => {
       const metarData: MetarData = {
