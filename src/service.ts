@@ -118,21 +118,6 @@ export class AerodromeService {
     }
   }
 
-  /**
-   * Refreshes the aerodromes based on the provided search query or bounding box.
-   * 
-   * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing aerodromes.
-   * @param extend - Optional distance in kilometers to extend the bounding box.
-   */
-  async update(location: GeoJSON.Position, distance: number = 50): Promise<void> {
-    if (!this.repository || !this.repository.fetchByRadius) {
-      throw new Error('Repository not set or does not support fetchByRadius');
-    }
-
-    const result = await this.repository.fetchByRadius(location, distance);
-    await this.add(result);
-  }
-
   // TODO: Check if isICAO
   /**
    * Finds an aerodrome by its ICAO code.
@@ -162,8 +147,9 @@ export class AerodromeService {
    * @returns A promise that resolves to the nearest aerodrome, or undefined if not found.
    */
   async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    if (this.aerodromes.size === 0) {
-      await this.update(location, 100);
+    if (this.aerodromes.size === 0 && this.repository && this.repository.fetchByRadius) {
+      const result = await this.repository.fetchByRadius(location, 100);
+      await this.add(result);
 
       if (this.aerodromes.size === 0) {
         return undefined;
