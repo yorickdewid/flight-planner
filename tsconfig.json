@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "declaration": true,
     "strict": true,
     "esModuleInterop": true,
@@ -13,7 +13,8 @@
     // "isolatedModules": true
   },
   "include": [
-    "src"
+    "src",
+    "cli"
   ],
   "exclude": [
     "node_modules",

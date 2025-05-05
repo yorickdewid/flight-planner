@@ -27,7 +27,8 @@
     "lint": "eslint src/",
     "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint"
+    "prepublishOnly": "npm test && npm run lint",
+    "cli": "npm run build && node dist/cli/cli.js"
   },
   "files": [
     "dist",
