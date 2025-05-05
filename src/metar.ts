@@ -506,7 +506,7 @@ export class Metar {
       if (cloud.height) {
         return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
       }
-      return cloud.quantity;
+      return cloudQuantityMap[cloud.quantity];
     }).join(', ');
   }
 
