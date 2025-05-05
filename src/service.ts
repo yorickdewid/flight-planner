@@ -130,6 +130,12 @@ export class AerodromeService {
 
     const aerodrome = this.aerodromes.get(normalizedIcao);
     if (aerodrome) {
+      if (this.weatherService && aerodrome.metarStation) {
+        const metar = await this.weatherService.get(aerodrome.metarStation.station);
+        if (metar) {
+          aerodrome.metarStation = metar;
+        }
+      }
       return aerodrome;
     } else if (this.repository) {
       const result = await this.repository.fetchByICAO([normalizedIcao]);
