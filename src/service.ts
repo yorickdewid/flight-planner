@@ -96,6 +96,7 @@ export class AerodromeService {
       const normalizedICAO = normalizeICAO(aerodrome.ICAO);
       if (isICAO(normalizedICAO)) {
         this.aerodromes.set(normalizedICAO, aerodrome);
+        // TODO: calculate geohash
         if (!aerodrome.metarStation) {
           aerodromeWithoutMetar.push(aerodrome);
         }
@@ -188,7 +189,13 @@ export interface WeatherStationOptions {
   repository?: RepositoryBase<MetarStation>;
 }
 
-// TODO: This can later be improved with geohashing
+/**
+ * WeatherService class provides methods to manage and retrieve METAR station data.
+ * 
+ * @class WeatherService
+ * @property {Map<ICAO, MetarStation>} metarStations - A map of ICAO codes to MetarStation objects.
+ * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
+ */
 export class WeatherService {
   private metarStations: Map<ICAO, MetarStation>;
   private repository?: RepositoryBase<MetarStation>;
@@ -277,7 +284,6 @@ export class WeatherService {
     }
   }
 
-  // TODO: Check if isICAO
   /**
    * Finds a METAR station by its ICAO code.
    * 
@@ -285,17 +291,22 @@ export class WeatherService {
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
   async get(icao: string): Promise<MetarStation | undefined> {
-    const normalizedIcao = normalizeICAO(icao);
-
-    const station = this.metarStations.get(normalizedIcao);
-    if (station) {
-      return station;
-    } else if (this.repository) {
-      const result = await this.repository.fetchByICAO([normalizedIcao]);
-      await this.add(result);
+    if (!this.repository || !this.repository.fetchByICAO) {
+      throw new Error('Repository not set or does not support fetchByICAO');
     }
 
-    return this.metarStations.get(normalizedIcao);
+    const normalizedICAO = normalizeICAO(icao);
+    const metarResults = await this.repository.fetchByICAO([normalizedICAO]);
+    if (metarResults.length === 0) {
+      return undefined;
+    }
+
+    const metarStation = metarResults[0];
+    if (isICAO(metarStation.station)) {
+      return metarStation;
+    }
+
+    return undefined;
   }
 
   /**
