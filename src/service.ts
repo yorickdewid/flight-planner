@@ -1,7 +1,7 @@
 import { ICAO, MetarStation } from "./index.js";
 import { Aerodrome } from "./airport.js";
 import { isICAO, normalizeICAO } from "./utils.js";
-import { bbox, buffer, point, nearestPoint, bboxPolygon } from "@turf/turf";
+import { bbox, buffer, point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
 /**
@@ -105,7 +105,7 @@ export class AerodromeService {
 
     if (this.weatherService && aerodromeWithoutMetar.length > 0) {
       // TODO: We're better off using a bounding box to fetch the METAR stations
-      await this.weatherService.update(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
+      // await this.weatherService.get(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
 
       for (const aerodrome of aerodromeWithoutMetar) {
         if (aerodrome.location && aerodrome.location.geometry && aerodrome.location.geometry.coordinates) {
@@ -133,8 +133,8 @@ export class AerodromeService {
     if (aerodrome) {
       if (this.weatherService && aerodrome.metarStation) {
         const metar = await this.weatherService.get(aerodrome.metarStation.station);
-        if (metar) {
-          aerodrome.metarStation = metar;
+        if (metar && metar.length > 0) {
+          aerodrome.metarStation = metar[0];
         }
       }
       return aerodrome;
@@ -197,7 +197,7 @@ export interface WeatherStationOptions {
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
 export class WeatherService {
-  private metarStations: Map<ICAO, MetarStation>;
+  // private metarStations: Map<ICAO, MetarStation>;
   private repository?: RepositoryBase<MetarStation>;
 
   /**
@@ -208,9 +208,9 @@ export class WeatherService {
    */
   constructor(options: WeatherStationOptions = {}) {
     this.repository = options.repository;
-    this.metarStations = options.metarStations
-      ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.station), metar]))
-      : new Map();
+    // this.metarStations = options.metarStations
+    //   ? new Map(options.metarStations.map(metar => [normalizeICAO(metar.station), metar]))
+    //   : new Map();
   }
 
   /**
@@ -218,39 +218,39 @@ export class WeatherService {
    * 
    * @returns An array of ICAO codes.
    */
-  keys(): ICAO[] {
-    return Array.from(this.metarStations.keys());
-  }
+  // keys(): ICAO[] {
+  //   return Array.from(this.metarStations.keys());
+  // }
 
   /**
    * Returns an array of METAR stations.
    * 
    * @returns An array of METAR stations.
    */
-  values(): MetarStation[] {
-    return Array.from(this.metarStations.values());
-  }
+  // values(): MetarStation[] {
+  //   return Array.from(this.metarStations.values());
+  // }
 
   /**
    * Adds a METAR station to the service.
    * 
    * @param metar - The METAR station to add.
    */
-  async add(stations: MetarStation | MetarStation[]): Promise<void> {
-    let metarArray: MetarStation[] = [];
-    if (Array.isArray(stations)) {
-      metarArray = stations;
-    } else {
-      metarArray = [stations];
-    }
+  // async add(stations: MetarStation | MetarStation[]): Promise<void> {
+  //   let metarArray: MetarStation[] = [];
+  //   if (Array.isArray(stations)) {
+  //     metarArray = stations;
+  //   } else {
+  //     metarArray = [stations];
+  //   }
 
-    metarArray.forEach(metar => {
-      const normalizedICAO = normalizeICAO(metar.station);
-      if (isICAO(normalizedICAO)) {
-        this.metarStations.set(normalizedICAO, metar);
-      }
-    });
-  }
+  //   metarArray.forEach(metar => {
+  //     const normalizedICAO = normalizeICAO(metar.station);
+  //     if (isICAO(normalizedICAO)) {
+  //       this.metarStations.set(normalizedICAO, metar);
+  //     }
+  //   });
+  // }
 
   /**
    * Refreshes the METAR stations based on the provided search query or bounding box.
@@ -258,31 +258,35 @@ export class WeatherService {
    * @param search - The search string, array of ICAO codes, or bounding box to use for refreshing METAR stations.
    * @param extend - Optional distance in kilometers to extend the bounding box.
    */
-  async update(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
-    if (!this.repository || !this.repository.fetchByICAO || !this.repository.fetchByBbox) {
-      throw new Error('Repository not set or does not support fetchByICAO or fetchByBbox');
-    }
+  // async update(search?: string | string[] | GeoJSON.BBox, extend?: number): Promise<void> {
+  //   if (!this.repository || !this.repository.fetchByICAO || !this.repository.fetchByBbox) {
+  //     throw new Error('Repository not set or does not support fetchByICAO or fetchByBbox');
+  //   }
 
-    if (search === undefined) {
-      const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
-      await this.add(result);
-    } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
-      const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
-      const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
-      if (featureBuffer) {
-        const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
+  //   if (search === undefined) {
 
-        const result = await this.repository.fetchByBbox(extendedBbox);
-        await this.add(result);
-      }
-    } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
-      const result = await this.repository.fetchByICAO(search.filter(code => isICAO(code)) as ICAO[]);
-      await this.add(result);
-    } else if (typeof search === 'string' && isICAO(search)) {
-      const result = await this.repository.fetchByICAO([search]);
-      await this.add(result);
-    }
-  }
+  //     // const result = await this.repository.fetchByICAO(Array.from(this.metarStations.keys()));
+  //     // await this.add(result);
+  //   } else if (Array.isArray(search) && search.length === 4 && search.every(item => typeof item === 'number')) {
+
+  //     const bboxPoly = bboxPolygon(search as GeoJSON.BBox);
+  //     const featureBuffer = buffer(bboxPoly, extend || 0, { units: 'kilometers' });
+  //     if (featureBuffer) {
+  //       const extendedBbox = bbox(featureBuffer) as GeoJSON.BBox;
+
+  //       const result = await this.repository.fetchByBbox(extendedBbox);
+  //       await this.add(result);
+  //     }
+  //   } else if (Array.isArray(search) && search.every(item => typeof item === 'string')) {
+
+  //     const result = await this.repository.fetchByICAO(search.filter(code => isICAO(code)) as ICAO[]);
+  //     await this.add(result);
+  //   } else if (typeof search === 'string' && isICAO(search)) {
+
+  //     const result = await this.repository.fetchByICAO([search]);
+  //     await this.add(result);
+  //   }
+  // }
 
   /**
    * Finds a METAR station by its ICAO code.
@@ -290,20 +294,17 @@ export class WeatherService {
    * @param icao - The ICAO code of the METAR station.
    * @returns A promise that resolves to the METAR station, or undefined if not found.
    */
-  async get(icao: string): Promise<MetarStation | undefined> {
+  async get(icao: string | string[]): Promise<MetarStation[] | undefined> {
     if (!this.repository || !this.repository.fetchByICAO) {
       throw new Error('Repository not set or does not support fetchByICAO');
     }
 
-    const normalizedICAO = normalizeICAO(icao);
-    const metarResults = await this.repository.fetchByICAO([normalizedICAO]);
-    if (metarResults.length === 0) {
-      return undefined;
-    }
-
-    const metarStation = metarResults[0];
-    if (isICAO(metarStation.station)) {
-      return metarStation;
+    if (Array.isArray(icao) && icao.every(item => typeof item === 'string')) {
+      const result = await this.repository.fetchByICAO(icao.filter(code => isICAO(code)) as ICAO[]);
+      return result.length > 0 ? result : undefined;
+    } else if (typeof icao === 'string' && isICAO(icao)) {
+      const result = await this.repository.fetchByICAO([icao]);
+      return result.length > 0 ? result : undefined;
     }
 
     return undefined;
@@ -317,16 +318,31 @@ export class WeatherService {
    * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
    */
   async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<MetarStation | undefined> {
-    // if (this.metarStations.size === 0) {
-    //   await this.update(location, 100);
+    if (!this.repository) {
+      throw new Error('Repository not set');
+    }
 
-    //   if (this.metarStations.size === 0) {
-    //     return undefined;
-    //   }
-    // }
+    const metarStations: Map<ICAO, MetarStation> = new Map();
+    if (this.repository.fetchByRadius) {
+      const result = await this.repository.fetchByRadius(location, 100);
+      result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
+    } else if (this.repository.fetchByBbox) {
+      const locationPoint = point(location);
+      const buffered = buffer(locationPoint, 100, { units: 'kilometers' });
+      if (buffered) {
+        const searchBbox = bbox(buffered) as GeoJSON.BBox;
+
+        const result = await this.repository.fetchByBbox(searchBbox);
+        result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
+      }
+    }
+
+    if (metarStations.size === 0) {
+      return undefined;
+    }
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
-    const metarCandidates = this.values().filter(metar => !normalizedExclude.includes(normalizeICAO(metar.station)));
+    const metarCandidates = Array.from(metarStations.values()).filter(metar => !normalizedExclude.includes(normalizeICAO(metar.station)));
     if (metarCandidates.length === 0) {
       return undefined;
     }
@@ -335,6 +351,6 @@ export class WeatherService {
       return point(metar.coords, { station: metar.station });
     })));
 
-    return this.metarStations.get(nearest.properties?.station);
+    return metarStations.get(nearest.properties?.station);
   }
 }
