@@ -92,6 +92,93 @@ describe('Metar', () => {
     });
   });
 
+  describe('colorCode', () => {
+    it('should return "red" for very hazardous conditions', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 45 },
+        visibility: { value: 1000, unit: 'm' }
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('red');
+    });
+
+    it('should return "amber" for hazardous conditions', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 32 },
+        visibility: { value: 1500, unit: 'm' }
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('amber');
+    });
+
+    it('should return "yellow" for significant deterioration', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 22 },
+        clouds: [{ quantity: 'BKN', height: 650 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('yellow');
+    });
+
+    it('should return "blue" for minor deterioration', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 16 },
+        clouds: [{ quantity: 'BKN', height: 1400 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('blue');
+    });
+
+    it('should return "green" for normal operations', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        visibility: { value: 8000, unit: 'm' },
+        clouds: [{ quantity: 'FEW', height: 3500 }]
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('green');
+    });
+
+    it('should handle wind gusts correctly', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 15, gust: 35 },
+        visibility: { value: 8000, unit: 'm' }
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('yellow');
+    });
+
+    it('should handle visibility in statute miles', () => {
+      const metarData: MetarData = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        visibility: { value: 0.75, unit: 'sm' } // Roughly 1200m
+      };
+      const metar = new Metar(metarData);
+      expect(metar.colorCode).toBe('amber');
+    });
+  });
+
   describe('formatQNH', () => {
     it('should return "-" when no QNH is present', () => {
       const metarData: MetarData = {

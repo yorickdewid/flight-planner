@@ -542,4 +542,79 @@ export class Metar {
         return 'black';
     }
   }
+
+  /**
+   * Determines the aviation color code based on meteorological conditions.
+   * Color codes indicate current conditions at the aerodrome:
+   * - GREEN: Normal operations - no significant restrictions
+   * - BLUE: Minor deterioration in conditions - minor restrictions
+   * - YELLOW: Significant deterioration - operations limited
+   * - AMBER: Hazardous conditions - operations severely limited
+   * - RED: Very hazardous conditions - operations not recommended
+   * 
+   * @returns A string representing the aviation color code:
+   *          - 'green' for normal operations
+   *          - 'blue' for minor deterioration
+   *          - 'yellow' for significant deterioration
+   *          - 'amber' for hazardous conditions
+   *          - 'red' for very hazardous conditions
+   */
+  get colorCode(): string {
+    const visibility = this.metarData.visibility;
+    const ceiling = this.ceiling;
+    const windSpeed = this.metarData.wind?.speed;
+    const gustSpeed = this.metarData.wind?.gust;
+
+    // Convert visibility to meters if needed
+    let visibilityMeters: number | undefined;
+    if (visibility) {
+      visibilityMeters = visibility.value;
+      if (visibility.unit === 'sm') {
+        visibilityMeters = convert(visibilityMeters).from('mi').to('m');
+      }
+    }
+
+    // RED: Very hazardous conditions
+    if (
+      (visibilityMeters !== undefined && visibilityMeters < 800) ||
+      (ceiling !== undefined && ceiling < 200) ||
+      (windSpeed !== undefined && windSpeed > 40) ||
+      (gustSpeed !== undefined && gustSpeed > 50)
+    ) {
+      return 'red';
+    }
+
+    // AMBER: Hazardous conditions
+    if (
+      (visibilityMeters !== undefined && visibilityMeters < 1600) ||
+      (ceiling !== undefined && ceiling < 400) ||
+      (windSpeed !== undefined && windSpeed > 30) ||
+      (gustSpeed !== undefined && gustSpeed > 40)
+    ) {
+      return 'amber';
+    }
+
+    // YELLOW: Significant deterioration
+    if (
+      (visibilityMeters !== undefined && visibilityMeters < 3200) ||
+      (ceiling !== undefined && ceiling < 700) ||
+      (windSpeed !== undefined && windSpeed > 20) ||
+      (gustSpeed !== undefined && gustSpeed > 30)
+    ) {
+      return 'yellow';
+    }
+
+    // BLUE: Minor deterioration
+    if (
+      (visibilityMeters !== undefined && visibilityMeters < 5000) ||
+      (ceiling !== undefined && ceiling < 1500) ||
+      (windSpeed !== undefined && windSpeed > 15) ||
+      (gustSpeed !== undefined && gustSpeed > 20)
+    ) {
+      return 'blue';
+    }
+
+    // GREEN: Normal operations
+    return 'green';
+  }
 }
