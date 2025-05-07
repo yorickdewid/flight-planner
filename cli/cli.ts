@@ -198,8 +198,9 @@ async function findAerodromeByICAO() {
 async function findMetarStationByICAO() {
   rl.question('Enter ICAO code: ', async (icao) => {
     try {
-      const metarStation = await weatherService.get(icao);
-      if (metarStation) {
+      const metarStations = await weatherService.get(icao);
+      if (metarStations && metarStations.length > 0) {
+        const metarStation = metarStations[0];
         console.log('\n=== METAR Station ===');
         console.log(`ICAO: ${metarStation.station}`);
         console.log(`Temperature: ${metarStation.metar.formatTemperature()}`);
