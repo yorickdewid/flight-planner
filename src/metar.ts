@@ -570,6 +570,7 @@ export class Metar {
     if (visibility) {
       visibilityMeters = visibility.value;
       if (visibility.unit === 'sm') {
+        // TODO: Move this to a utility function so it can be used once the METAR is parsed
         visibilityMeters = convert(visibilityMeters).from('mi').to('m');
       }
     }

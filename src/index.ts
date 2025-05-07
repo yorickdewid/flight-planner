@@ -21,7 +21,7 @@ export const StandardTemperature = 15; // Celsius
  * @property {number} [range] - The maximum range of the aircraft in nautical miles.
  * @property {number} [fuelCapacity] - The fuel capacity of the aircraft in liters.
  * @property {number} [fuelConsumption] - The fuel consumption rate in liters per hour.
- * @property {'piston' | 'turboprop' | 'jet'} [engineType] - The type of engine used in the aircraft.
+ * @property {'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft'} [engineType] - The type of engine used in the aircraft.
  * @property {number} [maxTakeoffWeight] - The maximum takeoff weight of the aircraft in kilograms.
  */
 export interface Aircraft {

@@ -63,12 +63,14 @@
   "dependencies": {
     "@turf/turf": "^7.2.0",
     "convert-units": "^2.3.4",
-    "metar-taf-parser": "^9.0.1"
+    "metar-taf-parser": "^9.0.1",
+    "suncalc": "^1.9.0"
   },
   "devDependencies": {
     "@types/convert-units": "^2.3.11",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.3",
+    "@types/suncalc": "^1.9.2",
     "@typescript-eslint/eslint-plugin": "^8.19.0",
     "@typescript-eslint/parser": "^8.19.0",
     "eslint": "^9.17.0",
