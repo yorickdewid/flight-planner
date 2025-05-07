@@ -5,6 +5,9 @@ import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints 
 
 export type ICAO = string;
 
+export const StandardPressure = 1013.25; // hPa
+export const StandardTemperature = 15; // Celsius
+
 /**
  * Represents an aircraft with its specifications and characteristics.
  * 
