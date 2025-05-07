@@ -234,11 +234,19 @@ export class Metar {
   /**
    * Get the cloud information from the METAR data.
    *
-   *
    * @returns An array of cloud objects, or undefined if no clouds are reported
    */
   get clouds(): Cloud[] | undefined {
     return this.metarData.clouds;
+  }
+
+  /**
+   * Get the temperature from the METAR data.
+   * 
+   * @returns The temperature in degrees Celsius, or undefined if not available
+   */
+  get QNH(): Pressure | undefined {
+    return this.metarData.qnh;
   }
 
   /**

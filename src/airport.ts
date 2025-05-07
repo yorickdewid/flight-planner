@@ -279,6 +279,22 @@ export class Aerodrome extends Waypoint {
   }
 
   /**
+   * Returns the QFE (atmospheric pressure at aerodrome elevation) value.
+   * 
+   * @returns The QFE value in hPa (hectopascals), rounded to 2 decimal places, 
+   *          or undefined if elevation or QNH data is not available
+   */
+  get QFE(): number | undefined {
+    if (!this.fieldElevation || !this.metarStation || !this.metarStation.metar.QNH) {
+      return undefined;
+    }
+
+    // TODO: Standardize units
+    const QNH = this.metarStation.metar.QNH;
+    return Math.round((QNH.value - (this.fieldElevation / 30)) * 100) / 100;
+  }
+
+  /**
    * Calculates the wind vectors for all runways of the airport.
    * 
    * @returns The wind vectors for the runways in descending order of headwind
