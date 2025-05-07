@@ -234,6 +234,15 @@ export class Aerodrome extends Waypoint {
   }
 
   /**
+   * Returns the IATA code of the airport.
+   *
+   * @returns The IATA code of the airport
+   */
+  get IATA(): string | undefined {
+    return this.options.IATA;
+  }
+
+  /**
    * Returns the runways of the airport.
    *
    * @returns An array of runways associated with the airport
@@ -249,6 +258,15 @@ export class Aerodrome extends Waypoint {
    */
   get frequencies(): Frequency[] | undefined {
     return this.options.frequencies;
+  }
+
+  /**
+   * Returns the elevation of the airport.
+   * 
+   * @returns The elevation of the airport in feet
+   */
+  get fieldElevation(): number | undefined {
+    return this.options.elevation;
   }
 
   /**
@@ -271,7 +289,7 @@ export class Aerodrome extends Waypoint {
     }
 
     return this.options.runways
-      .map(runway => this.calculateRunwayWindVector(runway, this.metarStation!.metar.wind))
+      .map(runway => Aerodrome.calculateRunwayWindVector(runway, this.metarStation!.metar.wind))
       .sort((a, b) => b.headwind - a.headwind)
   }
 
@@ -283,7 +301,7 @@ export class Aerodrome extends Waypoint {
    * @returns The calculated runway wind vector
    * @private
    */
-  private calculateRunwayWindVector(runway: Runway, wind: Wind): RunwayWindVector {
+  private static calculateRunwayWindVector(runway: Runway, wind: Wind): RunwayWindVector {
     const windVector = calculateWindVector(wind, runway.heading);
 
     return {
