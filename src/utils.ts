@@ -26,10 +26,13 @@ export interface WindVector {
  */
 export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
   const windAngle = wind.direction - trueTrack;
-
   const windAngleRad = degreesToRadians(windAngle);
-  const headwind = wind.speed * Math.cos(windAngleRad);
-  const crosswind = wind.speed * Math.sin(windAngleRad);
+
+  const cosAngle = Math.cos(windAngleRad);
+  const sinAngle = Math.sin(windAngleRad);
+
+  const headwind = wind.speed * cosAngle;
+  const crosswind = wind.speed * sinAngle;
 
   return {
     angle: windAngle,
@@ -135,6 +138,25 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
   }
 
   return waypoints;
+}
+
+/**
+ * Parses a string of ICAO codes and returns an array of unique ICAO codes.
+ * 
+ * @param icaoString - The string containing ICAO codes
+ * @param delimiter - The delimiter used to separate ICAO codes in the string
+ * @returns An array of unique ICAO codes
+ */
+export const parseICAOString = (icaoString: string, delimiter: string = ','): string[] => {
+  const icaoArray = icaoString.split(delimiter).map(icao => icao.trim());
+  const icaoSet = new Set<string>();
+  for (const icao of icaoArray) {
+    const normalizedICAO = normalizeICAO(icao);
+    if (isICAO(normalizedICAO)) {
+      icaoSet.add(normalizedICAO);
+    }
+  }
+  return Array.from(icaoSet);
 }
 
 /**
