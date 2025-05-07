@@ -238,22 +238,25 @@ export class WeatherService {
    * Finds the nearest METAR station to the given location.
    * 
    * @param location - The geographical location to find the nearest METAR station to.
+   * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
    * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
    * @throws Error if the repository is not set or if no appropriate fetch method is available.
    */
-  async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<MetarStation | undefined> {
+  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<MetarStation | undefined> {
     if (!this.repository) {
       throw new Error('Repository not set');
     }
 
+    const radiusRange = Math.min(1000, Math.max(1, radius));
+
     const metarStations: Map<ICAO, MetarStation> = new Map();
     if (this.repository.fetchByRadius) {
-      const result = await this.repository.fetchByRadius(location, 100);
+      const result = await this.repository.fetchByRadius(location, radiusRange);
       result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
     } else if (this.repository.fetchByBbox) {
       const locationPoint = point(location);
-      const buffered = buffer(locationPoint, 100, { units: 'kilometers' });
+      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
       if (buffered) {
         const searchBbox = bbox(buffered) as GeoJSON.BBox;
         const result = await this.repository.fetchByBbox(searchBbox);
