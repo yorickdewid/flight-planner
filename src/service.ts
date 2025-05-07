@@ -150,13 +150,16 @@ export class AerodromeService {
    * Finds the nearest aerodrome to the given location.
    * 
    * @param location - The geographical location to find the nearest aerodrome to.
+   * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
    * @returns A promise that resolves to the nearest aerodrome, or undefined if not found.
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
-  async nearest(location: GeoJSON.Position, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
     if (this.aerodromes.size === 0 && this.repository && this.repository.fetchByRadius) {
-      const result = await this.repository.fetchByRadius(location, 100);
+      const radiusRange = Math.min(1000, Math.max(1, radius));
+
+      const result = await this.repository.fetchByRadius(location, radiusRange);
       await this.add(result);
 
       if (this.aerodromes.size === 0) {
