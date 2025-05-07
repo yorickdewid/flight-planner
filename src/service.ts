@@ -104,9 +104,6 @@ export class AerodromeService {
     });
 
     if (this.weatherService && aerodromeWithoutMetar.length > 0) {
-      // TODO: We're better off using a bounding box to fetch the METAR stations
-      // await this.weatherService.get(aerodromeWithoutMetar.map(aerodrome => aerodrome.ICAO));
-
       for (const aerodrome of aerodromeWithoutMetar) {
         if (aerodrome.location && aerodrome.location.geometry && aerodrome.location.geometry.coordinates) {
           const nearestMetar = await this.weatherService.nearest(aerodrome.location.geometry.coordinates);
@@ -156,15 +153,17 @@ export class AerodromeService {
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    if (this.aerodromes.size === 0 && this.repository && this.repository.fetchByRadius) {
-      const radiusRange = Math.min(1000, Math.max(1, radius));
+    if (!this.repository || !this.repository.fetchByRadius) {
+      throw new Error('Repository not set or does not support fetchByRadius');
+    }
 
-      const result = await this.repository.fetchByRadius(location, radiusRange);
-      await this.add(result);
+    const radiusRange = Math.min(1000, Math.max(1, radius));
 
-      if (this.aerodromes.size === 0) {
-        return undefined;
-      }
+    const result = await this.repository.fetchByRadius(location, radiusRange);
+    await this.add(result);
+
+    if (this.aerodromes.size === 0) {
+      return undefined;
     }
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
