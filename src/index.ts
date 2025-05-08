@@ -1,6 +1,7 @@
 import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport.js";
 import { FlightRules, Metar } from "./metar.js";
-import { AerodromeService, WeatherService } from "./service.js";
+import { AerodromeService } from "./service.js";
+import { WeatherService } from "./weather-service.js";
 import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
 
 export type ICAO = string;
