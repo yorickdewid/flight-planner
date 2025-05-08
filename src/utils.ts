@@ -81,13 +81,13 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
 /**
  * Parses a route string and returns an array of waypoints.
  * 
- * @param AerodromeRepository - The repository to use for finding airports
+ * @param aerodromeRepository - The repository to use for finding airports
  * @param reportingPoints - The list of reporting points to use for finding reporting points
  * @param routeString - The route string to parse
  * @returns A promise that resolves to an array of waypoints
  * @throws Error if the route string contains invalid waypoint formats
  */
-export async function parseRouteString(AerodromeRepository: AerodromeService, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
+export async function parseRouteString(aerodromeRepository: AerodromeService, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
   const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
   const routeParts = routeString.toUpperCase().replace(/\s/g, '').split(';');
 
@@ -100,17 +100,17 @@ export async function parseRouteString(AerodromeRepository: AerodromeService, re
     const airportDesignatorMatch = part.match(airportDesignatorRegex);
     if (airportDesignatorMatch) {
       const icao = airportDesignatorMatch[1];
-      const airport = await AerodromeRepository.get(icao);
-      if (airport) {
-        waypoints.push(airport);
+      const airport = await aerodromeRepository.get(icao);
+      if (airport?.length) {
+        waypoints.push(...airport);
       }
       continue;
     }
 
     if (isICAO(part)) {
-      const airport = await AerodromeRepository.get(part);
-      if (airport) {
-        waypoints.push(airport);
+      const airport = await aerodromeRepository.get(part);
+      if (airport?.length) {
+        waypoints.push(...airport);
       }
       continue;
     }
