@@ -113,13 +113,18 @@ export interface RouteOptions {
  * @returns A route trip object with legs, distances, durations, and fuel calculations.
  * @throws Error if the waypoints array contains fewer than 2 points.
  */
-export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options?: RouteOptions): RouteTrip => {
+export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options: RouteOptions = {}): RouteTrip => {
   if (!Array.isArray(waypoints) || waypoints.length < 2) {
     throw new Error('At least 2 waypoints are required to plan a flight route');
   }
 
-  const aircraft = options?.aircraft;
-  const departureDate = options?.departureDate || new Date();
+  const {
+    altitude,
+    departureDate = new Date(),
+    aircraft,
+    reserveFuelDuration = 30,
+    reserveFuel,
+  } = options;
 
   const calculateFuelConsumption = (aircraft: Aircraft, duration: number): number | undefined => {
     return aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
@@ -134,7 +139,7 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
     const course = {
       distance,
       track,
-      altitude: options?.altitude,
+      altitude,
     } as CourseVector;
 
     // TODO: 
@@ -187,9 +192,8 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
     totalFuelConsumption += leg.performance?.fuelConsumption || 0;
   }
 
-  const reserveFuelDuration = options?.reserveFuelDuration ?? 30;
-  const reserveFuel = options?.reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
-  const totalFuelRequired = totalFuelConsumption + (reserveFuel || 0);
+  const reserveFuelRequired = reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
+  const totalFuelRequired = totalFuelConsumption + (reserveFuelRequired || 0);
 
   const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
 
