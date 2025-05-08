@@ -9,8 +9,10 @@ import { ICAO } from "./index.js";
  * @property {function(GeoJSON.BBox): Promise<T[]>} [fetchByBbox] - Optional method to fetch data by bounding box.
  * @property {function(GeoJSON.Position, number): Promise<T[]>} [fetchByRadius] - Optional method to fetch data by radius.
  */
-export interface RepositoryBase<T> {
+interface RepositoryBase<T> {
   fetchByICAO(icao: ICAO[]): Promise<T[]>;
   fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
   fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 }
+
+export default RepositoryBase;

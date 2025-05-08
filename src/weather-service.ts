@@ -1,6 +1,6 @@
 import { ICAO, MetarStation } from "./index.js";
 import { isICAO, normalizeICAO } from "./utils.js";
-import { RepositoryBase } from "./repository.js";
+import RepositoryBase from "./repository.js";
 
 import { bbox, buffer, point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
@@ -11,7 +11,7 @@ import { featureCollection } from '@turf/helpers';
  * @class WeatherService
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
-export class WeatherService {
+class WeatherService {
   /**
    * Creates a new instance of the WeatherService class.
    *
@@ -92,3 +92,5 @@ export class WeatherService {
     return metarStations.get(normalizeICAO(stationId));
   }
 }
+
+export default WeatherService;

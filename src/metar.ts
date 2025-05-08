@@ -167,6 +167,7 @@ export interface MetarData {
   clouds?: Cloud[];
 }
 
+// TODO: Make this the default export
 export class Metar {
   private metarData: MetarData;
 

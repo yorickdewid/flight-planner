@@ -1,8 +1,8 @@
 import { ICAO } from "./index.js";
 import { Aerodrome } from "./airport.js";
 import { isICAO, normalizeICAO } from "./utils.js";
-import { WeatherService } from "./weather-service.js";
-import { RepositoryBase } from "./repository.js";
+import WeatherService from "./weather-service.js";
+import RepositoryBase from "./repository.js";
 
 import { point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
@@ -15,7 +15,7 @@ import { featureCollection } from '@turf/helpers';
  * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
  * @property {WeatherService} [weatherService] - Optional weather service for fetching METAR data.
  */
-export class AerodromeService {
+class AerodromeService {
   private aerodromes: Map<ICAO, Aerodrome> = new Map();
 
   /**
@@ -148,3 +148,5 @@ export class AerodromeService {
     return this.get(nearest.properties.icao as string);
   }
 }
+
+export default AerodromeService;
