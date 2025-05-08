@@ -1,6 +1,6 @@
 import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
 import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
-import { AerodromeService } from "./service.js";
+import { AerodromeService } from "./aerodrome-service.js";
 import { Wind } from "./metar.js";
 
 /**

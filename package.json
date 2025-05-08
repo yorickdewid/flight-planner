@@ -51,10 +51,6 @@
       "import": "./dist/planner.js",
       "types": "./dist/planner.d.ts"
     },
-    "./service": {
-      "import": "./dist/service.js",
-      "types": "./dist/service.d.ts"
-    },
     "./utils": {
       "import": "./dist/utils.js",
       "types": "./dist/utils.d.ts"
