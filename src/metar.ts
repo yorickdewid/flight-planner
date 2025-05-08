@@ -169,16 +169,14 @@ export interface MetarData {
 
 // TODO: Make this the default export
 export class Metar {
-  private metarData: MetarData;
-
   /**
-   * Creates an instance of the Metar class.
+   * Creates a new Metar object.
    * 
-   * @param metarData - The METAR data object
+   * @param metarData The METAR data object
    */
-  constructor(metarData: MetarData) {
-    this.metarData = metarData;
-  }
+  constructor(
+    private metarData: MetarData
+  ) { }
 
   /**
    * Get the METAR data.
@@ -334,7 +332,7 @@ export class Metar {
    * 
    * @returns The raw METAR string
    */
-  public toString(): string {
+  toString(): string {
     return this.metarData.raw;
   }
 
