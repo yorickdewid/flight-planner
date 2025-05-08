@@ -85,31 +85,35 @@ class AerodromeService {
     }
   }
 
-  // TODO: Check if isICAO
   /**
-   * Finds an aerodrome by its ICAO code.
-   * 
-   * @param icao - The ICAO code of the aerodrome.
-   * @returns A promise that resolves to the aerodrome, or undefined if not found.
+   * Finds aerodromes by ICAO code(s).
+   *
+   * @param icao - A single ICAO code or an array of ICAO codes to search for.
+   * @returns A promise that resolves to an array of Aerodrome objects, or undefined if not found.
+   * @throws Error if the repository is not set or doesn't support fetchByICAO.
    */
-  async get(icao: string): Promise<Aerodrome | undefined> {
-    const normalizedIcao = normalizeICAO(icao);
+  async get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
+    if (Array.isArray(icao)) {
+      const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
+      if (!validIcaoCodes.length) return undefined;
 
-    const aerodrome = this.aerodromes.get(normalizedIcao);
-    if (aerodrome) {
-      if (this.weatherService && aerodrome.metarStation) {
-        const metar = await this.weatherService.get(aerodrome.metarStation.station);
-        if (metar && metar.length > 0) {
-          aerodrome.metarStation = metar[0];
-        }
-      }
-      return aerodrome;
-    } else {
-      const result = await this.repository.fetchByICAO([normalizedIcao]);
+      // TODO: check if ICAO codes are already in the map
+
+      const result = await this.repository.fetchByICAO(validIcaoCodes);
       await this.add(result);
+      return result;
+    } else if (typeof icao === 'string' && isICAO(icao)) {
+      const aerodrome = this.aerodromes.get(icao);
+      if (aerodrome) {
+        return [aerodrome];
+      }
+
+      const result = await this.repository.fetchByICAO([icao]);
+      await this.add(result);
+      return result;
     }
 
-    return this.aerodromes.get(normalizedIcao);
+    return undefined;
   }
 
   /**
@@ -122,7 +126,7 @@ class AerodromeService {
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    if (!this.repository || !this.repository.fetchByRadius) {
+    if (!this.repository.fetchByRadius) {
       throw new Error('Repository not set or does not support fetchByRadius');
     }
 
@@ -145,7 +149,7 @@ class AerodromeService {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
     })));
 
-    return this.get(nearest.properties.icao as string);
+    return this.aerodromes.get(nearest.properties.icao as ICAO)
   }
 }
 
