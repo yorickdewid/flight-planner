@@ -208,6 +208,7 @@ export class WeatherService {
   constructor(options: WeatherStationOptions = {}) {
     this.repository = options.repository;
   }
+
   /**
    * Finds METAR station(s) by ICAO code(s).
    * 

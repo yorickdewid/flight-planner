@@ -261,29 +261,22 @@ export class Metar {
     if (this.metarData.visibility !== undefined) {
       visibilityMeters = this.metarData.visibility.value;
       if (this.metarData.visibility.unit === 'sm') {
+        // TODO: Move this to a utility function so it can be used once the METAR is parsed
         visibilityMeters = convert(visibilityMeters).from('mi').to('m');
       }
     }
-
-    // Check for LIFR first (most restrictive)
     if ((visibilityMeters !== undefined && visibilityMeters <= 1500) ||
       (ceiling !== undefined && ceiling <= 500)) {
       return FlightRules.LIFR;
     }
-
-    // Check for IFR
     if ((visibilityMeters !== undefined && visibilityMeters <= 5000) ||
       (ceiling !== undefined && ceiling <= 1000)) {
       return FlightRules.IFR;
     }
-
-    // Check for MVFR
     if ((visibilityMeters !== undefined && visibilityMeters <= 8000) ||
       (ceiling !== undefined && ceiling <= 3000)) {
       return FlightRules.MVFR;
     }
-
-    // Default to VFR when all other conditions are not met
     return FlightRules.VFR;
   }
 
@@ -565,7 +558,6 @@ export class Metar {
     const windSpeed = this.metarData.wind?.speed;
     const gustSpeed = this.metarData.wind?.gust;
 
-    // Convert visibility to meters if needed
     let visibilityMeters: number | undefined;
     if (visibility) {
       visibilityMeters = visibility.value;
@@ -574,8 +566,6 @@ export class Metar {
         visibilityMeters = convert(visibilityMeters).from('mi').to('m');
       }
     }
-
-    // RED: Very hazardous conditions
     if (
       (visibilityMeters !== undefined && visibilityMeters < 800) ||
       (ceiling !== undefined && ceiling < 200) ||
@@ -584,8 +574,6 @@ export class Metar {
     ) {
       return 'red';
     }
-
-    // AMBER: Hazardous conditions
     if (
       (visibilityMeters !== undefined && visibilityMeters < 1600) ||
       (ceiling !== undefined && ceiling < 400) ||
@@ -594,8 +582,6 @@ export class Metar {
     ) {
       return 'amber';
     }
-
-    // YELLOW: Significant deterioration
     if (
       (visibilityMeters !== undefined && visibilityMeters < 3200) ||
       (ceiling !== undefined && ceiling < 700) ||
@@ -604,8 +590,6 @@ export class Metar {
     ) {
       return 'yellow';
     }
-
-    // BLUE: Minor deterioration
     if (
       (visibilityMeters !== undefined && visibilityMeters < 5000) ||
       (ceiling !== undefined && ceiling < 1500) ||
@@ -614,8 +598,6 @@ export class Metar {
     ) {
       return 'blue';
     }
-
-    // GREEN: Normal operations
     return 'green';
   }
 }
