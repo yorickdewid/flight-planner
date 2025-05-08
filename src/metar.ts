@@ -167,6 +167,7 @@ export interface MetarData {
   clouds?: Cloud[];
 }
 
+// TOOD: Convert this into separate functions
 // TODO: Make this the default export
 export class Metar {
   /**

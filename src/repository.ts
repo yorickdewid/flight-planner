@@ -3,25 +3,24 @@ import { ICAO } from "./index.js";
 import { bbox, buffer, point } from "@turf/turf";
 
 /**
- * RepositoryBase interface defines the methods for fetching data from a repository.
+ * AbstractRepository class provides a base implementation for repositories.
  * 
- * @interface RepositoryBase<T>
+ * @abstract
+ * @class AbstractRepository<T>
  * @template T - The type of data to be fetched.
- * @property {function(ICAO[]): Promise<T[]>} fetchByICAO - Fetches data by ICAO codes.
- * @property {function(GeoJSON.BBox): Promise<T[]>} [fetchByBbox] - Optional method to fetch data by bounding box.
- * @property {function(GeoJSON.Position, number): Promise<T[]>} [fetchByRadius] - Optional method to fetch data by radius.
+ * @extends {RepositoryBase<T>}
  */
-interface RepositoryBase<T> {
-  fetchByICAO(icao: ICAO[]): Promise<T[]>;
-  fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
-  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
-}
-
-export abstract class AbstractRepository<T> implements RepositoryBase<T> {
+export abstract class RepositoryBase<T> {
   abstract fetchByICAO(icao: ICAO[]): Promise<T[]>;
   abstract fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
   abstract fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 
+  /**
+   * Fetches data by ICAO code.
+   * 
+   * @param icao - The ICAO code(s) to fetch data for.
+   * @returns A promise that resolves to an array of data.
+   */
   async fetchByLocation(location: GeoJSON.Position, radius: number = 100): Promise<T[]> {
     const radiusRange = Math.min(1000, Math.max(1, radius));
 
