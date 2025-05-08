@@ -188,25 +188,25 @@ export function flightInvolvesNight(
  * @param date - The date for the sun events calculation
  * @returns The extended route trip with sun events
  */
-export function addSunEventsToRoute(trip: any, date: Date = new Date()): any {
-  if (!trip.route || trip.route.length === 0) {
-    return trip;
-  }
+// export function addSunEventsToRoute(trip: any, date: Date = new Date()): any {
+//   if (!trip.route || trip.route.length === 0) {
+//     return trip;
+//   }
 
-  const departureWaypoint = trip.route[0].start;
-  const destinationWaypoint = trip.route[trip.route.length - 1].end;
+//   const departureWaypoint = trip.route[0].start;
+//   const destinationWaypoint = trip.route[trip.route.length - 1].end;
 
-  const departureSunEvents = calculateSunEvents(departureWaypoint, date);
-  const destinationSunEvents = calculateSunEvents(destinationWaypoint, date);
+//   const departureSunEvents = calculateSunEvents(departureWaypoint, date);
+//   const destinationSunEvents = calculateSunEvents(destinationWaypoint, date);
 
-  return {
-    ...trip,
-    departureSunEvents,
-    destinationSunEvents,
-    departureIsDaylight: isDaylight(departureWaypoint, trip.departureDate),
-    arrivalIsDaylight: trip.arrivalDate ? isDaylight(destinationWaypoint, trip.arrivalDate) : null,
-    flightInvolvesNight: trip.departureDate && trip.arrivalDate ?
-      flightInvolvesNight(departureWaypoint, destinationWaypoint, trip.departureDate, trip.route[0].performance?.groundSpeed || 100) :
-      null
-  };
-}
+//   return {
+//     ...trip,
+//     departureSunEvents,
+//     destinationSunEvents,
+//     departureIsDaylight: isDaylight(departureWaypoint, trip.departureDate),
+//     arrivalIsDaylight: trip.arrivalDate ? isDaylight(destinationWaypoint, trip.arrivalDate) : null,
+//     flightInvolvesNight: trip.departureDate && trip.arrivalDate ?
+//       flightInvolvesNight(departureWaypoint, destinationWaypoint, trip.departureDate, trip.route[0].performance?.groundSpeed || 100) :
+//       null
+//   };
+// }

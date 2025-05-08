@@ -1,5 +1,5 @@
 import { Aircraft } from './index.js';
-import { StandardPressure, StandardTemperature } from './index.js';
+import { StandardTemperature } from './index.js';
 
 /**
  * Enum defining different flight phases used in performance calculations.
@@ -150,15 +150,15 @@ export interface FlightPerformance {
  * @returns The standard rate of climb in feet per minute
  */
 export function calculateRateOfClimb(
-  aircraft: Aircraft, 
-  pressureAltitude: number = 0, 
+  aircraft: Aircraft,
+  pressureAltitude: number = 0,
   temperature: number = StandardTemperature
 ): number {
   if (!aircraft.engineType) {
     // Default value if engine type is unknown
     return 500;
   }
-  
+
   // Base climb rates by engine type (approximate averages)
   const baseClimbRates: Record<string, number> = {
     'piston': 700,
@@ -168,16 +168,16 @@ export function calculateRateOfClimb(
     'electric': 600,
     'turboshaft': 1000
   };
-  
-  let baseRate = baseClimbRates[aircraft.engineType] || 700;
-  
+
+  const baseRate = baseClimbRates[aircraft.engineType] || 700;
+
   // Reduce climb rate as altitude increases
   const altitudeFactor = Math.max(0.5, 1 - (pressureAltitude / 30000));
-  
+
   // Adjust for temperature (higher temps = lower performance)
   const tempDiff = temperature - StandardTemperature;
   const tempFactor = Math.max(0.7, 1 - (tempDiff * 0.02));
-  
+
   return baseRate * altitudeFactor * tempFactor;
 }
 
@@ -192,7 +192,7 @@ export function calculateRateOfDescent(aircraft: Aircraft): number {
     // Default value if engine type is unknown
     return -500;
   }
-  
+
   // Base descent rates by engine type (approximate averages)
   const baseDescentRates: Record<string, number> = {
     'piston': -500,
@@ -202,7 +202,7 @@ export function calculateRateOfDescent(aircraft: Aircraft): number {
     'electric': -500,
     'turboshaft': -800
   };
-  
+
   return baseDescentRates[aircraft.engineType] || -500;
 }
 
@@ -216,11 +216,11 @@ export function createDefaultPerformanceProfile(aircraft: Aircraft): AircraftPer
   if (!aircraft.cruiseSpeed || !aircraft.fuelConsumption) {
     throw new Error('Aircraft must have cruiseSpeed and fuelConsumption defined');
   }
-  
+
   // Create performance estimates based on aircraft type
   const cruiseSpeed = aircraft.cruiseSpeed;
   const baseFuelFlow = aircraft.fuelConsumption;
-  
+
   // Estimate performance for each phase
   const phasePerformance: Record<FlightPhase, PhasePerformance> = {
     [FlightPhase.Taxi]: {
@@ -261,7 +261,7 @@ export function createDefaultPerformanceProfile(aircraft: Aircraft): AircraftPer
       duration: 3
     }
   };
-  
+
   // Create a complete performance profile
   return {
     phasePerformance,
@@ -287,10 +287,10 @@ export function calculateClimbDistance(
 ): number {
   const climbPerf = profile.phasePerformance[FlightPhase.Climb];
   const rateOfClimb = climbPerf.rateOfClimbDescent || calculateRateOfClimb(aircraft);
-  
+
   // Calculate time to climb to cruise altitude in hours
   const timeToClimbHours = cruiseAltitude / (rateOfClimb * 60);
-  
+
   // Calculate distance covered during climb
   return timeToClimbHours * climbPerf.speed;
 }
@@ -310,13 +310,13 @@ export function calculateDescentDistance(
 ): number {
   const descentPerf = profile.phasePerformance[FlightPhase.Descent];
   const rateOfDescent = descentPerf.rateOfClimbDescent || calculateRateOfDescent(aircraft);
-  
+
   // Convert rate of descent to positive value for calculation
   const absRateOfDescent = Math.abs(rateOfDescent);
-  
+
   // Calculate time to descend from cruise altitude in hours
   const toDescentHours = cruiseAltitude / (absRateOfDescent * 60);
-  
+
   // Calculate distance covered during descent
   return toDescentHours * descentPerf.speed;
 }
@@ -345,40 +345,40 @@ export function calculateDetailedPerformance(
 ): FlightPerformance {
   // Use provided performance profile or create a default one
   const profile = options.performanceProfile || createDefaultPerformanceProfile(aircraft);
-  
+
   // Extract options with defaults
   const departureTime = options.departureTime || new Date();
   const headwind = options.headwind || 0;
-  const temperature = options.temperature || StandardTemperature;
-  const pressureAltitude = options.pressureAltitude || cruiseAltitude;
+  // const temperature = options.temperature || StandardTemperature;
+  // const pressureAltitude = options.pressureAltitude || cruiseAltitude;
   const alternateDistance = options.alternateDistance || 0;
-  
+
   // Calculate distance segments
   const climbDistance = calculateClimbDistance(aircraft, cruiseAltitude, profile);
   const descentDistance = calculateDescentDistance(aircraft, cruiseAltitude, profile);
   const cruiseDistance = Math.max(0, distance - climbDistance - descentDistance);
-  
+
   // Calculate time segments (accounting for headwind)
   const windFactor = aircraft.cruiseSpeed ? (aircraft.cruiseSpeed - headwind) / aircraft.cruiseSpeed : 1;
-  
+
   const taxiTime = profile.phasePerformance[FlightPhase.Taxi].duration;
   const takeoffTime = profile.phasePerformance[FlightPhase.Takeoff].duration;
-  
+
   const climbSpeed = profile.phasePerformance[FlightPhase.Climb].speed * windFactor;
   const climbTime = (climbDistance / climbSpeed) * 60;
-  
+
   const cruiseSpeed = profile.phasePerformance[FlightPhase.Cruise].speed * windFactor;
   const cruiseTime = (cruiseDistance / cruiseSpeed) * 60;
-  
+
   const descentSpeed = profile.phasePerformance[FlightPhase.Descent].speed * windFactor;
   const descentTime = (descentDistance / descentSpeed) * 60;
-  
+
   const approachTime = profile.phasePerformance[FlightPhase.Approach].duration;
   const landingTime = profile.phasePerformance[FlightPhase.Landing].duration;
-  
+
   const totalFlightTime = climbTime + cruiseTime + descentTime + approachTime + landingTime;
   const totalTime = taxiTime + takeoffTime + totalFlightTime;
-  
+
   // Calculate fuel segments
   const taxiFuel = (taxiTime / 60) * profile.phasePerformance[FlightPhase.Taxi].fuelFlow;
   const takeoffFuel = (takeoffTime / 60) * profile.phasePerformance[FlightPhase.Takeoff].fuelFlow;
@@ -387,20 +387,20 @@ export function calculateDetailedPerformance(
   const descentFuel = (descentTime / 60) * profile.phasePerformance[FlightPhase.Descent].fuelFlow;
   const approachFuel = (approachTime / 60) * profile.phasePerformance[FlightPhase.Approach].fuelFlow;
   const landingFuel = (landingTime / 60) * profile.phasePerformance[FlightPhase.Landing].fuelFlow;
-  
+
   const tripFuel = taxiFuel + takeoffFuel + climbFuel + cruiseFuel + descentFuel + approachFuel + landingFuel;
   const contingencyFuel = tripFuel * profile.contingencyFuel;
-  
+
   // Calculate alternate and reserve fuel
-  const alternateFuel = alternateDistance > 0 && aircraft.fuelConsumption ? 
+  const alternateFuel = alternateDistance > 0 && aircraft.fuelConsumption ?
     (alternateDistance / cruiseSpeed) * aircraft.fuelConsumption : 0;
-  
+
   const reserveFuel = profile.reserveFuel;
   const totalFuelRequired = tripFuel + contingencyFuel + alternateFuel + reserveFuel;
-  
+
   // Calculate arrival time
   const arrivalTime = new Date(departureTime.getTime() + totalTime * 60 * 1000);
-  
+
   return {
     distance: {
       climbDistance,
