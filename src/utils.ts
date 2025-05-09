@@ -1,6 +1,4 @@
-import { Aerodrome, ReportingPoint, Waypoint } from "./airport.js";
-import { degreesToRadians, point, radiansToDegrees } from '@turf/turf';
-import AerodromeService from "./aerodrome-service.js";
+import { degreesToRadians, radiansToDegrees } from '@turf/turf';
 import { Wind } from "./metar.js";
 
 /**
@@ -78,67 +76,67 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
 
 // TODO: Remove the async
 // TODO: Remove the AerodromeService dependency
-/**
- * Parses a route string and returns an array of waypoints.
- * 
- * @param aerodromeRepository - The repository to use for finding airports
- * @param reportingPoints - The list of reporting points to use for finding reporting points
- * @param routeString - The route string to parse
- * @returns A promise that resolves to an array of waypoints
- * @throws Error if the route string contains invalid waypoint formats
- */
-export async function parseRouteString(aerodromeRepository: AerodromeService, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
-  const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
-  const routeParts = routeString.toUpperCase().replace(/\s/g, '').split(';');
+// /**
+//  * Parses a route string and returns an array of waypoints.
+//  * 
+//  * @param aerodromeRepository - The repository to use for finding airports
+//  * @param reportingPoints - The list of reporting points to use for finding reporting points
+//  * @param routeString - The route string to parse
+//  * @returns A promise that resolves to an array of waypoints
+//  * @throws Error if the route string contains invalid waypoint formats
+//  */
+// export async function parseRouteString(aerodromeRepository: AerodromeService, reportingPoints: Waypoint[], routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
+//   const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
+//   const routeParts = routeString.toUpperCase().replace(/\s/g, '').split(';');
 
-  // Regular expressions for different waypoint formats
-  const airportDesignatorRegex = /^AD\(([A-Z]{4})\)$/;
-  const reportingPointRegex = /^RP\(([^)]+)\)$/;
-  const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+//   // Regular expressions for different waypoint formats
+//   const airportDesignatorRegex = /^AD\(([A-Z]{4})\)$/;
+//   const reportingPointRegex = /^RP\(([^)]+)\)$/;
+//   const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
 
-  for (const part of routeParts) {
-    const airportDesignatorMatch = part.match(airportDesignatorRegex);
-    if (airportDesignatorMatch) {
-      const icao = airportDesignatorMatch[1];
-      const airport = await aerodromeRepository.get(icao);
-      if (airport?.length) {
-        waypoints.push(...airport);
-      }
-      continue;
-    }
+//   for (const part of routeParts) {
+//     const airportDesignatorMatch = part.match(airportDesignatorRegex);
+//     if (airportDesignatorMatch) {
+//       const icao = airportDesignatorMatch[1];
+//       const airport = await aerodromeRepository.get(icao);
+//       if (airport?.length) {
+//         waypoints.push(...airport);
+//       }
+//       continue;
+//     }
 
-    if (isICAO(part)) {
-      const airport = await aerodromeRepository.get(part);
-      if (airport?.length) {
-        waypoints.push(...airport);
-      }
-      continue;
-    }
+//     if (isICAO(part)) {
+//       const airport = await aerodromeRepository.get(part);
+//       if (airport?.length) {
+//         waypoints.push(...airport);
+//       }
+//       continue;
+//     }
 
-    const reportingPointMatch = part.match(reportingPointRegex);
-    if (reportingPointMatch) {
-      const name = reportingPointMatch[1];
-      const reportingPoint = reportingPoints.find(rp => rp.name.toUpperCase() === name);
-      if (reportingPoint) {
-        waypoints.push(reportingPoint);
-      }
-      continue;
-    }
+//     const reportingPointMatch = part.match(reportingPointRegex);
+//     if (reportingPointMatch) {
+//       const name = reportingPointMatch[1];
+//       const reportingPoint = reportingPoints.find(rp => rp.name.toUpperCase() === name);
+//       if (reportingPoint) {
+//         waypoints.push(reportingPoint);
+//       }
+//       continue;
+//     }
 
-    const waypointMatch = part.match(waypointRegex);
-    if (waypointMatch) {
-      const lat = parseFloat(waypointMatch[1]);
-      const lng = parseFloat(waypointMatch[2]);
-      if (isNaN(lat) || isNaN(lng)) {
-        throw new Error(`Invalid coordinates in waypoint: ${part}`);
-      }
-      waypoints.push(new Waypoint("<WP>", point([lng, lat])));
-      continue;
-    }
-  }
+//     const waypointMatch = part.match(waypointRegex);
+//     if (waypointMatch) {
+//       const lat = parseFloat(waypointMatch[1]);
+//       const lng = parseFloat(waypointMatch[2]);
+//       if (isNaN(lat) || isNaN(lng)) {
+//         throw new Error(`Invalid coordinates in waypoint: ${part}`);
+//       }
+//       waypoints.push(new Waypoint("<WP>", point([lng, lat])));
+//       continue;
+//     }
+//   }
 
-  return waypoints;
-}
+//   return waypoints;
+// }
 
 /**
  * Parses a string of ICAO codes and returns an array of unique ICAO codes.
