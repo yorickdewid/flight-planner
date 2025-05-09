@@ -1,5 +1,5 @@
 import { ICAO } from "./index.js";
-import { Aerodrome } from "./airport.js";
+import { Aerodrome, Waypoint } from "./airport.js";
 import { isICAO, normalizeICAO } from "./utils.js";
 import RepositoryBase from "./repository.js";
 
@@ -15,16 +15,21 @@ import { featureCollection } from '@turf/helpers';
  */
 class AerodromeService {
   private aerodromes: Map<ICAO, Aerodrome> = new Map();
+  private accessOrder: ICAO[] = [];
+  private maxCacheSize: number;
 
   /**
    * Creates a new instance of the AerodromeService class.
    * 
    * @param repository - An optional repository for fetching aerodrome data.
-   * @param weatherService - An optional weather service for fetching METAR data.
+   * @param maxCacheSize - Maximum number of aerodromes to keep in the cache (default: 1000).
    */
   constructor(
-    private repository: RepositoryBase<Aerodrome>
-  ) { }
+    private repository: RepositoryBase<Aerodrome>,
+    maxCacheSize: number = 1_000
+  ) {
+    this.maxCacheSize = Math.max(1, maxCacheSize);
+  }
 
   /**
    * Returns an array of ICAO codes for the aerodromes.
@@ -45,11 +50,36 @@ class AerodromeService {
   }
 
   /**
+   * Updates the access order for the LRU cache.
+   * 
+   * @param icao - The ICAO code that was accessed.
+   */
+  private updateAccessOrder(icao: ICAO): void {
+    const index = this.accessOrder.indexOf(icao);
+    if (index !== -1) {
+      this.accessOrder.splice(index, 1);
+    }
+    this.accessOrder.push(icao);
+  }
+
+  /**
+   * Enforces the cache size limit by removing least recently used items.
+   */
+  private enforceCacheLimit(): void {
+    while (this.aerodromes.size > this.maxCacheSize && this.accessOrder.length > 0) {
+      const leastUsedIcao = this.accessOrder.shift();
+      if (leastUsedIcao) {
+        this.aerodromes.delete(leastUsedIcao);
+      }
+    }
+  }
+
+  /**
    * Adds aerodromes to the service.
    * 
    * @param aerodromes - An array of Aerodrome objects or a single Aerodrome object to add.
    */
-  async add(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
+  async addToCache(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
     let aerodromeArray: Aerodrome[] = [];
     if (Array.isArray(aerodromes)) {
       aerodromeArray = aerodromes;
@@ -57,17 +87,44 @@ class AerodromeService {
       aerodromeArray = [aerodromes];
     }
 
-    const aerodromeWithoutMetar: Aerodrome[] = [];
-    aerodromeArray.forEach(aerodrome => {
-      const normalizedICAO = normalizeICAO(aerodrome.ICAO);
-      if (isICAO(normalizedICAO)) {
-        this.aerodromes.set(normalizedICAO, aerodrome);
-        // TODO: calculate geohash
-        if (!aerodrome.metarStation) {
-          aerodromeWithoutMetar.push(aerodrome);
+    for (const aerodrome of aerodromeArray) {
+      this.aerodromes.set(aerodrome.ICAO, aerodrome);
+      this.updateAccessOrder(aerodrome.ICAO);
+    }
+
+    this.enforceCacheLimit();
+  }
+
+  /**
+   * Parses a route string and returns an array of Aerodrome or Waypoint objects.
+   *
+   * @param routeString - The route string to parse.
+   * @returns A promise that resolves to an array of Aerodrome or Waypoint objects.
+   * @throws Error if the route string contains invalid waypoint formats.
+   */
+  async parse(routeString: string): Promise<Aerodrome[] | Waypoint[]> {
+    try {
+      if (!routeString) return [];
+
+      const waypointMatch = routeString.match(/WP\(([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)\)/);
+      if (waypointMatch) {
+        const lng = parseFloat(waypointMatch[1]);
+        const lat = parseFloat(waypointMatch[3]);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          throw new Error(`Invalid coordinates in waypoint: ${routeString}`);
         }
+
+        const waypoint = new Waypoint("<WP>", point([lng, lat]));
+        return [waypoint];
       }
-    });
+
+      const aerodrome = await this.get(routeString);
+      return aerodrome ? aerodrome : [];
+    } catch (error) {
+      console.error(`Error parsing route string "${routeString}":`, error);
+      return [];
+    }
   }
 
   /**
@@ -85,7 +142,7 @@ class AerodromeService {
       // TODO: check if ICAO codes are already in the map
 
       const result = await this.repository.fetchByICAO(validIcaoCodes);
-      await this.add(result);
+      await this.addToCache(result);
       return result;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const aerodrome = this.aerodromes.get(icao);
@@ -94,7 +151,7 @@ class AerodromeService {
       }
 
       const result = await this.repository.fetchByICAO([icao]);
-      await this.add(result);
+      await this.addToCache(result);
       return result;
     }
 
@@ -112,7 +169,7 @@ class AerodromeService {
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
     const result = await this.repository.fetchByLocation(location, radius);
-    await this.add(result);
+    await this.addToCache(result);
 
     if (!this.aerodromes.size) return undefined;
 
