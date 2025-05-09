@@ -1,30 +1,33 @@
 import { ICAO } from "./index.js";
-
 import { bbox, buffer, point } from "@turf/turf";
 
 /**
- * AbstractRepository class provides a base implementation for repositories.
+ * RepositoryBase class provides a base implementation for repositories.
  * 
  * @abstract
- * @class AbstractRepository<T>
+ * @class RepositoryBase<T>
  * @template T - The type of data to be fetched.
- * @extends {RepositoryBase<T>}
  */
 export abstract class RepositoryBase<T> {
-  abstract fetchByICAO(icao: ICAO[]): Promise<T[]>;
+  abstract fetchByICAO(icao: readonly ICAO[]): Promise<T[]>;
 
   fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
   fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 
   /**
-   * Fetches data by ICAO code.
+   * Fetches data by geographic location within specified radius.
    * 
-   * @param icao - The ICAO code(s) to fetch data for.
+   * @param location - The location coordinates [longitude, latitude].
+   * @param radius - The radius in kilometers (default: 100, max: 1000).
    * @returns A promise that resolves to an array of data.
    */
   async fetchByLocation(location: GeoJSON.Position, radius: number = 100): Promise<T[]> {
-    const radiusRange = Math.min(1000, Math.max(1, radius));
+    if (!Array.isArray(location) || location.length < 2 ||
+      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
+      throw new Error('Invalid location format. Expected [longitude, latitude].');
+    }
 
+    const radiusRange = Math.min(1000, Math.max(1, radius));
     const resultList: T[] = [];
 
     if (this.fetchByRadius) {
@@ -45,6 +48,5 @@ export abstract class RepositoryBase<T> {
     return resultList;
   }
 }
-
 
 export default RepositoryBase;
