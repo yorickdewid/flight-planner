@@ -1,4 +1,4 @@
-import { Aircraft } from './index.js';
+import { Aircraft, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
@@ -113,9 +113,13 @@ export interface RouteOptions {
  * @returns A route trip object with legs, distances, durations, and fuel calculations.
  * @throws Error if the waypoints array contains fewer than 2 points.
  */
-export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoint)[], options: RouteOptions = {}): RouteTrip => {
-  if (!Array.isArray(waypoints) || waypoints.length < 2) {
-    throw new Error('At least 2 waypoints are required to plan a flight route');
+export const planFlightRoute = async (
+  weatherService: WeatherService,
+  waypoints: (Aerodrome | ReportingPoint | Waypoint)[],
+  options: RouteOptions = {}
+): Promise<RouteTrip> => {
+  if (waypoints.length < 2) {
+    throw new Error('At least departure and arrival waypoints are required');
   }
 
   const {
@@ -125,6 +129,18 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
     reserveFuelDuration = 30,
     reserveFuel,
   } = options;
+
+  // TODO: Move this to a separate function
+  try {
+    waypoints.forEach(async waypoint => {
+      const station = await weatherService.nearest(waypoint.location.geometry.coordinates);
+      if (station) {
+        waypoint.metarStation = station;
+      }
+    });
+  } catch (error) {
+    console.error('Error attaching METAR data to waypoints:', error);
+  }
 
   const calculateFuelConsumption = (aircraft: Aircraft, duration: number): number | undefined => {
     return aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
@@ -160,10 +176,10 @@ export const planFlightRoute = (waypoints: (Aerodrome | ReportingPoint | Waypoin
         crossWind: windVector.crosswind,
         trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
         windCorrectionAngle: wca,
-        heading: heading,
-        groundSpeed: groundSpeed,
-        duration: duration,
-        fuelConsumption: fuelConsumption
+        heading,
+        groundSpeed,
+        duration,
+        fuelConsumption
       };
     }
 

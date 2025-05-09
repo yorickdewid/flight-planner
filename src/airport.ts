@@ -49,6 +49,7 @@ export class Waypoint {
    * @returns The distance in nautical miles
    */
   distanceTo(waypoint: Waypoint): number {
+    // const distance = turf.distance(from, to, { units: 'nauticalmiles' });
     const distanceInKm = distance(this.location, waypoint.location);
     const distanceInNm = distanceInKm * 0.539957; // TODO: Move to constants
     return distanceInNm;
