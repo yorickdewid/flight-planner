@@ -132,12 +132,12 @@ export const planFlightRoute = async (
 
   // TODO: Move this to a separate function
   try {
-    waypoints.forEach(async waypoint => {
+    for (const waypoint of waypoints) {
       const station = await weatherService.nearest(waypoint.location.geometry.coordinates);
       if (station) {
         waypoint.metarStation = station;
       }
-    });
+    }
   } catch (error) {
     console.error('Error attaching METAR data to waypoints:', error);
   }
