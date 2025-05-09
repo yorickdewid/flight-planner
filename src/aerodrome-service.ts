@@ -126,18 +126,10 @@ class AerodromeService {
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    if (!this.repository.fetchByRadius) {
-      throw new Error('Repository not set or does not support fetchByRadius');
-    }
-
-    const radiusRange = Math.min(1000, Math.max(1, radius));
-
-    const result = await this.repository.fetchByRadius(location, radiusRange);
+    const result = await this.repository.fetchByLocation(location, radius);
     await this.add(result);
 
-    if (this.aerodromes.size === 0) {
-      return undefined;
-    }
+    if (!this.aerodromes.size) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO)));

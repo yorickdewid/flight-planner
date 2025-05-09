@@ -54,27 +54,12 @@ class WeatherService {
    * @throws Error if the repository is not set or if no appropriate fetch method is available.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<MetarStation | undefined> {
-    const radiusRange = Math.min(1000, Math.max(1, radius));
-
     const metarStations: Map<ICAO, MetarStation> = new Map();
-    if (this.repository.fetchByRadius) {
-      const result = await this.repository.fetchByRadius(location, radiusRange);
-      result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
-    } else if (this.repository.fetchByBbox) {
-      const locationPoint = point(location);
-      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
-      if (buffered) {
-        const searchBbox = bbox(buffered) as GeoJSON.BBox;
-        const result = await this.repository.fetchByBbox(searchBbox);
-        result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
-      }
-    } else {
-      throw new Error('Repository does not support fetchByRadius or fetchByBbox');
-    }
 
-    if (metarStations.size === 0) {
-      return undefined;
-    }
+    const result = await this.repository.fetchByLocation(location, radius);
+    result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
+
+    if (!metarStations.size) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const metarCandidates = Array.from(metarStations.values()).filter(metar => !normalizedExclude.includes(normalizeICAO(metar.station)));
