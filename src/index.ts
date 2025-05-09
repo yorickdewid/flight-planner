@@ -3,7 +3,7 @@ import { createMetarFromRaw, FlightRules, Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
-import { RouteLeg, RouteOptions, planFlightRoute, RouteTrip, routeTripWaypoints } from "./planner.js";
+import FlightPlanner, { RouteLeg, RouteOptions, RouteTrip } from "./planner.js";
 
 export type ICAO = string;
 
@@ -81,4 +81,4 @@ export { RepositoryBase, AerodromeService, WeatherService };
 /**
  * Route planning exports including route options, legs, trips, and planning functions.
  */
-export { RouteOptions, RouteLeg, RouteTrip, planFlightRoute, routeTripWaypoints };
+export { RouteOptions, RouteLeg, RouteTrip, FlightPlanner };

@@ -107,199 +107,215 @@ export interface RouteOptions {
 }
 
 /**
- * Plans a route between the given waypoints.
- * 
- * @param waypoints - An array of waypoints to use in the route.
- * @param options - Optional configuration options for the flight route.
- * @returns A route trip object with legs, distances, durations, and fuel calculations.
- * @throws Error if the waypoints array contains fewer than 2 points.
+ * FlightPlanner class to handle flight route planning operations
  */
-export const planFlightRoute = async (
-  weatherService: WeatherService,
-  waypoints: (Aerodrome | ReportingPoint | Waypoint)[],
-  options: RouteOptions = {}
-): Promise<RouteTrip> => {
-  if (waypoints.length < 2) {
-    throw new Error('At least departure and arrival waypoints are required');
-  }
+class FlightPlanner {
+  /**
+   * Creates a new FlightPlanner instance
+   * 
+   * @param weatherService - Weather service for retrieving weather data along the flight route
+   *                         Used to get wind information and other meteorological conditions
+   * @param aerodromeService - Aerodrome service for fetching airport and airfield data
+   *                           Used to look up airports by ICAO code and retrieve their information
+   */
+  constructor(
+    private weatherService: WeatherService,
+    private aerodromeService: AerodromeService
+  ) { }
 
-  const {
-    altitude,
-    departureDate = new Date(),
-    aircraft,
-    reserveFuelDuration = 30,
-    reserveFuel,
-  } = options;
-
-  // TODO: Move this to a separate function
-  try {
-    for (const waypoint of waypoints) {
-      const station = await weatherService.nearest(waypoint.location.geometry.coordinates);
-      if (station) {
-        waypoint.metarStation = station;
-      }
-    }
-  } catch (error) {
-    console.error('Error attaching METAR data to waypoints:', error);
-  }
-
-  const calculateFuelConsumption = (aircraft: Aircraft, duration: number): number | undefined => {
+  /**
+   * Helper method to calculate fuel consumption based on aircraft and duration
+   * 
+   * @param aircraft - The aircraft for which to calculate fuel consumption
+   * @param duration - Flight duration in minutes
+   * @returns The fuel consumption in gallons/liters or undefined if not available
+   */
+  private calculateFuelConsumption(aircraft: Aircraft, duration: number): number | undefined {
     return aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
   }
 
-  const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
-    const endWaypoint = waypoints[i + 1];
-
-    const distance = startWaypoint.distanceTo(endWaypoint);
-    const track = normalizeTrack(startWaypoint.headingTo(endWaypoint));
-
-    const course = {
-      distance,
-      track,
-      altitude,
-    } as CourseVector;
-
-    // TODO: 
-    // const temperature = startWaypoint.metarStation?.metar.temperature;
-    const wind = startWaypoint.metarStation?.metar.wind;
-
-    let performance: AircraftPerformance | undefined = undefined;
-    if (aircraft?.cruiseSpeed && wind) {
-      const windVector = calculateWindVector(wind, course.track);
-      const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
-      const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
-      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
-      const duration = (course.distance / groundSpeed) * 60;
-      const fuelConsumption = calculateFuelConsumption(aircraft, duration);
-
-      performance = {
-        headWind: windVector.headwind,
-        crossWind: windVector.crosswind,
-        trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
-        windCorrectionAngle: wca,
-        heading,
-        groundSpeed,
-        duration,
-        fuelConsumption
-      };
-    }
-
-    const arrivalDate = performance
-      ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
-      : undefined;
-
-    // TODO: Add fuel consumption to leg
-    return {
-      start: startWaypoint,
-      end: endWaypoint,
-      course,
-      wind,
-      arrivalDate,
-      performance,
-    };
-  });
-
-  let totalDistance = 0;
-  let totalDuration = 0;
-  let totalFuelConsumption = 0;
-
-  for (const leg of legs) {
-    totalDistance += leg.course.distance;
-    totalDuration += leg.performance?.duration || 0;
-    totalFuelConsumption += leg.performance?.fuelConsumption || 0;
-  }
-
-  const reserveFuelRequired = reserveFuel ?? (aircraft ? calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
-  const totalFuelRequired = totalFuelConsumption + (reserveFuelRequired || 0);
-
-  const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
-
-  return {
-    route: legs,
-    totalDistance,
-    totalDuration,
-    totalFuelConsumption,
-    totalFuelRequired,
-    departureDate,
-    arrivalDate,
-  };
-}
-
-/**
- * Maps a route trip to an array of waypoints.
- * 
- * This function extracts all waypoints from a route trip by taking the start and end
- * waypoints of each leg and flattening them into a single array.
- * 
- * @param routeTrip - The route trip containing legs with start and end waypoints
- * @returns An array of waypoints representing all points in the route trip
- */
-export const routeTripWaypoints = (routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] => {
-  return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
-}
-
-/**
- * Parses a route string and returns an array of Aerodrome or Waypoint objects.
- * 
- * @param aerodromeService - The aerodrome service to use for fetching aerodromes
- * @param routeString - The route string to parse
- *                      Supported formats:
- *                      - ICAO codes (e.g., "EDDF")
- *                      - RP(name) for reporting points (e.g., "RP(ALPHA)")
- *                      - WP(lat,lng) for waypoints (e.g., "WP(50.05,8.57)")
- * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
- * @throws Error if the route string contains invalid waypoint formats
- */
-export const parseRouteString = async (aerodromeService: AerodromeService, routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> => {
-  if (!routeString) return [];
-
-  const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
-  const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
-
-  // Regular expressions for different waypoint formats
-  // const reportingPointRegex = /^RP\(([^)]+)\)$/;
-  const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
-
-  for (const part of routeParts) {
+  /**
+   * Attaches relevant weather data to waypoints
+   * 
+   * @param waypoints - The waypoints to attach weather data to
+   */
+  private async attachWeatherData(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): Promise<void> {
     try {
-      // Check for ICAO code
-      if (isICAO(part)) {
-        const airport = await aerodromeService.get(part);
-        if (airport?.length) {
-          waypoints.push(...airport);
+      for (const waypoint of waypoints) {
+        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+        if (station) {
+          waypoint.metarStation = station;
         }
-        continue;
       }
-
-      // Check for reporting point format
-      // const reportingPointMatch = part.match(reportingPointRegex);
-      // if (reportingPointMatch) {
-      //   const name = reportingPointMatch[1];
-      //   // Note: We would need a reporting point service or collection to look up by name
-      //   // For now, create a placeholder reporting point
-      //   // TODO: Implement proper reporting point lookup
-      //   waypoints.push(new ReportingPoint(name, point([0, 0])));
-      //   continue;
-      // }
-
-      // Check for waypoint format
-      const waypointMatch = part.match(waypointRegex);
-      if (waypointMatch) {
-        const lat = parseFloat(waypointMatch[1]);
-        const lng = parseFloat(waypointMatch[2]);
-        if (isNaN(lat) || isNaN(lng)) {
-          throw new Error(`Invalid coordinates in waypoint: ${part}`);
-        }
-        waypoints.push(new Waypoint("<WP>", point([lng, lat])));
-        continue;
-      }
-
-      // If we reach here, the part doesn't match any known format
-      console.warn(`Unknown waypoint format: ${part}`);
     } catch (error) {
-      console.error(`Error parsing route part "${part}":`, error);
+      console.error('Error attaching METAR data to waypoints:', error);
     }
   }
 
-  return waypoints;
+  /**
+   * Creates a route between the given waypoints.
+   * 
+   * @param waypoints - An array of waypoints to use in the route.
+   * @param options - Optional configuration options for the flight route.
+   * @returns A route trip object with legs, distances, durations, and fuel calculations.
+   * @throws Error if the waypoints array contains fewer than 2 points.
+   */
+  async createRoute(
+    waypoints: (Aerodrome | ReportingPoint | Waypoint)[],
+    options: RouteOptions = {}
+  ): Promise<RouteTrip> {
+    if (waypoints.length < 2) {
+      throw new Error('At least departure and arrival waypoints are required');
+    }
+
+    const {
+      altitude,
+      departureDate = new Date(),
+      aircraft,
+      reserveFuelDuration = 30,
+      reserveFuel,
+    } = options;
+
+    await this.attachWeatherData(waypoints);
+
+    const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
+      const endWaypoint = waypoints[i + 1];
+
+      const distance = startWaypoint.distanceTo(endWaypoint);
+      const track = normalizeTrack(startWaypoint.headingTo(endWaypoint));
+
+      const course = {
+        distance,
+        track,
+        altitude,
+      } as CourseVector;
+
+      // TODO: 
+      // const temperature = startWaypoint.metarStation?.metar.temperature;
+      const wind = startWaypoint.metarStation?.metar.wind;
+
+      let performance: AircraftPerformance | undefined = undefined;
+      if (aircraft?.cruiseSpeed && wind) {
+        const windVector = calculateWindVector(wind, course.track);
+        const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
+        const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
+        const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
+        const duration = (course.distance / groundSpeed) * 60;
+        const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
+
+        performance = {
+          headWind: windVector.headwind,
+          crossWind: windVector.crosswind,
+          trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
+          windCorrectionAngle: wca,
+          heading,
+          groundSpeed,
+          duration,
+          fuelConsumption
+        };
+      }
+
+      const arrivalDate = performance
+        ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
+        : undefined;
+
+      return {
+        start: startWaypoint,
+        end: endWaypoint,
+        course,
+        wind,
+        arrivalDate,
+        performance,
+      };
+    });
+
+    let totalDistance = 0;
+    let totalDuration = 0;
+    let totalFuelConsumption = 0;
+
+    for (const leg of legs) {
+      totalDistance += leg.course.distance;
+      totalDuration += leg.performance?.duration || 0;
+      totalFuelConsumption += leg.performance?.fuelConsumption || 0;
+    }
+
+    const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
+    const totalFuelRequired = totalFuelConsumption + (reserveFuelRequired || 0);
+
+    const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
+
+    return {
+      route: legs,
+      totalDistance,
+      totalDuration,
+      totalFuelConsumption,
+      totalFuelRequired,
+      departureDate,
+      arrivalDate,
+    };
+  }
+
+  /**
+   * Maps a route trip to an array of waypoints.
+   * 
+   * This function extracts all waypoints from a route trip by taking the start and end
+   * waypoints of each leg and flattening them into a single array.
+   * 
+   * @param routeTrip - The route trip containing legs with start and end waypoints
+   * @returns An array of waypoints representing all points in the route trip
+   */
+  static getRouteWaypoints(routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] {
+    return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  }
+
+  /**
+   * Parses a route string and returns an array of Aerodrome or Waypoint objects.
+   * 
+   * @param routeString - The route string to parse
+   *                      Supported formats:
+   *                      - ICAO codes (e.g., "EDDF")
+   *                      - RP(name) for reporting points (e.g., "RP(ALPHA)")
+   *                      - WP(lat,lng) for waypoints (e.g., "WP(50.05,8.57)")
+   * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
+   * @throws Error if the route string contains invalid waypoint formats
+   */
+  async parseRouteString(routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
+    if (!routeString) return [];
+
+    const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
+    const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
+
+    const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+
+    for (const part of routeParts) {
+      try {
+        // Check for ICAO code
+        if (isICAO(part)) {
+          const airport = await this.aerodromeService.get(part);
+          if (airport?.length) {
+            waypoints.push(...airport);
+          }
+          continue;
+        }
+
+        // Check for waypoint format
+        const waypointMatch = part.match(waypointRegex);
+        if (waypointMatch) {
+          const lat = parseFloat(waypointMatch[1]);
+          const lng = parseFloat(waypointMatch[2]);
+          if (isNaN(lat) || isNaN(lng)) {
+            throw new Error(`Invalid coordinates in waypoint: ${part}`);
+          }
+          waypoints.push(new Waypoint("<WP>", point([lng, lat])));
+          continue;
+        }
+      } catch (error) {
+        console.error(`Error parsing route part "${part}":`, error);
+      }
+    }
+
+    return waypoints;
+  }
 }
+
+export default FlightPlanner;
