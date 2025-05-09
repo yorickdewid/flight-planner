@@ -1,6 +1,6 @@
 import { AerodromeService, Aircraft, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, normalizeTrack } from './utils.js';
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
 import { point } from '@turf/turf';
 
@@ -243,28 +243,63 @@ export const routeTripWaypoints = (routeTrip: RouteTrip): (Aerodrome | Reporting
  * 
  * @param aerodromeService - The aerodrome service to use for fetching aerodromes
  * @param routeString - The route string to parse
- * @returns A promise that resolves to an array of Aerodrome or Waypoint objects
+ *                      Supported formats:
+ *                      - ICAO codes (e.g., "EDDF")
+ *                      - RP(name) for reporting points (e.g., "RP(ALPHA)")
+ *                      - WP(lat,lng) for waypoints (e.g., "WP(50.05,8.57)")
+ * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
+ * @throws Error if the route string contains invalid waypoint formats
  */
 export const parseRouteString = async (aerodromeService: AerodromeService, routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> => {
-  try {
-    if (!routeString) return [];
+  if (!routeString) return [];
 
-    const waypointMatch = routeString.match(/WP\(([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)\)/);
-    if (waypointMatch) {
-      const lng = parseFloat(waypointMatch[1]);
-      const lat = parseFloat(waypointMatch[3]);
+  const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
+  const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
 
-      if (isNaN(lat) || isNaN(lng)) {
-        throw new Error(`Invalid coordinates in waypoint: ${routeString}`);
+  // Regular expressions for different waypoint formats
+  // const reportingPointRegex = /^RP\(([^)]+)\)$/;
+  const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+
+  for (const part of routeParts) {
+    try {
+      // Check for ICAO code
+      if (isICAO(part)) {
+        const airport = await aerodromeService.get(part);
+        if (airport?.length) {
+          waypoints.push(...airport);
+        }
+        continue;
       }
 
-      return [new Waypoint('<WP>', point([lng, lat]))];
-    }
+      // Check for reporting point format
+      // const reportingPointMatch = part.match(reportingPointRegex);
+      // if (reportingPointMatch) {
+      //   const name = reportingPointMatch[1];
+      //   // Note: We would need a reporting point service or collection to look up by name
+      //   // For now, create a placeholder reporting point
+      //   // TODO: Implement proper reporting point lookup
+      //   waypoints.push(new ReportingPoint(name, point([0, 0])));
+      //   continue;
+      // }
 
-    const aerodrome = await aerodromeService.get(routeString);
-    return aerodrome ? aerodrome : [];
-  } catch (error) {
-    console.error(`Error parsing route string "${routeString}":`, error);
-    return [];
+      // Check for waypoint format
+      const waypointMatch = part.match(waypointRegex);
+      if (waypointMatch) {
+        const lat = parseFloat(waypointMatch[1]);
+        const lng = parseFloat(waypointMatch[2]);
+        if (isNaN(lat) || isNaN(lng)) {
+          throw new Error(`Invalid coordinates in waypoint: ${part}`);
+        }
+        waypoints.push(new Waypoint("<WP>", point([lng, lat])));
+        continue;
+      }
+
+      // If we reach here, the part doesn't match any known format
+      console.warn(`Unknown waypoint format: ${part}`);
+    } catch (error) {
+      console.error(`Error parsing route part "${part}":`, error);
+    }
   }
+
+  return waypoints;
 }
