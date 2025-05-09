@@ -2,7 +2,7 @@ import { ICAO, MetarStation } from "./index.js";
 import { isICAO, normalizeICAO } from "./utils.js";
 import RepositoryBase from "./repository.js";
 
-import { bbox, buffer, point, nearestPoint } from "@turf/turf";
+import { point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
 /**
