@@ -1,4 +1,3 @@
-import { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint } from "./airport.js";
 import { createMetarFromRaw, FlightRules, Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
@@ -71,7 +70,7 @@ export { FlightRules, Metar, createMetarFromRaw };
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector, Runway };
+export { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint } from "./airport.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.
