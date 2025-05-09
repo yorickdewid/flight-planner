@@ -12,8 +12,9 @@ import { bbox, buffer, point } from "@turf/turf";
  */
 export abstract class RepositoryBase<T> {
   abstract fetchByICAO(icao: ICAO[]): Promise<T[]>;
-  abstract fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
-  abstract fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
+
+  fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
+  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 
   /**
    * Fetches data by ICAO code.
@@ -25,6 +26,7 @@ export abstract class RepositoryBase<T> {
     const radiusRange = Math.min(1000, Math.max(1, radius));
 
     const resultList: T[] = [];
+
     if (this.fetchByRadius) {
       const result = await this.fetchByRadius(location, radiusRange);
       resultList.push(...result);
@@ -37,7 +39,7 @@ export abstract class RepositoryBase<T> {
         resultList.push(...result);
       }
     } else {
-      throw new Error('Repository does not support fetchByRadius or fetchByBbox');
+      throw new Error('This repository does not implement fetchByRadius or fetchByBbox. At least one of these methods must be implemented to use fetchByLocation.');
     }
 
     return resultList;
