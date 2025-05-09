@@ -1,7 +1,6 @@
 import { ICAO } from "./index.js";
 import { Aerodrome } from "./airport.js";
 import { isICAO, normalizeICAO } from "./utils.js";
-import WeatherService from "./weather-service.js";
 import RepositoryBase from "./repository.js";
 
 import { point, nearestPoint } from "@turf/turf";
@@ -13,7 +12,6 @@ import { featureCollection } from '@turf/helpers';
  * @class AerodromeService
  * @property {Map<ICAO, Aerodrome>} aerodromes - A map of ICAO codes to Aerodrome objects.
  * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
- * @property {WeatherService} [weatherService] - Optional weather service for fetching METAR data.
  */
 class AerodromeService {
   private aerodromes: Map<ICAO, Aerodrome> = new Map();
@@ -25,8 +23,7 @@ class AerodromeService {
    * @param weatherService - An optional weather service for fetching METAR data.
    */
   constructor(
-    private repository: RepositoryBase<Aerodrome>,
-    private weatherService?: WeatherService
+    private repository: RepositoryBase<Aerodrome>
   ) { }
 
   /**
@@ -71,18 +68,6 @@ class AerodromeService {
         }
       }
     });
-
-    if (this.weatherService && aerodromeWithoutMetar.length > 0) {
-      for (const aerodrome of aerodromeWithoutMetar) {
-        if (aerodrome.location && aerodrome.location.geometry && aerodrome.location.geometry.coordinates) {
-          const nearestMetar = await this.weatherService.nearest(aerodrome.location.geometry.coordinates);
-          if (nearestMetar) {
-            aerodrome.metarStation = nearestMetar;
-            this.aerodromes.set(normalizeICAO(aerodrome.ICAO), aerodrome);
-          }
-        }
-      }
-    }
   }
 
   /**
