@@ -79,7 +79,7 @@ class AerodromeService {
    * 
    * @param aerodromes - An array of Aerodrome objects or a single Aerodrome object to add.
    */
-  async addToCache(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
+  private async addToCache(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
     let aerodromeArray: Aerodrome[] = [];
     if (Array.isArray(aerodromes)) {
       aerodromeArray = aerodromes;
@@ -93,38 +93,6 @@ class AerodromeService {
     }
 
     this.enforceCacheLimit();
-  }
-
-  /**
-   * Parses a route string and returns an array of Aerodrome or Waypoint objects.
-   *
-   * @param routeString - The route string to parse.
-   * @returns A promise that resolves to an array of Aerodrome or Waypoint objects.
-   * @throws Error if the route string contains invalid waypoint formats.
-   */
-  async parse(routeString: string): Promise<Aerodrome[] | Waypoint[]> {
-    try {
-      if (!routeString) return [];
-
-      const waypointMatch = routeString.match(/WP\(([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)\)/);
-      if (waypointMatch) {
-        const lng = parseFloat(waypointMatch[1]);
-        const lat = parseFloat(waypointMatch[3]);
-
-        if (isNaN(lat) || isNaN(lng)) {
-          throw new Error(`Invalid coordinates in waypoint: ${routeString}`);
-        }
-
-        const waypoint = new Waypoint("<WP>", point([lng, lat]));
-        return [waypoint];
-      }
-
-      const aerodrome = await this.get(routeString);
-      return aerodrome ? aerodrome : [];
-    } catch (error) {
-      console.error(`Error parsing route string "${routeString}":`, error);
-      return [];
-    }
   }
 
   /**

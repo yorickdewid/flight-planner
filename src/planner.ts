@@ -1,7 +1,8 @@
-import { Aircraft, WeatherService } from './index.js';
+import { AerodromeService, Aircraft, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
+import { point } from '@turf/turf';
 
 /**
  * Represents a course vector with distance and track.
@@ -235,4 +236,35 @@ export const planFlightRoute = async (
  */
 export const routeTripWaypoints = (routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] => {
   return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+}
+
+/**
+ * Parses a route string and returns an array of Aerodrome or Waypoint objects.
+ * 
+ * @param aerodromeService - The aerodrome service to use for fetching aerodromes
+ * @param routeString - The route string to parse
+ * @returns A promise that resolves to an array of Aerodrome or Waypoint objects
+ */
+export const parseRouteString = async (aerodromeService: AerodromeService, routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> => {
+  try {
+    if (!routeString) return [];
+
+    const waypointMatch = routeString.match(/WP\(([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)\)/);
+    if (waypointMatch) {
+      const lng = parseFloat(waypointMatch[1]);
+      const lat = parseFloat(waypointMatch[3]);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        throw new Error(`Invalid coordinates in waypoint: ${routeString}`);
+      }
+
+      return [new Waypoint('<WP>', point([lng, lat]))];
+    }
+
+    const aerodrome = await aerodromeService.get(routeString);
+    return aerodrome ? aerodrome : [];
+  } catch (error) {
+    console.error(`Error parsing route string "${routeString}":`, error);
+    return [];
+  }
 }
