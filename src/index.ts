@@ -1,5 +1,5 @@
-import { Aerodrome, Frequency, ReportingPoint, RunwayWindVector, Waypoint } from "./airport.js";
-import { FlightRules, Metar } from "./metar.js";
+import { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint } from "./airport.js";
+import { createMetarFromRaw, FlightRules, Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
@@ -61,15 +61,17 @@ export interface MetarStation {
  * @module flight-planner
  */
 
+export { normalizeICAO, isICAO } from "./utils.js";
+
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export { FlightRules, Metar };
+export { FlightRules, Metar, createMetarFromRaw };
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector };
+export { Waypoint, ReportingPoint, Aerodrome, Frequency, RunwayWindVector, Runway };
 
 /**
  * Service-related exports for handling weather and aerodrome data.
