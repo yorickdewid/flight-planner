@@ -39,14 +39,6 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./airport": {
-      "import": "./dist/airport.js",
-      "types": "./dist/airport.d.ts"
-    },
-    "./metar": {
-      "import": "./dist/metar.js",
-      "types": "./dist/metar.d.ts"
-    },
     "./planner": {
       "import": "./dist/planner.js",
       "types": "./dist/planner.d.ts"
