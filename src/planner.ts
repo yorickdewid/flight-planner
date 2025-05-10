@@ -79,6 +79,7 @@ export interface RouteLeg {
  */
 export interface RouteTrip {
   route: RouteLeg[];
+  aircraft?: Aircraft;
   totalDistance: number;
   totalDuration: number;
   totalFuelConsumption?: number;
@@ -261,6 +262,7 @@ class FlightPlanner {
 
     return {
       route: legs,
+      aircraft,
       totalDistance,
       totalDuration,
       totalFuelConsumption,
