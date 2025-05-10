@@ -122,3 +122,17 @@ export const normalizeICAO = (icao: string): string => {
 export const normalizeTrack = (track: number): number => {
   return ((track % 360) + 360) % 360;
 }
+
+/**
+ * Capitalizes the first letter of each word in a string
+ * 
+ * @param text - The input text to capitalize
+ * @returns The text with the first letter of each word capitalized
+ */
+export const capitalizeWords = (text: string): string => {
+  if (!text) return 'Unknown';
+  return text.toLowerCase()
+    .split(' ')
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}

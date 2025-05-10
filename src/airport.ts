@@ -1,4 +1,4 @@
-import { calculateWindVector } from './utils.js';
+import { calculateWindVector, capitalizeWords } from './utils.js';
 import { ICAO, MetarStation } from './index.js';
 import { Wind } from './metar.js';
 import { Feature, Point, GeoJsonProperties } from 'geojson';
@@ -29,7 +29,7 @@ export class Waypoint {
    * @returns An instance of the Waypoint class
    */
   constructor(name: string, location: WaypointLocation) {
-    this.name = name;
+    this.name = capitalizeWords(name);
     this.location = location;
   }
 
