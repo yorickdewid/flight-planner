@@ -141,6 +141,9 @@ class FlightPlanner {
    */
   private async attachWeatherData(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): Promise<void> {
     try {
+      // TODO: Fetch METAR data based on ICAO codes first. In theory, this should be more accurate
+      // than using the nearest weather station. Use location based lookup as a fallback.
+
       for (const waypoint of waypoints) {
         const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
         if (station) {
