@@ -158,12 +158,18 @@ class FlightPlanner {
    * @param routeString - A string representing the route, e.g., "EDDF;EDDM;WP(50.05,8.57)"
    * @param options - Optional configuration options for the flight route.
    * @returns A route trip object with legs, distances, durations, and fuel calculations.
+   * @throws Error if no valid waypoints could be parsed or fewer than 2 waypoints are found
    */
   async createRouteFromString(
     routeString: string,
     options: RouteOptions = {}
   ): Promise<RouteTrip> {
     const waypoints = await this.parseRouteString(routeString);
+
+    if (waypoints.length === 0) {
+      throw new Error('No valid waypoints could be parsed from the route string');
+    }
+
     return this.createRoute(waypoints, options);
   }
 
@@ -302,8 +308,30 @@ class FlightPlanner {
    * @param waypoint - The waypoint to test
    * @returns True if the waypoint is an Aerodrome, false otherwise
    */
-  static isWaypointAerodrome(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Aerodrome {
+  static isAerodrome(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Aerodrome {
     return waypoint instanceof Aerodrome;
+  }
+
+  /**
+   * Tests if a given waypoint is a ReportingPoint.
+   * 
+   * @param waypoint - The waypoint to test
+   * @returns True if the waypoint is a ReportingPoint, false otherwise
+   */
+  static isReportingPoint(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is ReportingPoint {
+    return waypoint instanceof ReportingPoint;
+  }
+
+  /**
+   * Tests if a given waypoint is a basic Waypoint.
+   * 
+   * @param waypoint - The waypoint to test
+   * @returns True if the waypoint is a basic Waypoint, false otherwise
+   */
+  static isWaypoint(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Waypoint {
+    return waypoint instanceof Waypoint
+      && !(waypoint instanceof Aerodrome)
+      && !(waypoint instanceof ReportingPoint);
   }
 
   /**
@@ -324,6 +352,9 @@ class FlightPlanner {
     const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
 
     const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+    // const reportingPointRegex = /^RP\(([A-Z0-9_]+)\)$/;
+
+    const parseErrors: string[] = [];
 
     for (const part of routeParts) {
       try {
@@ -332,11 +363,20 @@ class FlightPlanner {
           const airport = await this.aerodromeService.get(part);
           if (airport?.length) {
             waypoints.push(...airport);
+            continue;
+          } else {
+            throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
           }
-          continue;
         }
 
-        // Check for waypoint format
+        // const rpMatch = part.match(reportingPointRegex);
+        // if (rpMatch) {
+        //   const name = rpMatch[1];
+        //   const rp = new ReportingPoint(name, point([0, 0])); // Coordinates would need to be looked up
+        //   waypoints.push(rp);
+        //   continue;
+        // }
+
         const waypointMatch = part.match(waypointRegex);
         if (waypointMatch) {
           const lat = parseFloat(waypointMatch[1]);
@@ -344,12 +384,20 @@ class FlightPlanner {
           if (isNaN(lat) || isNaN(lng)) {
             throw new Error(`Invalid coordinates in waypoint: ${part}`);
           }
-          waypoints.push(new Waypoint("<WP>", point([lng, lat])));
+          waypoints.push(new Waypoint(`WP-${lat.toFixed(2)},${lng.toFixed(2)}`, point([lng, lat])));
           continue;
         }
+
+        throw new Error(`Unrecognized waypoint format: ${part}`);
       } catch (error) {
-        console.error(`Error parsing route part "${part}":`, error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        parseErrors.push(`Error parsing route part "${part}": ${errorMessage}`);
+        console.error(parseErrors[parseErrors.length - 1]);
       }
+    }
+
+    if (waypoints.length === 0 && parseErrors.length > 0) {
+      throw new Error(`Failed to parse route string: ${parseErrors.join('; ')}`);
     }
 
     return waypoints;
