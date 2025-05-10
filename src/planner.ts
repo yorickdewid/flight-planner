@@ -432,6 +432,26 @@ class FlightPlanner {
 
     return waypoints;
   }
+
+  /**
+   * Converts a route trip to a string representation.
+   * 
+   * @param routeTrip - The route trip to convert
+   * @returns A string representation of the route trip
+   */
+  static toRouteString(routeTrip: RouteTrip): string {
+    return FlightPlanner.getRouteWaypoints(routeTrip).map(waypoint => {
+      if (FlightPlanner.isAerodrome(waypoint)) {
+        return waypoint.ICAO;
+      } else if (FlightPlanner.isReportingPoint(waypoint)) {
+        return `RP(${waypoint.name})`;
+      } else if (FlightPlanner.isWaypoint(waypoint)) {
+        const coords = waypoint.location.geometry.coordinates;
+        return `WP(${coords[1].toFixed(5)},${coords[0].toFixed(5)})`;
+      }
+      return '';
+    }).join(';');
+  }
 }
 
 export default FlightPlanner;
