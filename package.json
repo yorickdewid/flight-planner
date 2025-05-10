@@ -39,10 +39,6 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./planner": {
-      "import": "./dist/planner.js",
-      "types": "./dist/planner.d.ts"
-    },
     "./utils": {
       "import": "./dist/utils.js",
       "types": "./dist/utils.d.ts"
