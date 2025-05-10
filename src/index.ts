@@ -70,7 +70,7 @@ export { FlightRules, Metar, createMetarFromRaw };
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint } from "./airport.js";
+export { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, validateFrequencyType } from "./airport.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.

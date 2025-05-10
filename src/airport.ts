@@ -181,7 +181,7 @@ export interface Frequency {
  * @param type The numeric value of the frequency type
  * @returns The corresponding FrequencyType enum value
  */
-export const toFrequencyType = (type: number): FrequencyType => {
+export const validateFrequencyType = (type: number): FrequencyType => {
   if (Object.values(FrequencyType).includes(type) && typeof type === 'number') {
     return type as FrequencyType;
   }
