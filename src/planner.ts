@@ -153,6 +153,21 @@ class FlightPlanner {
   }
 
   /**
+   * Creates a route from a string representation of waypoints.
+   * 
+   * @param routeString - A string representing the route, e.g., "EDDF;EDDM;WP(50.05,8.57)"
+   * @param options - Optional configuration options for the flight route.
+   * @returns A route trip object with legs, distances, durations, and fuel calculations.
+   */
+  async createRouteFromString(
+    routeString: string,
+    options: RouteOptions = {}
+  ): Promise<RouteTrip> {
+    const waypoints = await this.parseRouteString(routeString);
+    return this.createRoute(waypoints, options);
+  }
+
+  /**
    * Creates a route between the given waypoints.
    * 
    * @param waypoints - An array of waypoints to use in the route.
