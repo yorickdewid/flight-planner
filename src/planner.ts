@@ -310,6 +310,26 @@ class FlightPlanner {
   }
 
   /**
+   * Gets the departure waypoint from a route trip.
+   * 
+   * @param routeTrip - The route trip from which to extract the departure waypoint
+   * @returns The departure waypoint, which is the first waypoint in the route
+   */
+  static getDepartureWaypoint(routeTrip: RouteTrip): Aerodrome | ReportingPoint | Waypoint {
+    return routeTrip.route[0].start;
+  }
+
+  /**
+   * Gets the arrival waypoint from a route trip.
+   * 
+   * @param routeTrip - The route trip from which to extract the arrival waypoint
+   * @returns The arrival waypoint, which is the last waypoint in the route
+   */
+  static getArrivalWaypoint(routeTrip: RouteTrip): Aerodrome | ReportingPoint | Waypoint {
+    return routeTrip.route[routeTrip.route.length - 1].end;
+  }
+
+  /**
    * Tests if a given waypoint is an Aerodrome.
    * 
    * @param waypoint - The waypoint to test
