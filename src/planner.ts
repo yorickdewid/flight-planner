@@ -290,16 +290,23 @@ class FlightPlanner {
   }
 
   /**
-   * Maps a route trip to an array of waypoints.
+   * Maps a route trip to an array of unique waypoints.
    * 
    * This function extracts all waypoints from a route trip by taking the start and end
-   * waypoints of each leg and flattening them into a single array.
+   * waypoints of each leg and removing duplicates.
    * 
    * @param routeTrip - The route trip containing legs with start and end waypoints
-   * @returns An array of waypoints representing all points in the route trip
+   * @returns An array of unique waypoints representing all points in the route trip
    */
   static getRouteWaypoints(routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] {
-    return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+    const allWaypoints = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+
+    const uniqueWaypoints = new Map<string, Aerodrome | ReportingPoint | Waypoint>();
+    for (const waypoint of allWaypoints) {
+      uniqueWaypoints.set(waypoint.name, waypoint);
+    }
+
+    return Array.from(uniqueWaypoints.values());
   }
 
   /**
