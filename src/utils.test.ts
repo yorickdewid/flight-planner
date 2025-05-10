@@ -1,5 +1,5 @@
 // import { ReportingPoint, Aerodrome } from './airport.js';
-import { isICAO, normalizeICAO } from './utils.js';
+import { isICAO, normalizeICAO, capitalizeWords } from './utils.js';
 import { describe, it, expect } from '@jest/globals';
 // import { jest } from '@jest/globals';
 // import { point } from '@turf/turf';
@@ -47,6 +47,37 @@ describe('normalizeICAO', () => {
 
   it('should handle empty strings', () => {
     expect(normalizeICAO('')).toBe('');
+  });
+});
+
+describe('capitalizeWords', () => {
+  it('should capitalize the first letter of each word', () => {
+    expect(capitalizeWords('hello world')).toBe('Hello World');
+    expect(capitalizeWords('amsterdam airport schiphol')).toBe('Amsterdam Airport Schiphol');
+    expect(capitalizeWords('paris charles de gaulle')).toBe('Paris Charles De Gaulle');
+  });
+
+  it('should convert uppercase text to title case', () => {
+    expect(capitalizeWords('HELLO WORLD')).toBe('Hello World');
+    expect(capitalizeWords('AMSTERDAM AIRPORT')).toBe('Amsterdam Airport');
+  });
+
+  it('should handle mixed case input', () => {
+    expect(capitalizeWords('hELLo woRLd')).toBe('Hello World');
+    expect(capitalizeWords('aMSterDAM airPORT')).toBe('Amsterdam Airport');
+  });
+
+  it('should handle single word input', () => {
+    expect(capitalizeWords('hello')).toBe('Hello');
+    expect(capitalizeWords('AIRPORT')).toBe('Airport');
+  });
+
+  it('should handle empty string', () => {
+    expect(capitalizeWords('')).toBe('');
+  });
+
+  it('should handle strings with extra spaces', () => {
+    expect(capitalizeWords('  hello  world  ')).toBe('  Hello  World  ');
   });
 });
 

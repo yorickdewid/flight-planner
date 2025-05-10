@@ -130,7 +130,6 @@ export const normalizeTrack = (track: number): number => {
  * @returns The text with the first letter of each word capitalized
  */
 export const capitalizeWords = (text: string): string => {
-  if (!text) return 'Unknown';
   return text.toLowerCase()
     .split(' ')
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
