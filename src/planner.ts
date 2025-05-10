@@ -209,26 +209,7 @@ class FlightPlanner {
       // const temperature = startWaypoint.metarStation?.metar.temperature;
       const wind = startWaypoint.metarStation?.metar.wind;
 
-      let performance: AircraftPerformance | undefined = undefined;
-      if (aircraft?.cruiseSpeed && wind) {
-        const windVector = calculateWindVector(wind, course.track);
-        const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
-        const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
-        const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
-        const duration = (course.distance / groundSpeed) * 60;
-        const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
-
-        performance = {
-          headWind: windVector.headwind,
-          crossWind: windVector.crosswind,
-          trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
-          windCorrectionAngle: wca,
-          heading,
-          groundSpeed,
-          duration,
-          fuelConsumption
-        };
-      }
+      const performance = aircraft && wind ? this.calculatePerformance(aircraft, course, wind) : undefined;
 
       const arrivalDate = performance
         ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
@@ -271,6 +252,38 @@ class FlightPlanner {
   }
 
   /**
+   * Calculates the performance of the aircraft based on wind and course vector.
+   * 
+   * @param aircraft - The aircraft for which to calculate performance
+   * @param course - The course vector containing distance and track
+   * @param wind - The wind conditions affecting the flight
+   * @returns An object containing performance metrics or undefined if not applicable
+   */
+  private calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
+    if (aircraft.cruiseSpeed) {
+      const windVector = calculateWindVector(wind, course.track);
+      const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
+      const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
+      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
+      const duration = (course.distance / groundSpeed) * 60;
+      const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
+
+      return {
+        headWind: windVector.headwind,
+        crossWind: windVector.crosswind,
+        trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
+        windCorrectionAngle: wca,
+        heading,
+        groundSpeed,
+        duration,
+        fuelConsumption
+      };
+    }
+
+    return undefined;
+  }
+
+  /**
    * Maps a route trip to an array of waypoints.
    * 
    * This function extracts all waypoints from a route trip by taking the start and end
@@ -281,6 +294,16 @@ class FlightPlanner {
    */
   static getRouteWaypoints(routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] {
     return routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  }
+
+  /**
+   * Tests if a given waypoint is an Aerodrome.
+   * 
+   * @param waypoint - The waypoint to test
+   * @returns True if the waypoint is an Aerodrome, false otherwise
+   */
+  static isWaypointAerodrome(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Aerodrome {
+    return waypoint instanceof Aerodrome;
   }
 
   /**
