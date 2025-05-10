@@ -106,6 +106,8 @@ export interface RouteOptions {
   reserveFuelDuration?: number;
 }
 
+type WaypointType = Aerodrome | ReportingPoint | Waypoint;
+
 /**
  * FlightPlanner class to handle flight route planning operations
  */
@@ -141,36 +143,32 @@ class FlightPlanner {
    * @param waypoints - The waypoints to attach weather data to
    * @throws Will not throw but logs errors encountered during the process
    */
-  private async attachWeatherData(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): Promise<void> {
-    try {
-      await Promise.all(waypoints
-        .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
-        .map(async aerodrome => {
-          try {
-            const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
-            if (stations?.length) {
-              aerodrome.metarStation = stations[0];
-            }
-          } catch (error) {
-            console.warn(`Failed to fetch weather for aerodrome ${(aerodrome as Aerodrome).ICAO}:`, error);
+  private async attachWeatherData(waypoints: WaypointType[]): Promise<void> {
+    await Promise.all(waypoints
+      .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
+      .map(async aerodrome => {
+        try {
+          const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
+          if (stations?.length) {
+            aerodrome.metarStation = stations[0];
           }
-        }));
+        } catch (error) {
+          console.warn(`Failed to fetch weather for aerodrome ${(aerodrome as Aerodrome).ICAO}:`, error);
+        }
+      }));
 
-      await Promise.all(waypoints
-        .filter(waypoint => !waypoint.metarStation)
-        .map(async waypoint => {
-          try {
-            const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
-            if (station) {
-              waypoint.metarStation = station;
-            }
-          } catch (error) {
-            console.warn(`Failed to fetch nearest weather station for waypoint ${waypoint.name}:`, error);
+    await Promise.all(waypoints
+      .filter(waypoint => !waypoint.metarStation)
+      .map(async waypoint => {
+        try {
+          const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+          if (station) {
+            waypoint.metarStation = station;
           }
-        }));
-    } catch (error) {
-      console.error('Error attaching METAR data to waypoints:', error);
-    }
+        } catch (error) {
+          console.warn(`Failed to fetch nearest weather station for waypoint ${waypoint.name}:`, error);
+        }
+      }));
   }
 
   /**
@@ -181,10 +179,7 @@ class FlightPlanner {
    * @returns A route trip object with legs, distances, durations, and fuel calculations.
    * @throws Error if no valid waypoints could be parsed or fewer than 2 waypoints are found
    */
-  async createRouteFromString(
-    routeString: string,
-    options: RouteOptions = {}
-  ): Promise<RouteTrip> {
+  async createRouteFromString(routeString: string, options: RouteOptions = {}): Promise<RouteTrip> {
     const waypoints = await this.parseRouteString(routeString);
 
     if (waypoints.length === 0) {
@@ -202,10 +197,7 @@ class FlightPlanner {
    * @returns A route trip object with legs, distances, durations, and fuel calculations.
    * @throws Error if the waypoints array contains fewer than 2 points.
    */
-  async createRoute(
-    waypoints: (Aerodrome | ReportingPoint | Waypoint)[],
-    options: RouteOptions = {}
-  ): Promise<RouteTrip> {
+  async createRoute(waypoints: WaypointType[], options: RouteOptions = {}): Promise<RouteTrip> {
     if (waypoints.length < 2) {
       throw new Error('At least departure and arrival waypoints are required');
     }
@@ -319,7 +311,7 @@ class FlightPlanner {
    * @param routeTrip - The route trip containing legs with start and end waypoints
    * @returns An array of unique waypoints representing all points in the route trip
    */
-  static getRouteWaypoints(routeTrip: RouteTrip): (Aerodrome | ReportingPoint | Waypoint)[] {
+  static getRouteWaypoints(routeTrip: RouteTrip): WaypointType[] {
     const allWaypoints = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
 
     const uniqueWaypoints = new Map<string, Aerodrome | ReportingPoint | Waypoint>();
@@ -336,7 +328,7 @@ class FlightPlanner {
    * @param routeTrip - The route trip from which to extract the departure waypoint
    * @returns The departure waypoint, which is the first waypoint in the route
    */
-  static getDepartureWaypoint(routeTrip: RouteTrip): Aerodrome | ReportingPoint | Waypoint {
+  static getDepartureWaypoint(routeTrip: RouteTrip): WaypointType {
     return routeTrip.route[0].start;
   }
 
@@ -346,7 +338,7 @@ class FlightPlanner {
    * @param routeTrip - The route trip from which to extract the arrival waypoint
    * @returns The arrival waypoint, which is the last waypoint in the route
    */
-  static getArrivalWaypoint(routeTrip: RouteTrip): Aerodrome | ReportingPoint | Waypoint {
+  static getArrivalWaypoint(routeTrip: RouteTrip): WaypointType {
     return routeTrip.route[routeTrip.route.length - 1].end;
   }
 
@@ -356,7 +348,7 @@ class FlightPlanner {
    * @param waypoint - The waypoint to test
    * @returns True if the waypoint is an Aerodrome, false otherwise
    */
-  static isAerodrome(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Aerodrome {
+  static isAerodrome(waypoint: WaypointType): waypoint is Aerodrome {
     return waypoint instanceof Aerodrome;
   }
 
@@ -366,7 +358,7 @@ class FlightPlanner {
    * @param waypoint - The waypoint to test
    * @returns True if the waypoint is a ReportingPoint, false otherwise
    */
-  static isReportingPoint(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is ReportingPoint {
+  static isReportingPoint(waypoint: WaypointType): waypoint is ReportingPoint {
     return waypoint instanceof ReportingPoint;
   }
 
@@ -376,7 +368,7 @@ class FlightPlanner {
    * @param waypoint - The waypoint to test
    * @returns True if the waypoint is a basic Waypoint, false otherwise
    */
-  static isWaypoint(waypoint: Aerodrome | ReportingPoint | Waypoint): waypoint is Waypoint {
+  static isWaypoint(waypoint: WaypointType): waypoint is Waypoint {
     return waypoint instanceof Waypoint
       && !(waypoint instanceof Aerodrome)
       && !(waypoint instanceof ReportingPoint);
@@ -393,10 +385,10 @@ class FlightPlanner {
    * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
    * @throws Error if the route string contains invalid waypoint formats
    */
-  async parseRouteString(routeString: string): Promise<(Aerodrome | ReportingPoint | Waypoint)[]> {
+  async parseRouteString(routeString: string): Promise<WaypointType[]> {
     if (!routeString) return [];
 
-    const waypoints: (Aerodrome | ReportingPoint | Waypoint)[] = [];
+    const waypoints: WaypointType[] = [];
     const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
 
     const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
