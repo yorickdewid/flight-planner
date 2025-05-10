@@ -135,21 +135,39 @@ class FlightPlanner {
   }
 
   /**
-   * Attaches relevant weather data to waypoints
+   * Attaches relevant weather data to waypoints by fetching METAR information
+   * First tries to get data for aerodromes by ICAO code, then finds nearest stations for other waypoints
    * 
    * @param waypoints - The waypoints to attach weather data to
+   * @throws Will not throw but logs errors encountered during the process
    */
   private async attachWeatherData(waypoints: (Aerodrome | ReportingPoint | Waypoint)[]): Promise<void> {
     try {
-      // TODO: Fetch METAR data based on ICAO codes first. In theory, this should be more accurate
-      // than using the nearest weather station. Use location based lookup as a fallback.
+      await Promise.all(waypoints
+        .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
+        .map(async aerodrome => {
+          try {
+            const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
+            if (stations?.length) {
+              aerodrome.metarStation = stations[0];
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch weather for aerodrome ${(aerodrome as Aerodrome).ICAO}:`, error);
+          }
+        }));
 
-      for (const waypoint of waypoints) {
-        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
-        if (station) {
-          waypoint.metarStation = station;
-        }
-      }
+      await Promise.all(waypoints
+        .filter(waypoint => !waypoint.metarStation)
+        .map(async waypoint => {
+          try {
+            const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+            if (station) {
+              waypoint.metarStation = station;
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch nearest weather station for waypoint ${waypoint.name}:`, error);
+          }
+        }));
     } catch (error) {
       console.error('Error attaching METAR data to waypoints:', error);
     }
