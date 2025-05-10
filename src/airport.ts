@@ -170,9 +170,22 @@ export enum AerodromeType {
  * @property {string} value - The actual frequency value (e.g., "118.5").
  */
 export interface Frequency {
-  type: string; // TODO: Use enum
+  type: FrequencyType;
   name: string;
   value: string;
+}
+
+/**
+ * Converts a numeric frequency type to its enum value
+ * 
+ * @param type The numeric value of the frequency type
+ * @returns The corresponding FrequencyType enum value
+ */
+export const toFrequencyType = (type: number): FrequencyType => {
+  if (Object.values(FrequencyType).includes(type) && typeof type === 'number') {
+    return type as FrequencyType;
+  }
+  return FrequencyType.Other;
 }
 
 /**
