@@ -107,11 +107,26 @@ class AerodromeService {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
 
-      // TODO: check if ICAO codes are already in the map
+      const cachedResults: Aerodrome[] = [];
+      const missingIcaoCodes: ICAO[] = [];
 
-      const result = await this.repository.fetchByICAO(validIcaoCodes);
-      await this.addToCache(result);
-      return result;
+      for (const code of validIcaoCodes) {
+        const cachedAerodrome = this.aerodromes.get(code);
+        if (cachedAerodrome) {
+          cachedResults.push(cachedAerodrome);
+          this.updateAccessOrder(code);
+        } else {
+          missingIcaoCodes.push(code);
+        }
+      }
+
+      if (missingIcaoCodes.length > 0) {
+        const fetchedResults = await this.repository.fetchByICAO(missingIcaoCodes);
+        await this.addToCache(fetchedResults);
+        return [...cachedResults, ...fetchedResults];
+      }
+
+      return cachedResults;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const aerodrome = this.aerodromes.get(icao);
       if (aerodrome) {
