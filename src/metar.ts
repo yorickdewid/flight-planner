@@ -1,5 +1,5 @@
 import { normalizeICAO } from './utils.js';
-import { ICloud, IMetar, parseMetar } from "metar-taf-parser";
+import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
 
 /**
@@ -159,9 +159,9 @@ export interface Metar {
   clouds?: Cloud[];
 }
 
-export function calculateMetarCeiling(metarData: Metar): number | undefined {
+export function calculateMetarCeiling(metar: Metar): number | undefined {
   const cloudCeilingQuantity = ['BKN', 'OVC'];
-  const clouds = metarData.clouds || [];
+  const clouds = metar.clouds || [];
   const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
   if (cloudCeiling.length > 0) {
     return cloudCeiling[0].height;
@@ -169,13 +169,13 @@ export function calculateMetarCeiling(metarData: Metar): number | undefined {
   return undefined;
 }
 
-export function determineMetarFlightRule(metarData: Metar): FlightRules {
-  const ceiling = calculateMetarCeiling(metarData);
+export function determineMetarFlightRule(metar: Metar): FlightRules {
+  const ceiling = calculateMetarCeiling(metar);
   let visibilityMeters: number | undefined;
 
-  if (metarData.visibility !== undefined) {
-    visibilityMeters = metarData.visibility.value;
-    if (metarData.visibility.unit === 'sm') {
+  if (metar.visibility !== undefined) {
+    visibilityMeters = metar.visibility.value;
+    if (metar.visibility.unit === 'sm') {
       // TODO: Move this to a utility function so it can be used once the METAR is parsed
       visibilityMeters = convert(visibilityMeters).from('mi').to('m');
     }
@@ -195,33 +195,33 @@ export function determineMetarFlightRule(metarData: Metar): FlightRules {
   return FlightRules.VFR;
 }
 
-export function calculateMetarTimeElapsed(metarData: Metar): number {
+export function calculateMetarTimeElapsed(metar: Metar): number {
   const now = new Date();
-  const elapsed = now.getTime() - metarData.observationTime.getTime();
+  const elapsed = now.getTime() - metar.observationTime.getTime();
   return Math.floor(elapsed / (1000 * 60));
 }
 
-export function isMetarExpired(metarData: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
+export function isMetarExpired(metar: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
   const now = new Date();
   const { customMinutes, useStandardRules = true } = options;
 
   if (customMinutes !== undefined) {
-    const expirationTime = new Date(metarData.observationTime);
-    expirationTime.setMinutes(metarData.observationTime.getMinutes() + customMinutes);
+    const expirationTime = new Date(metar.observationTime);
+    expirationTime.setMinutes(metar.observationTime.getMinutes() + customMinutes);
     return now > expirationTime;
   }
 
   if (useStandardRules) {
-    const isSpecial = metarData.raw.includes('SPECI');
-    const expirationTime = new Date(metarData.observationTime);
+    const isSpecial = metar.raw.includes('SPECI');
+    const expirationTime = new Date(metar.observationTime);
     const expirationMinutes = isSpecial ? 30 : 60;
-    expirationTime.setMinutes(metarData.observationTime.getMinutes() + expirationMinutes);
+    expirationTime.setMinutes(metar.observationTime.getMinutes() + expirationMinutes);
     return now > expirationTime;
   }
 
   // Fallback to the old behavior with a default of 60 minutes
-  const expirationTime = new Date(metarData.observationTime);
-  expirationTime.setMinutes(metarData.observationTime.getMinutes() + 60);
+  const expirationTime = new Date(metar.observationTime);
+  expirationTime.setMinutes(metar.observationTime.getMinutes() + 60);
   return now > expirationTime;
 }
 
@@ -253,19 +253,19 @@ export function formatMetarObservationTime(metarData: Metar, locale?: string): s
 }
 
 // TODO: Make this a utility function that takes a Wind object and returns a formatted string
-export function formatMetarWind(metarData: Metar): string {
-  if (metarData.wind.speed === 0) {
+export function formatWind(wind: Wind): string {
+  if (wind.speed === 0) {
     return 'Calm';
   }
 
-  if (metarData.wind.direction !== undefined) { // Ensure direction is defined before using
-    let windString = `${metarData.wind.direction}° with ${metarData.wind.speed}kt`;
-    if (metarData.wind.gust) {
-      windString += ` gusting ${metarData.wind.gust}kt`;
+  if (wind.direction !== undefined) {
+    let windString = `${wind.direction}° with ${wind.speed}kt`;
+    if (wind.gust) {
+      windString += ` gusting ${wind.gust}kt`;
     }
 
-    if (metarData.wind.directionMin && metarData.wind.directionMax) {
-      windString += ` variable between ${metarData.wind.directionMin}° and ${metarData.wind.directionMax}°`;
+    if (wind.directionMin && wind.directionMax) {
+      windString += ` variable between ${wind.directionMin}° and ${wind.directionMax}°`;
     }
     return windString;
   }

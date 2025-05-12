@@ -6,11 +6,11 @@ import {
   getMetarColorCode,
   formatMetarQNH,
   formatMetarCeiling,
-  formatMetarWind,
   formatMetarVisibility,
   formatMetarTemperature,
   formatMetarDewpoint,
-  formatMetarClouds
+  formatMetarClouds,
+  formatWind
 } from './metar.js';
 
 describe('Metar functions', () => {
@@ -243,7 +243,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 0, speed: 0 },
       };
-      expect(formatMetarWind(metarData)).toBe('Calm');
+      expect(formatWind(metarData.wind)).toBe('Calm');
     });
 
     it('should return wind direction and speed when windDirection and windSpeed are defined', () => {
@@ -253,7 +253,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
       };
-      expect(formatMetarWind(metarData)).toBe('180° with 10kt');
+      expect(formatWind(metarData.wind)).toBe('180° with 10kt');
     });
 
     it('should include gusting wind speed when windGust is defined', () => {
@@ -263,7 +263,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10, gust: 20 },
       };
-      expect(formatMetarWind(metarData)).toBe('180° with 10kt gusting 20kt');
+      expect(formatWind(metarData.wind)).toBe('180° with 10kt gusting 20kt');
     });
 
     it('should include variable wind direction when windDirection is an array', () => {
@@ -273,7 +273,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 350, speed: 12, directionMin: 340, directionMax: 360 },
       };
-      expect(formatMetarWind(metarData)).toBe('350° with 12kt variable between 340° and 360°');
+      expect(formatWind(metarData.wind)).toBe('350° with 12kt variable between 340° and 360°');
     });
   });
 
