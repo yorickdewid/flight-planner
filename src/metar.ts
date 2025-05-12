@@ -74,12 +74,14 @@ export interface Wind {
 }
 
 /**
- * Converts a METAR object to a MetarData object.
+ * Creates a Metar object from a raw METAR string.
  * 
- * @param metar The METAR object
- * @returns The MetarData object
+ * @param raw The raw METAR string
+ * @returns A Metar object
  */
-function fromIMetar(metar: IMetar): MetarData {
+export function createMetarFromRaw(raw: string): Metar {
+  const metar = parseMetar(raw);
+
   const observationTime = new Date();
   if (metar.day) {
     observationTime.setUTCDate(metar.day);
@@ -95,9 +97,10 @@ function fromIMetar(metar: IMetar): MetarData {
   observationTime.setUTCSeconds(0);
   observationTime.setUTCMilliseconds(0);
 
+  // TODO: This is where we do all the conversion to the correct units
   return {
     station: normalizeICAO(metar.station),
-    observationTime: observationTime,
+    observationTime,
     raw: metar.message,
     wind: {
       direction: metar.wind?.degrees,
@@ -110,11 +113,11 @@ function fromIMetar(metar: IMetar): MetarData {
     dewpoint: metar.dewPoint,
     visibility: metar.visibility ? {
       value: metar.visibility.value,
-      unit: metar.visibility.unit === 'm' ? 'm' : 'sm',
+      unit: metar.visibility.unit === 'm' ? 'm' : 'sm', // TODO: Drop the unit, convert to meters
     } as Distance : undefined,
     qnh: metar.altimeter ? {
       value: metar.altimeter.value,
-      unit: metar.altimeter.unit === 'hPa' ? 'hPa' : 'inHg'
+      unit: metar.altimeter.unit === 'hPa' ? 'hPa' : 'inHg' // TODO: Drop the unit, convert to hPa
     } as Pressure : undefined,
     clouds: metar.clouds?.map((cloud: ICloud) => ({
       quantity: cloud.quantity,
@@ -124,23 +127,12 @@ function fromIMetar(metar: IMetar): MetarData {
 }
 
 /**
- * Creates a Metar object from a raw METAR string.
- * 
- * @param raw The raw METAR string
- * @returns A Metar object
- */
-export function createMetarFromRaw(raw: string): Metar {
-  const metar = parseMetar(raw);
-  return new Metar(fromIMetar(metar));
-}
-
-/**
  * Interface representing METAR (Meteorological Terminal Aviation Routine Weather Report) data.
  *
  * Contains parsed weather data from a METAR report, including station identification,
  * observation time, flight rules category, and various weather parameters.
  *
- * @interface MetarData
+ * @interface Metar
  * @property {string} station - The ICAO code of the reporting station
  * @property {Date} observationTime - The date and time when the observation was made
  * @property {string} raw - The raw METAR text string
@@ -155,7 +147,7 @@ export function createMetarFromRaw(raw: string): Metar {
  * @property {number} [qnh] - Barometric pressure (QNH) in hPa or inHg (depends on country)
  * @property {Cloud[]} [clouds] - Array of cloud layers, each with a quantity and optional height
  */
-export interface MetarData {
+export interface Metar {
   station: string;
   observationTime: Date;
   raw: string;
@@ -167,437 +159,265 @@ export interface MetarData {
   clouds?: Cloud[];
 }
 
-// TOOD: Convert this into separate functions
-// TODO: Make this the default export
-export class Metar {
-  /**
-   * Creates a new Metar object.
-   * 
-   * @param metarData The METAR data object
-   */
-  constructor(
-    private metarData: MetarData
-  ) { }
-
-  /**
-   * Get the METAR data.
-   * 
-   * @returns The METAR data object
-   */
-  get metar(): MetarData {
-    return this.metarData;
+export function calculateMetarCeiling(metarData: Metar): number | undefined {
+  const cloudCeilingQuantity = ['BKN', 'OVC'];
+  const clouds = metarData.clouds || [];
+  const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
+  if (cloudCeiling.length > 0) {
+    return cloudCeiling[0].height;
   }
+  return undefined;
+}
 
-  /**
-   * Get the ICAO code of the station.
-   * 
-   * @returns The ICAO code of the station
-   */
-  get station(): string {
-    return this.metarData.station;
-  }
+export function determineMetarFlightRule(metarData: Metar): FlightRules {
+  const ceiling = calculateMetarCeiling(metarData);
+  let visibilityMeters: number | undefined;
 
-  /**
-   * Get the observation time of the METAR.
-   * 
-   * @returns The observation time of the METAR
-   */
-  get raw(): string {
-    return this.metarData.raw;
-  }
-
-  /**
-   * Calculate the ceiling height based on the cloud layers.
-   * 
-   * @returns The ceiling height in feet, or undefined if the ceiling is unlimited.
-   */
-  get ceiling(): number | undefined {
-    const cloudCeilingQuantity = ['BKN', 'OVC'];
-    const clouds = this.metarData.clouds || [];
-    const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
-    if (cloudCeiling.length > 0) {
-      return cloudCeiling[0].height;
+  if (metarData.visibility !== undefined) {
+    visibilityMeters = metarData.visibility.value;
+    if (metarData.visibility.unit === 'sm') {
+      // TODO: Move this to a utility function so it can be used once the METAR is parsed
+      visibilityMeters = convert(visibilityMeters).from('mi').to('m');
     }
-
-    return undefined;
   }
-
-  /**
-   * Get the wind information from the METAR data.
-   *
-   * @returns The wind information object
-   */
-  get wind(): Wind {
-    return this.metarData.wind;
+  if ((visibilityMeters !== undefined && visibilityMeters <= 1500) ||
+    (ceiling !== undefined && ceiling <= 500)) {
+    return FlightRules.LIFR;
   }
-
-  /**
-   * Get the cloud information from the METAR data.
-   *
-   * @returns An array of cloud objects, or undefined if no clouds are reported
-   */
-  get clouds(): Cloud[] | undefined {
-    return this.metarData.clouds;
+  if ((visibilityMeters !== undefined && visibilityMeters <= 5000) ||
+    (ceiling !== undefined && ceiling <= 1000)) {
+    return FlightRules.IFR;
   }
-
-  /**
-   * Get the temperature from the METAR data.
-   * 
-   * @returns The temperature in degrees Celsius, or undefined if not available
-   */
-  get QNH(): Pressure | undefined {
-    return this.metarData.qnh;
+  if ((visibilityMeters !== undefined && visibilityMeters <= 8000) ||
+    (ceiling !== undefined && ceiling <= 3000)) {
+    return FlightRules.MVFR;
   }
+  return FlightRules.VFR;
+}
 
-  /**
-   * Calculate the flight rules based on the visibility and ceiling.
-   * 
-   * @returns The flight rules category based on visibility and ceiling
-   */
-  get flightRule(): FlightRules {
-    const ceiling = this.ceiling;
-    let visibilityMeters: number | undefined;
+export function calculateMetarTimeElapsed(metarData: Metar): number {
+  const now = new Date();
+  const elapsed = now.getTime() - metarData.observationTime.getTime();
+  return Math.floor(elapsed / (1000 * 60));
+}
 
-    if (this.metarData.visibility !== undefined) {
-      visibilityMeters = this.metarData.visibility.value;
-      if (this.metarData.visibility.unit === 'sm') {
-        // TODO: Move this to a utility function so it can be used once the METAR is parsed
-        visibilityMeters = convert(visibilityMeters).from('mi').to('m');
-      }
-    }
-    if ((visibilityMeters !== undefined && visibilityMeters <= 1500) ||
-      (ceiling !== undefined && ceiling <= 500)) {
-      return FlightRules.LIFR;
-    }
-    if ((visibilityMeters !== undefined && visibilityMeters <= 5000) ||
-      (ceiling !== undefined && ceiling <= 1000)) {
-      return FlightRules.IFR;
-    }
-    if ((visibilityMeters !== undefined && visibilityMeters <= 8000) ||
-      (ceiling !== undefined && ceiling <= 3000)) {
-      return FlightRules.MVFR;
-    }
-    return FlightRules.VFR;
-  }
+export function isMetarExpired(metarData: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
+  const now = new Date();
+  const { customMinutes, useStandardRules = true } = options;
 
-  /**
-   * Calculates the time elapsed since the METAR observation in minutes.
-   * 
-   * @returns The time elapsed since the observation in minutes
-   */
-  get timeElapsed(): number {
-    const now = new Date();
-    const elapsed = now.getTime() - this.metarData.observationTime.getTime();
-    return Math.floor(elapsed / (1000 * 60));
-  }
-
-  /**
-   * Checks if the METAR is expired based on either standard expiration rules or a custom duration.
-   * 
-   * @param options Configuration options
-   * @param options.customMinutes Optional custom validity period in minutes
-   * @param options.useStandardRules Whether to use standard aviation rules (default: true)
-   * @returns True if the METAR is expired, false otherwise
-   */
-  isExpired(options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
-    const now = new Date();
-    const { customMinutes, useStandardRules = true } = options;
-
-    if (customMinutes !== undefined) {
-      const expirationTime = new Date(this.metarData.observationTime);
-      expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + customMinutes);
-      return now > expirationTime;
-    }
-
-    if (useStandardRules) {
-      const isSpecial = this.metarData.raw.includes('SPECI');
-
-      const expirationTime = new Date(this.metarData.observationTime);
-
-      // Regular METARs are typically valid for 1 hour
-      // SPECIs are valid until the next report (usually the next regular METAR)
-      const expirationMinutes = isSpecial ? 30 : 60;
-      expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + expirationMinutes);
-
-      return now > expirationTime;
-    }
-
-    // Fallback to the old behavior with a default of 60 minutes
-    const expirationTime = new Date(this.metarData.observationTime);
-    expirationTime.setMinutes(this.metarData.observationTime.getMinutes() + 60);
+  if (customMinutes !== undefined) {
+    const expirationTime = new Date(metarData.observationTime);
+    expirationTime.setMinutes(metarData.observationTime.getMinutes() + customMinutes);
     return now > expirationTime;
   }
 
-  /**
-   * Returns the raw METAR string.
-   * 
-   * @returns The raw METAR string
-   */
-  toString(): string {
-    return this.metarData.raw;
+  if (useStandardRules) {
+    const isSpecial = metarData.raw.includes('SPECI');
+    const expirationTime = new Date(metarData.observationTime);
+    const expirationMinutes = isSpecial ? 30 : 60;
+    expirationTime.setMinutes(metarData.observationTime.getMinutes() + expirationMinutes);
+    return now > expirationTime;
   }
 
-  /**
-   * Formats the observation time of the METAR into a human-readable string.
-   * 
-   * @param locale Optional locale string for formatting
-   * @returns A formatted string representing the observation time
-   */
-  formatObservationTime(locale?: string): string {
-    if (!locale) {
-      const date = this.metarData.observationTime;
-      const year = date.getUTCFullYear();
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-      const day = String(date.getUTCDate()).padStart(2, '0');
-      const hours = String(date.getUTCHours()).padStart(2, '0');
-      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+  // Fallback to the old behavior with a default of 60 minutes
+  const expirationTime = new Date(metarData.observationTime);
+  expirationTime.setMinutes(metarData.observationTime.getMinutes() + 60);
+  return now > expirationTime;
+}
 
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
-    }
+export function formatMetarObservationTime(metarData: Metar, locale?: string): string {
+  if (!locale) {
+    const date = metarData.observationTime;
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
 
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-      timeZone: 'UTC',
-      timeZoneName: 'short',
-    };
-    return this.metarData.observationTime.toLocaleString(locale, options);
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
   }
 
-  /**
-   * Formats wind information from the METAR data into a human-readable string.
-   * 
-   * @returns A formatted string describing wind conditions or 'Calm' if wind speed is 0
-   */
-  formatWind(): string {
-    if (this.metarData.wind.speed === 0) {
-      return 'Calm';
-    }
+  const options: Intl.DateTimeFormatOptions = {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'UTC',
+    timeZoneName: 'short',
+  };
+  return metarData.observationTime.toLocaleString(locale, options);
+}
 
-    if (this.metarData.wind.direction) {
-      let windString = `${this.metarData.wind.direction}° with ${this.metarData.wind.speed}kt`;
-      if (this.metarData.wind.gust) {
-        windString += ` gusting ${this.metarData.wind.gust}kt`;
-      }
-
-      if (this.metarData.wind.directionMin && this.metarData.wind.directionMax) {
-        windString += ` variable between ${this.metarData.wind.directionMin}° and ${this.metarData.wind.directionMax}°`;
-      }
-      return windString;
-    }
-
+// TODO: Make this a utility function that takes a Wind object and returns a formatted string
+export function formatMetarWind(metarData: Metar): string {
+  if (metarData.wind.speed === 0) {
     return 'Calm';
   }
 
-  /**
-   * Formats temperature information from the METAR data into a human-readable string.
-   * 
-   * @returns A formatted string with temperature in Celsius, or '-' if temperature is not available
-   */
-  formatTemperature(): string {
-    if (this.metarData.temperature === undefined) {
-      return '-';
+  if (metarData.wind.direction !== undefined) { // Ensure direction is defined before using
+    let windString = `${metarData.wind.direction}° with ${metarData.wind.speed}kt`;
+    if (metarData.wind.gust) {
+      windString += ` gusting ${metarData.wind.gust}kt`;
     }
-    return `${this.metarData.temperature}°C`;
+
+    if (metarData.wind.directionMin && metarData.wind.directionMax) {
+      windString += ` variable between ${metarData.wind.directionMin}° and ${metarData.wind.directionMax}°`;
+    }
+    return windString;
   }
 
-  /**
-   * Formats dewpoint information from the METAR data into a human-readable string.
-   * 
-   * @returns A formatted string with dewpoint in Celsius, or '-' if dewpoint is not available
-   */
-  formatDewpoint(): string {
-    if (this.metarData.dewpoint === undefined) {
-      return '-';
-    }
-    return `${this.metarData.dewpoint}°C`;
+  return 'Calm'; // Fallback if direction is somehow undefined despite type
+}
+
+// TODO: Make this a utility function that takes a temperature and returns a formatted string
+export function formatMetarTemperature(metarData: Metar): string {
+  if (metarData.temperature === undefined) {
+    return '-';
   }
+  return `${metarData.temperature}°C`;
+}
 
-  /**
-   * Formats visibility information into a human-readable string.
-   * 
-   * @returns A formatted visibility string, accounting for unit conversions and special cases like CAVOK
-   */
-  formatVisibility(): string {
-    if (this.metarData.visibility === undefined) {
-      if (this.metarData.raw.includes('CAVOK')) {
-        return '10 km+';
-      }
-      return '-';
-    }
+// TODO: Make this a utility function that takes a dewpoint and returns a formatted string
+export function formatMetarDewpoint(metarData: Metar): string {
+  if (metarData.dewpoint === undefined) {
+    return '-';
+  }
+  return `${metarData.dewpoint}°C`;
+}
 
-    if (this.metarData.visibility.value >= 9999 && this.metarData.visibility.unit === 'm') {
+// TODO: Make this a utility function that takes a visibility and returns a formatted string
+export function formatMetarVisibility(metarData: Metar): string {
+  if (metarData.visibility === undefined) {
+    if (metarData.raw.includes('CAVOK')) {
       return '10 km+';
-    } else if (this.metarData.visibility.value >= 10 && this.metarData.visibility.unit === 'sm') {
-      return '10 sm+';
     }
-
-    if (this.metarData.visibility.unit === 'm') {
-      if (this.metarData.visibility.value < 1000) {
-        return `${this.metarData.visibility.value} m`;
-      }
-      return `${(this.metarData.visibility.value / 1000).toFixed(1)} km`;
-    } else {
-      return `${this.metarData.visibility.value} sm`;
-    }
+    return '-';
   }
 
-  /**
-   * Formats barometric pressure (QNH) into a human-readable string.
-   * 
-   * @returns A formatted pressure string with appropriate units, or '-' if not available
-   */
-  formatQNH(): string {
-    if (this.metarData.qnh === undefined) {
-      return '-';
-    }
-    return `${this.metarData.qnh.value} ${this.metarData.qnh.unit}`;
+  if (metarData.visibility.value >= 9999 && metarData.visibility.unit === 'm') {
+    return '10 km+';
+  } else if (metarData.visibility.value >= 10 && metarData.visibility.unit === 'sm') {
+    return '10 sm+';
   }
 
-  /**
-   * Formats ceiling information into a human-readable string.
-   * 
-   * @returns A formatted ceiling height string with units, or '-' if unlimited
-   */
-  formatCeiling(): string {
-    if (this.ceiling === undefined) {
-      return '-';
+  if (metarData.visibility.unit === 'm') {
+    if (metarData.visibility.value < 1000) {
+      return `${metarData.visibility.value} m`;
     }
-    return `${this.ceiling} ft`;
+    return `${(metarData.visibility.value / 1000).toFixed(1)} km`;
+  } else {
+    return `${metarData.visibility.value} sm`;
+  }
+}
+
+export function formatMetarQNH(metarData: Metar): string {
+  if (metarData.qnh === undefined) {
+    return '-';
+  }
+  return `${metarData.qnh.value} ${metarData.qnh.unit}`;
+}
+
+export function formatMetarCeiling(metarData: Metar): string {
+  const ceiling = calculateMetarCeiling(metarData);
+  if (ceiling === undefined) {
+    return '-';
+  }
+  return `${ceiling} ft`;
+}
+
+export function formatMetarClouds(metarData: Metar): string {
+  if (metarData.clouds === undefined || metarData.clouds.length === 0) {
+    return '-';
   }
 
-  /**
-   * Formats cloud information into a human-readable string.
-   * The clouds are sorted by height with the lowest clouds first.
-   * Clouds with undefined heights appear at the end of the list.
-   * 
-   * @returns A formatted string describing the clouds (sorted by height, lowest first), 
-   *          or '-' if no clouds are reported
-   */
-  formatClouds(): string {
-    if (this.metarData.clouds === undefined) {
-      return '-';
-    }
-    if (this.metarData.clouds.length === 0) {
-      return '-';
-    }
+  const sortedClouds = [...metarData.clouds].sort((a, b) => {
+    if (a.height === undefined) return 1;
+    if (b.height === undefined) return -1;
+    return a.height - b.height;
+  });
 
-    const sortedClouds = [...this.metarData.clouds].sort((a, b) => {
-      if (a.height === undefined) return 1;
-      if (b.height === undefined) return -1;
-      return a.height - b.height;
-    });
+  const cloudQuantityMap: Record<string, string> = {
+    'SKC': 'Clear',
+    'FEW': 'Few',
+    'BKN': 'Broken',
+    'SCT': 'Scattered',
+    'OVC': 'Overcast',
+    'NSC': 'No Significant Clouds',
+  };
 
-    const cloudQuantityMap: Record<string, string> = {
-      'SKC': 'Clear',
-      'FEW': 'Few',
-      'BKN': 'Broken',
-      'SCT': 'Scattered',
-      'OVC': 'Overcast',
-      'NSC': 'No Significant Clouds',
-    };
+  return sortedClouds.map(cloud => {
+    if (cloud.height) {
+      return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
+    }
+    return cloudQuantityMap[cloud.quantity];
+  }).join(', ');
+}
 
-    return sortedClouds.map(cloud => {
-      if (cloud.height) {
-        return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
-      }
-      return cloudQuantityMap[cloud.quantity];
-    }).join(', ');
-  }
-
-  /**
-   * Determines the color associated with the current flight rules.
-   * 
-   * @returns A string representing the color associated with the flight rules:
-   *          - 'green' for VFR (Visual Flight Rules)
-   *          - 'blue' for MVFR (Marginal Visual Flight Rules)
-   *          - 'red' for IFR (Instrument Flight Rules)
-   *          - 'purple' for LIFR (Low Instrument Flight Rules)
-   *          - 'black' for any undefined flight rules
-   */
-  get flightRuleColor(): string {
-    switch (this.flightRule) {
-      case FlightRules.VFR:
-        return 'green';
-      case FlightRules.MVFR:
-        return 'blue';
-      case FlightRules.IFR:
-        return 'red';
-      case FlightRules.LIFR:
-        return 'purple';
-      default:
-        return 'black';
-    }
-  }
-
-  /**
-   * Determines the aviation color code based on meteorological conditions.
-   * Color codes indicate current conditions at the aerodrome:
-   * - GREEN: Normal operations - no significant restrictions
-   * - BLUE: Minor deterioration in conditions - minor restrictions
-   * - YELLOW: Significant deterioration - operations limited
-   * - AMBER: Hazardous conditions - operations severely limited
-   * - RED: Very hazardous conditions - operations not recommended
-   * 
-   * @returns A string representing the aviation color code:
-   *          - 'green' for normal operations
-   *          - 'blue' for minor deterioration
-   *          - 'yellow' for significant deterioration
-   *          - 'amber' for hazardous conditions
-   *          - 'red' for very hazardous conditions
-   */
-  get colorCode(): string {
-    const visibility = this.metarData.visibility;
-    const ceiling = this.ceiling;
-    const windSpeed = this.metarData.wind?.speed;
-    const gustSpeed = this.metarData.wind?.gust;
-
-    let visibilityMeters: number | undefined;
-    if (visibility) {
-      visibilityMeters = visibility.value;
-      if (visibility.unit === 'sm') {
-        // TODO: Move this to a utility function so it can be used once the METAR is parsed
-        visibilityMeters = convert(visibilityMeters).from('mi').to('m');
-      }
-    }
-    if (
-      (visibilityMeters !== undefined && visibilityMeters < 800) ||
-      (ceiling !== undefined && ceiling < 200) ||
-      (windSpeed !== undefined && windSpeed > 40) ||
-      (gustSpeed !== undefined && gustSpeed > 50)
-    ) {
-      return 'red';
-    }
-    if (
-      (visibilityMeters !== undefined && visibilityMeters < 1600) ||
-      (ceiling !== undefined && ceiling < 400) ||
-      (windSpeed !== undefined && windSpeed > 30) ||
-      (gustSpeed !== undefined && gustSpeed > 40)
-    ) {
-      return 'amber';
-    }
-    if (
-      (visibilityMeters !== undefined && visibilityMeters < 3200) ||
-      (ceiling !== undefined && ceiling < 700) ||
-      (windSpeed !== undefined && windSpeed > 20) ||
-      (gustSpeed !== undefined && gustSpeed > 30)
-    ) {
-      return 'yellow';
-    }
-    if (
-      (visibilityMeters !== undefined && visibilityMeters < 5000) ||
-      (ceiling !== undefined && ceiling < 1500) ||
-      (windSpeed !== undefined && windSpeed > 15) ||
-      (gustSpeed !== undefined && gustSpeed > 20)
-    ) {
+export function getMetarFlightRuleColor(metarData: Metar): string {
+  const flightRule = determineMetarFlightRule(metarData);
+  switch (flightRule) {
+    case FlightRules.VFR:
+      return 'green';
+    case FlightRules.MVFR:
       return 'blue';
-    }
-    return 'green';
+    case FlightRules.IFR:
+      return 'red';
+    case FlightRules.LIFR:
+      return 'purple';
+    default:
+      return 'black';
   }
+}
+
+export function getMetarColorCode(metarData: Metar): string {
+  const visibility = metarData.visibility;
+  const ceiling = calculateMetarCeiling(metarData);
+  const windSpeed = metarData.wind?.speed;
+  const gustSpeed = metarData.wind?.gust;
+
+  let visibilityMeters: number | undefined;
+  if (visibility) {
+    visibilityMeters = visibility.value;
+    if (visibility.unit === 'sm') {
+      // TODO: Move this to a utility function so it can be used once the METAR is parsed
+      visibilityMeters = convert(visibilityMeters).from('mi').to('m');
+    }
+  }
+  if (
+    (visibilityMeters !== undefined && visibilityMeters < 800) ||
+    (ceiling !== undefined && ceiling < 200) ||
+    (windSpeed !== undefined && windSpeed > 40) ||
+    (gustSpeed !== undefined && gustSpeed > 50)
+  ) {
+    return 'red';
+  }
+  if (
+    (visibilityMeters !== undefined && visibilityMeters < 1600) ||
+    (ceiling !== undefined && ceiling < 400) ||
+    (windSpeed !== undefined && windSpeed > 30) ||
+    (gustSpeed !== undefined && gustSpeed > 40)
+  ) {
+    return 'amber';
+  }
+  if (
+    (visibilityMeters !== undefined && visibilityMeters < 3200) ||
+    (ceiling !== undefined && ceiling < 700) ||
+    (windSpeed !== undefined && windSpeed > 20) ||
+    (gustSpeed !== undefined && gustSpeed > 30)
+  ) {
+    return 'yellow';
+  }
+  if (
+    (visibilityMeters !== undefined && visibilityMeters < 5000) ||
+    (ceiling !== undefined && ceiling < 1500) ||
+    (windSpeed !== undefined && windSpeed > 15) ||
+    (gustSpeed !== undefined && gustSpeed > 20)
+  ) {
+    return 'blue';
+  }
+  return 'green';
 }

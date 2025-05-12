@@ -299,13 +299,12 @@ export class Aerodrome extends Waypoint {
    *          or undefined if elevation or QNH data is not available
    */
   get QFE(): number | undefined {
-    if (!this.fieldElevation || !this.metarStation || !this.metarStation.metar.QNH) {
+    if (!this.fieldElevation || !this.metarStation || !this.metarStation.metar.qnh) {
       return undefined;
     }
 
     // TODO: Standardize units
-    const QNH = this.metarStation.metar.QNH;
-    return Math.round((QNH.value - (this.fieldElevation / 30)) * 100) / 100;
+    return Math.round((this.metarStation.metar.qnh.value - (this.fieldElevation / 30)) * 100) / 100;
   }
 
   /**
