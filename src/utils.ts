@@ -74,25 +74,6 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
   return Math.sqrt(groundspeedSquared);
 }
 
-// /**
-//  * Parses a string of ICAO codes and returns an array of unique ICAO codes.
-//  * 
-//  * @param icaoString - The string containing ICAO codes
-//  * @param delimiter - The delimiter used to separate ICAO codes in the string
-//  * @returns An array of unique ICAO codes
-//  */
-// export const parseICAOString = (icaoString: string, delimiter: string = ','): string[] => {
-//   const icaoArray = icaoString.split(delimiter).map(icao => icao.trim());
-//   const icaoSet = new Set<string>();
-//   for (const icao of icaoArray) {
-//     const normalizedICAO = normalizeICAO(icao);
-//     if (isICAO(normalizedICAO)) {
-//       icaoSet.add(normalizedICAO);
-//     }
-//   }
-//   return Array.from(icaoSet);
-// }
-
 /**
  * Checks if the given string is a valid ICAO code.
  * 
