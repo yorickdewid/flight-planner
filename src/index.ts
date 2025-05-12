@@ -3,6 +3,7 @@ import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
 import FlightPlanner, { RouteLeg, RouteOptions, RouteTrip } from "./planner.js";
+import { Angle, Distance, Mass, Pressure, Speed, Temperature, Volume } from "convert-units";
 
 /**
  * Represents an ICAO (International Civil Aviation Organization) identifier,
@@ -16,6 +17,7 @@ export type ICAO = string;
  * @constant {number}
  */
 export const StandardPressure = 1013.25; // hPa
+
 /**
  * Standard atmospheric temperature at sea level in Celsius.
  * @constant {number}
@@ -66,16 +68,6 @@ export interface MetarStation {
   coords: GeoJSON.Position;
 }
 
-export type UnitDisplay = 'metric' | 'imperial';
-export type UnitSpeed = 'kts' | 'kmh' | 'mph' | 'mps';
-export type UnitDistance = 'nm' | 'km' | 'mi';
-export type UnitAltitude = 'ft' | 'm';
-export type UnitTemperature = 'C' | 'F';
-export type UnitPressure = 'hPa' | 'inHg';
-export type UnitWeight = 'kg' | 'lb';
-export type UnitVolume = 'l' | 'gal';
-export type UnitAngle = 'deg' | 'rad';
-
 /**
  * Defines unit preferences for various measurements used in flight planning.
  * 
@@ -90,14 +82,14 @@ export type UnitAngle = 'deg' | 'rad';
  * @property {UnitAngle} [angle='deg'] - Unit for angular measurements (degrees or radians).
  */
 export interface UnitOptions {
-  speed?: UnitSpeed;
-  distance?: UnitDistance;
-  altitude?: UnitAltitude;
-  temperature?: UnitTemperature;
-  pressure?: UnitPressure;
-  weight?: UnitWeight;
-  volume?: UnitVolume;
-  angle?: UnitAngle;
+  speed?: Speed;
+  distance?: Distance;
+  altitude?: Distance;
+  temperature?: Temperature;
+  pressure?: Pressure;
+  mass?: Mass;
+  volume?: Volume;
+  angle?: Angle;
 }
 
 /**
@@ -108,12 +100,12 @@ export interface UnitOptions {
  * @constant {UnitOptions}
  */
 export const DefaultUnits: UnitOptions = {
-  speed: 'kts',
-  distance: 'nm',
+  speed: 'knot',
+  distance: 'mi',
   altitude: 'ft',
   temperature: 'C',
   pressure: 'hPa',
-  weight: 'kg',
+  mass: 'kg',
   volume: 'l',
   angle: 'deg',
 };

@@ -1,6 +1,7 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
+import { DefaultUnits, UnitOptions } from './index.js';
 
 /**
  * Enumeration representing different flight rules categories.
@@ -252,15 +253,17 @@ export function formatMetarObservationTime(metarData: Metar, locale?: string): s
   return metarData.observationTime.toLocaleString(locale, options);
 }
 
-export function formatWind(wind: Wind): string {
+export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
   if (wind.speed === 0) {
     return 'Calm';
   }
 
   if (wind.direction !== undefined) {
-    let windString = `${wind.direction}° with ${wind.speed}kt`;
+    const speed = convert(wind.speed).from(units.speed || 'knot').to(units.speed || 'knot');
+    let windString = `${wind.direction}° with ${speed}kt`; // TODO: change the unit name
     if (wind.gust) {
-      windString += ` gusting ${wind.gust}kt`;
+      const gust = convert(wind.gust).from(units.speed || 'knot').to(units.speed || 'knot');
+      windString += ` gusting ${gust}kt`; // TODO: change the unit name
     }
 
     if (wind.directionMin && wind.directionMax) {
@@ -272,8 +275,9 @@ export function formatWind(wind: Wind): string {
   return 'Calm'; // Fallback if direction is somehow undefined despite type
 }
 
-export function formatTemperature(temperature: number): string {
-  return `${temperature}°C`;
+export function formatTemperature(temperature: number, units: UnitOptions = DefaultUnits): string {
+  const temperatureConv = convert(temperature).from(units.temperature || 'C').to(units.temperature || 'C');
+  return `${temperatureConv}°C`;
 }
 
 export function formatVisibility(visibility: Distance): string {
