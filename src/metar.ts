@@ -253,17 +253,19 @@ export function formatMetarObservationTime(metarData: Metar, locale?: string): s
   return metarData.observationTime.toLocaleString(locale, options);
 }
 
+const convertSpeed = (speed: number, units: UnitOptions): number => {
+  return convert(speed).from(DefaultUnits.speed!).to(units.speed || DefaultUnits.speed!);
+}
+
 export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
   if (wind.speed === 0) {
     return 'Calm';
   }
 
   if (wind.direction !== undefined) {
-    const speed = convert(wind.speed).from(units.speed || 'knot').to(units.speed || 'knot');
-    let windString = `${wind.direction}° with ${speed}kt`; // TODO: change the unit name
+    let windString = `${wind.direction}° with ${convertSpeed(wind.speed, units)}kt`; // TODO: change the unit name
     if (wind.gust) {
-      const gust = convert(wind.gust).from(units.speed || 'knot').to(units.speed || 'knot');
-      windString += ` gusting ${gust}kt`; // TODO: change the unit name
+      windString += ` gusting ${convertSpeed(wind.gust, units)}kt`; // TODO: change the unit name
     }
 
     if (wind.directionMin && wind.directionMax) {
@@ -275,9 +277,12 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
   return 'Calm'; // Fallback if direction is somehow undefined despite type
 }
 
+const convertTemperature = (temperature: number, units: UnitOptions): number => {
+  return convert(temperature).from(DefaultUnits.temperature!).to(units.temperature || DefaultUnits.temperature!);
+}
+
 export function formatTemperature(temperature: number, units: UnitOptions = DefaultUnits): string {
-  const temperatureConv = convert(temperature).from(units.temperature || 'C').to(units.temperature || 'C');
-  return `${temperatureConv}°C`;
+  return `${convertTemperature(temperature, units)}°C`;
 }
 
 export function formatVisibility(visibility: Distance): string {
