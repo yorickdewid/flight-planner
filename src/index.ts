@@ -54,6 +54,58 @@ export interface MetarStation {
   coords: GeoJSON.Position;
 }
 
+export type UnitDisplay = 'metric' | 'imperial';
+export type UnitSpeed = 'kts' | 'kmh' | 'mph' | 'mps';
+export type UnitDistance = 'nm' | 'km' | 'mi';
+export type UnitAltitude = 'ft' | 'm';
+export type UnitTemperature = 'C' | 'F';
+export type UnitPressure = 'hPa' | 'inHg';
+export type UnitWeight = 'kg' | 'lb';
+export type UnitVolume = 'l' | 'gal';
+export type UnitAngle = 'deg' | 'rad';
+
+/**
+ * Defines unit preferences for various measurements used in flight planning.
+ * 
+ * @interface UnitOptions
+ * @property {UnitSpeed} [speed='kts'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
+ * @property {UnitDistance} [distance='nm'] - Unit for distance measurements (nautical miles, kilometers, or miles).
+ * @property {UnitAltitude} [altitude='ft'] - Unit for altitude measurements (feet or meters).
+ * @property {UnitTemperature} [temperature='C'] - Unit for temperature measurements (Celsius or Fahrenheit).
+ * @property {UnitPressure} [pressure='hPa'] - Unit for pressure measurements (hectopascals or inches of mercury).
+ * @property {UnitWeight} [weight='kg'] - Unit for weight measurements (kilograms or pounds).
+ * @property {UnitVolume} [volume='l'] - Unit for volume measurements (liters or gallons).
+ * @property {UnitAngle} [angle='deg'] - Unit for angular measurements (degrees or radians).
+ */
+export interface UnitOptions {
+  speed?: UnitSpeed;
+  distance?: UnitDistance;
+  altitude?: UnitAltitude;
+  temperature?: UnitTemperature;
+  pressure?: UnitPressure;
+  weight?: UnitWeight;
+  volume?: UnitVolume;
+  angle?: UnitAngle;
+}
+
+/**
+ * Default unit settings used throughout the application when specific units aren't provided.
+ * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
+ * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
+ * 
+ * @constant {UnitOptions}
+ */
+export const DefaultUnits: UnitOptions = {
+  speed: 'kts',
+  distance: 'nm',
+  altitude: 'ft',
+  temperature: 'C',
+  pressure: 'hPa',
+  weight: 'kg',
+  volume: 'l',
+  angle: 'deg',
+};
+
 /**
  * Exports various utility functions and types for flight planning and weather information.
  * 
