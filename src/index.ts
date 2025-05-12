@@ -4,9 +4,22 @@ import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
 import FlightPlanner, { RouteLeg, RouteOptions, RouteTrip } from "./planner.js";
 
+/**
+ * Represents an ICAO (International Civil Aviation Organization) identifier,
+ * typically used for airports, navigation aids, or weather stations.
+ * @type {string}
+ */
 export type ICAO = string;
 
+/**
+ * Standard atmospheric pressure at sea level in hectopascals (hPa).
+ * @constant {number}
+ */
 export const StandardPressure = 1013.25; // hPa
+/**
+ * Standard atmospheric temperature at sea level in Celsius.
+ * @constant {number}
+ */
 export const StandardTemperature = 15; // Celsius
 
 /**
@@ -43,10 +56,9 @@ export interface Aircraft {
  * Represents a METAR (Meteorological Aerodrome Report) station.
  *
  * @interface MetarStation
- * @property {string} station - The identifier for the METAR station.
- * @property {MetarData} metarData - The METAR data associated with the station.
- * @property {string} [rawTaf] - The raw TAF (Terminal Aerodrome Forecast) data, if available.
- * @property {GeoJSON.Position} coords - The geographical location of the station.
+ * @property {ICAO} station - The ICAO identifier for the METAR station.
+ * @property {Metar} metar - The METAR data associated with the station.
+ * @property {GeoJSON.Position} coords - The geographical coordinates of the station.
  */
 export interface MetarStation {
   station: ICAO;
