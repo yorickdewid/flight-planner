@@ -252,7 +252,6 @@ export function formatMetarObservationTime(metarData: Metar, locale?: string): s
   return metarData.observationTime.toLocaleString(locale, options);
 }
 
-// TODO: Make this a utility function that takes a Wind object and returns a formatted string
 export function formatWind(wind: Wind): string {
   if (wind.speed === 0) {
     return 'Calm';
@@ -273,44 +272,31 @@ export function formatWind(wind: Wind): string {
   return 'Calm'; // Fallback if direction is somehow undefined despite type
 }
 
-// TODO: Make this a utility function that takes a temperature and returns a formatted string
-export function formatMetarTemperature(metarData: Metar): string {
-  if (metarData.temperature === undefined) {
-    return '-';
-  }
-  return `${metarData.temperature}°C`;
+export function formatTemperature(temperature: number): string {
+  return `${temperature}°C`;
 }
 
-// TODO: Make this a utility function that takes a dewpoint and returns a formatted string
-export function formatMetarDewpoint(metarData: Metar): string {
-  if (metarData.dewpoint === undefined) {
-    return '-';
-  }
-  return `${metarData.dewpoint}°C`;
-}
+export function formatVisibility(visibility: Distance): string {
+  // if (metarData.visibility === undefined) {
+  //   if (metarData.raw.includes('CAVOK')) {
+  //     return '10 km+';
+  //   }
+  //   return '-';
+  // }
 
-// TODO: Make this a utility function that takes a visibility and returns a formatted string
-export function formatMetarVisibility(metarData: Metar): string {
-  if (metarData.visibility === undefined) {
-    if (metarData.raw.includes('CAVOK')) {
-      return '10 km+';
-    }
-    return '-';
-  }
-
-  if (metarData.visibility.value >= 9999 && metarData.visibility.unit === 'm') {
+  if (visibility.value >= 9999 && visibility.unit === 'm') {
     return '10 km+';
-  } else if (metarData.visibility.value >= 10 && metarData.visibility.unit === 'sm') {
+  } else if (visibility.value >= 10 && visibility.unit === 'sm') {
     return '10 sm+';
   }
 
-  if (metarData.visibility.unit === 'm') {
-    if (metarData.visibility.value < 1000) {
-      return `${metarData.visibility.value} m`;
+  if (visibility.unit === 'm') {
+    if (visibility.value < 1000) {
+      return `${visibility.value} m`;
     }
-    return `${(metarData.visibility.value / 1000).toFixed(1)} km`;
+    return `${(visibility.value / 1000).toFixed(1)} km`;
   } else {
-    return `${metarData.visibility.value} sm`;
+    return `${visibility.value} sm`;
   }
 }
 
