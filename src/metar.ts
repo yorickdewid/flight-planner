@@ -313,12 +313,12 @@ export function formatQNH(qnh: Pressure): string {
   return `${qnh.value} ${qnh.unit}`;
 }
 
-export function formatMetarCeiling(metarData: Metar): string {
-  const ceiling = calculateMetarCeiling(metarData);
-  if (ceiling === undefined) {
-    return '-';
-  }
-  return `${ceiling} ft`;
+const convertAltitude = (altitude: number, units: UnitOptions): number => {
+  return convert(altitude).from(DefaultUnits.altitude!).to(units.altitude || DefaultUnits.altitude!);
+}
+
+export function formatAltitude(altitude: number, units: UnitOptions = DefaultUnits): string {
+  return `${convertAltitude(altitude, units)} ft`;
 }
 
 export function formatClouds(clouds: Cloud[]): string {
