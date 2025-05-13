@@ -16,13 +16,13 @@ export type ICAO = string;
  * Standard atmospheric pressure at sea level in hectopascals (hPa).
  * @constant {number}
  */
-export const StandardPressure = 1013.25; // hPa
+export const StandardPressure = 1013.25;
 
 /**
  * Standard atmospheric temperature at sea level in Celsius.
  * @constant {number}
  */
-export const StandardTemperature = 15; // Celsius
+export const StandardTemperature = 15;
 
 /**
  * Represents an aircraft with its specifications and characteristics.
@@ -144,7 +144,7 @@ export { validateFrequencyType } from "./airport.js";
 /**
  * Service-related exports for handling weather and aerodrome data.
  */
-export type { RepositoryBase, AerodromeService, WeatherService };
+export { RepositoryBase, AerodromeService, WeatherService };
 
 /**
  * Route planning exports including route options, legs, trips, and planning functions.
