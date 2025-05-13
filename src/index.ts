@@ -125,6 +125,7 @@ export type { FlightRules, Metar } from "./metar.js";
 export {
   createMetarFromRaw,
   determineMetarFlightRule,
+  calculateMetarTimeElapsed,
   formatMetarObservationTime,
   isMetarExpired,
   getMetarFlightRuleColor,
@@ -140,8 +141,8 @@ export {
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export type { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, FrequencyType } from "./airport.js";
-export { validateFrequencyType } from "./airport.js";
+export type { Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, FrequencyType } from "./airport.js";
+export { Aerodrome, validateFrequencyType } from "./airport.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.
