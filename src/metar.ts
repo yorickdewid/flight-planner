@@ -1,7 +1,8 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
-import { DefaultUnits, UnitOptions } from './index.js';
+import { DefaultUnits } from './index.js';
+import { convertSpeed, UnitOptions } from './units.js';
 
 /**
  * Enumeration representing different flight rules categories.
@@ -253,10 +254,6 @@ export function formatMetarObservationTime(metarData: Metar, locale?: string): s
   return metarData.observationTime.toLocaleString(locale, options);
 }
 
-const convertSpeed = (speed: number, units: UnitOptions): number => {
-  return convert(speed).from(DefaultUnits.speed!).to(units.speed || DefaultUnits.speed!);
-}
-
 export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
   if (wind.speed === 0) {
     return 'Calm';
@@ -275,14 +272,6 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
   }
 
   return 'Calm'; // Fallback if direction is somehow undefined despite type
-}
-
-const convertTemperature = (temperature: number, units: UnitOptions): number => {
-  return convert(temperature).from(DefaultUnits.temperature!).to(units.temperature || DefaultUnits.temperature!);
-}
-
-export function formatTemperature(temperature: number, units: UnitOptions = DefaultUnits): string {
-  return `${convertTemperature(temperature, units)}°C`;
 }
 
 export function formatVisibility(visibility: Distance): string {
@@ -307,22 +296,6 @@ export function formatVisibility(visibility: Distance): string {
   } else {
     return `${visibility.value} sm`;
   }
-}
-
-const convertPressure = (pressure: number, units: UnitOptions): number => {
-  return convert(pressure).from(DefaultUnits.pressure!).to(units.pressure || DefaultUnits.pressure!);
-}
-
-export function formatPressure(qnh: Pressure, units: UnitOptions = DefaultUnits): string {
-  return `${convertPressure(qnh.value, units)} ${qnh.unit}`;
-}
-
-const convertAltitude = (altitude: number, units: UnitOptions): number => {
-  return convert(altitude).from(DefaultUnits.altitude!).to(units.altitude || DefaultUnits.altitude!);
-}
-
-export function formatAltitude(altitude: number, units: UnitOptions = DefaultUnits): string {
-  return `${convertAltitude(altitude, units)} ft`;
 }
 
 export function formatClouds(clouds: Cloud[]): string {

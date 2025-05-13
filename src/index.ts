@@ -2,7 +2,7 @@ import { Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
-import { Angle, Distance, Mass, Pressure, Speed, Temperature, Volume } from "convert-units";
+import { UnitOptions } from "./units.js";
 
 /**
  * Represents an ICAO (International Civil Aviation Organization) identifier,
@@ -68,30 +68,6 @@ export interface MetarStation {
 }
 
 /**
- * Defines unit preferences for various measurements used in flight planning.
- * 
- * @interface UnitOptions
- * @property {UnitSpeed} [speed='kts'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
- * @property {UnitDistance} [distance='nm'] - Unit for distance measurements (nautical miles, kilometers, or miles).
- * @property {UnitAltitude} [altitude='ft'] - Unit for altitude measurements (feet or meters).
- * @property {UnitTemperature} [temperature='C'] - Unit for temperature measurements (Celsius or Fahrenheit).
- * @property {UnitPressure} [pressure='hPa'] - Unit for pressure measurements (hectopascals or inches of mercury).
- * @property {UnitWeight} [weight='kg'] - Unit for weight measurements (kilograms or pounds).
- * @property {UnitVolume} [volume='l'] - Unit for volume measurements (liters or gallons).
- * @property {UnitAngle} [angle='deg'] - Unit for angular measurements (degrees or radians).
- */
-export interface UnitOptions {
-  speed?: Speed;
-  distance?: Distance;
-  altitude?: Distance;
-  temperature?: Temperature;
-  pressure?: Pressure;
-  mass?: Mass;
-  volume?: Volume;
-  angle?: Angle;
-}
-
-/**
  * Default unit settings used throughout the application when specific units aren't provided.
  * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
  * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
@@ -130,11 +106,8 @@ export {
   isMetarExpired,
   getMetarFlightRuleColor,
   getMetarColorCode,
-  formatAltitude,
   formatWind,
-  formatTemperature,
   formatVisibility,
-  formatPressure,
   formatClouds
 } from "./metar.js";
 
