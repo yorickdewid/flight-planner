@@ -2,7 +2,6 @@ import { Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
-import FlightPlanner, { RouteLeg, RouteOptions, RouteTrip } from "./planner.js";
 import { Angle, Distance, Mass, Pressure, Speed, Temperature, Volume } from "convert-units";
 
 /**
@@ -153,4 +152,5 @@ export { RepositoryBase, AerodromeService, WeatherService };
 /**
  * Route planning exports including route options, legs, trips, and planning functions.
  */
-export type { RouteOptions, RouteLeg, RouteTrip, FlightPlanner };
+export type { RouteOptions, RouteLeg, RouteTrip, } from "./planner.js";
+export { default as FlightPlanner } from "./planner.js";

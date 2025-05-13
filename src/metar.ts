@@ -309,6 +309,7 @@ export function formatVisibility(visibility: Distance): string {
   }
 }
 
+// TOOD: Rename to formatPressure
 export function formatQNH(qnh: Pressure): string {
   return `${qnh.value} ${qnh.unit}`;
 }
