@@ -309,9 +309,12 @@ export function formatVisibility(visibility: Distance): string {
   }
 }
 
-// TOOD: Rename to formatPressure
-export function formatQNH(qnh: Pressure): string {
-  return `${qnh.value} ${qnh.unit}`;
+const convertPressure = (pressure: number, units: UnitOptions): number => {
+  return convert(pressure).from(DefaultUnits.pressure!).to(units.pressure || DefaultUnits.pressure!);
+}
+
+export function formatPressure(qnh: Pressure, units: UnitOptions = DefaultUnits): string {
+  return `${convertPressure(qnh.value, units)} ${qnh.unit}`;
 }
 
 const convertAltitude = (altitude: number, units: UnitOptions): number => {

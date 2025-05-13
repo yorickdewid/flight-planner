@@ -134,15 +134,15 @@ export {
   formatWind,
   formatTemperature,
   formatVisibility,
-  formatQNH,
+  formatPressure,
   formatClouds
 } from "./metar.js";
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export type { Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, FrequencyType } from "./airport.js";
-export { Aerodrome, validateFrequencyType } from "./airport.js";
+export type { Frequency, Runway, RunwayWindVector } from "./airport.js";
+export { Aerodrome, FrequencyType, ReportingPoint, Waypoint, validateFrequencyType } from "./airport.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.

@@ -7,7 +7,7 @@ import {
   formatWind,
   formatTemperature,
   formatVisibility,
-  formatQNH,
+  formatPressure,
   formatClouds,
   calculateMetarCeiling,
   formatAltitude,
@@ -187,7 +187,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         qnh: { value: 1013, unit: 'hPa' }
       };
-      expect(formatQNH(metarData.qnh!)).toBe('1013 hPa');
+      expect(formatPressure(metarData.qnh!)).toBe('1013 hPa');
     });
 
     // it('should return formatted QNH in inches when present', () => {
