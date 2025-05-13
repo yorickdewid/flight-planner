@@ -1,4 +1,4 @@
-import { createMetarFromRaw, FlightRules, Metar } from "./metar.js";
+import { Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./aerodrome-service.js";
 import WeatherService from "./weather-service.js";
@@ -121,8 +121,19 @@ export { normalizeICAO, isICAO } from "./utils.js";
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export type { FlightRules, Metar };
-export { createMetarFromRaw };
+export type { FlightRules, Metar } from "./metar.js";
+export {
+  createMetarFromRaw,
+  determineMetarFlightRule,
+  getMetarFlightRuleColor,
+  getMetarColorCode,
+  formatMetarCeiling,
+  formatWind,
+  formatTemperature,
+  formatVisibility,
+  formatQNH,
+  formatClouds
+} from "./metar.js";
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
