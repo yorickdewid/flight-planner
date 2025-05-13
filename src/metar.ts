@@ -309,11 +309,8 @@ export function formatVisibility(visibility: Distance): string {
   }
 }
 
-export function formatMetarQNH(metarData: Metar): string {
-  if (metarData.qnh === undefined) {
-    return '-';
-  }
-  return `${metarData.qnh.value} ${metarData.qnh.unit}`;
+export function formatQNH(qnh: Pressure): string {
+  return `${qnh.value} ${qnh.unit}`;
 }
 
 export function formatMetarCeiling(metarData: Metar): string {
@@ -324,12 +321,8 @@ export function formatMetarCeiling(metarData: Metar): string {
   return `${ceiling} ft`;
 }
 
-export function formatMetarClouds(metarData: Metar): string {
-  if (metarData.clouds === undefined || metarData.clouds.length === 0) {
-    return '-';
-  }
-
-  const sortedClouds = [...metarData.clouds].sort((a, b) => {
+export function formatClouds(clouds: Cloud[]): string {
+  const sortedClouds = [...clouds].sort((a, b) => {
     if (a.height === undefined) return 1;
     if (b.height === undefined) return -1;
     return a.height - b.height;
