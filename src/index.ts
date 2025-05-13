@@ -125,6 +125,8 @@ export type { FlightRules, Metar } from "./metar.js";
 export {
   createMetarFromRaw,
   determineMetarFlightRule,
+  formatMetarObservationTime,
+  isMetarExpired,
   getMetarFlightRuleColor,
   getMetarColorCode,
   formatMetarCeiling,
