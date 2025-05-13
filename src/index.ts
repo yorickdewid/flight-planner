@@ -121,19 +121,21 @@ export { normalizeICAO, isICAO } from "./utils.js";
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export { FlightRules, Metar, createMetarFromRaw };
+export type { FlightRules, Metar };
+export { createMetarFromRaw };
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, FrequencyType, validateFrequencyType } from "./airport.js";
+export type { Aerodrome, Frequency, ReportingPoint, Runway, RunwayWindVector, Waypoint, FrequencyType } from "./airport.js";
+export { validateFrequencyType } from "./airport.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.
  */
-export { RepositoryBase, AerodromeService, WeatherService };
+export type { RepositoryBase, AerodromeService, WeatherService };
 
 /**
  * Route planning exports including route options, legs, trips, and planning functions.
  */
-export { RouteOptions, RouteLeg, RouteTrip, FlightPlanner };
+export type { RouteOptions, RouteLeg, RouteTrip, FlightPlanner };
