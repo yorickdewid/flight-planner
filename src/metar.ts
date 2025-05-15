@@ -227,6 +227,7 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   return now > expirationTime;
 }
 
+// TODO: Convert this to a utility function that can print dates in different formats
 export function formatMetarObservationTime(metarData: Metar, locale?: string): string {
   if (!locale) {
     const date = metarData.observationTime;
@@ -271,7 +272,7 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
     return windString;
   }
 
-  return 'Calm'; // Fallback if direction is somehow undefined despite type
+  return 'Calm';
 }
 
 export function formatVisibility(visibility: Distance): string {
