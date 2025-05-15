@@ -1,7 +1,7 @@
 import { Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
-import AerodromeService from "./aerodrome-service.js";
-import WeatherService from "./weather-service.js";
+import AerodromeService from "./services/aerodrome.js";
+import WeatherService from "./services/weather.js";
 import { UnitOptions } from "./units.js";
 
 /**

@@ -1,7 +1,7 @@
-import { ICAO } from "./index.js";
-import { Aerodrome } from "./airport.js";
-import { isICAO, normalizeICAO } from "./utils.js";
-import RepositoryBase from "./repository.js";
+import { ICAO } from "../index.js";
+import { Aerodrome } from "../airport.js";
+import { isICAO, normalizeICAO } from "../utils.js";
+import RepositoryBase from "../repository.js";
 
 import { point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
