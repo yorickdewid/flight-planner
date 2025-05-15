@@ -19,8 +19,8 @@ export type WaypointLocation = Feature<Point, GeoJsonProperties>;
  * ```
  */
 export class Waypoint {
-  public name: string;
-  public location: WaypointLocation;
+  public readonly name: string;
+  public readonly location: WaypointLocation;
   public metarStation?: MetarStation;
 
   /**
