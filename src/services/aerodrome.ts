@@ -1,5 +1,5 @@
 import { ICAO } from "../index.js";
-import { Aerodrome } from "../airport.js";
+import { Aerodrome } from "../waypoint.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import RepositoryBase from "../repository.js";
 

@@ -1,5 +1,5 @@
 import { AerodromeService, Aircraft, WeatherService } from './index.js';
-import { Aerodrome, ReportingPoint, Waypoint } from './airport.js';
+import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
 import { point } from '@turf/turf';

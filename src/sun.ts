@@ -1,5 +1,5 @@
 import suncalc from 'suncalc';
-import { Waypoint } from './airport.js';
+import { Waypoint } from './waypoint.js';
 
 /**
  * Enum representing different sun events.
@@ -183,7 +183,7 @@ export function flightInvolvesNight(
 
 /**
  * Extends a RouteTrip with sun events at departure and destination.
- * 
+ *
  * @param trip - The route trip to extend
  * @param date - The date for the sun events calculation
  * @returns The extended route trip with sun events

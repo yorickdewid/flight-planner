@@ -114,8 +114,8 @@ export {
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
-export type { Frequency, Runway, RunwayWindVector } from "./airport.js";
-export { Aerodrome, FrequencyType, ReportingPoint, Waypoint, validateFrequencyType } from "./airport.js";
+export type { Frequency, Runway, RunwayWindVector } from "./waypoint.js";
+export { Aerodrome, FrequencyType, ReportingPoint, Waypoint, validateFrequencyType } from "./waypoint.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.
