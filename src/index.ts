@@ -63,6 +63,7 @@ export const DefaultUnits: UnitOptions = {
   speed: 'knot',
   distance: 'mi',
   altitude: 'ft',
+  elevation: 'ft',
   temperature: 'C',
   pressure: 'hPa',
   mass: 'kg',

@@ -19,6 +19,7 @@ export interface UnitOptions {
   speed?: Speed;
   distance?: Distance;
   altitude?: Distance;
+  elevation?: Distance;
   temperature?: Temperature;
   pressure?: Pressure;
   mass?: Mass;
@@ -34,6 +35,26 @@ export interface UnitOptions {
  */
 export const convertSpeed = (speed: number, units: UnitOptions): number => {
   return convert(speed).from(DefaultUnits.speed!).to(units.speed || DefaultUnits.speed!);
+}
+
+/**
+ * Converts elevation from default units to the specified units.
+ * @param {number} elevation - The elevation value to convert.
+ * @param {UnitOptions} units - The target unit options.
+ * @returns {number} The converted elevation.
+ */
+export const convertElevation = (elevation: number, units: UnitOptions): number => {
+  return convert(elevation).from(DefaultUnits.elevation!).to(units.elevation || DefaultUnits.elevation!);
+}
+
+/**
+ * Formats elevation to a string with the specified or default units.
+ * @param {number} elevation - The elevation value.
+ * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
+ * @returns {string} The formatted elevation string.
+ */
+export const formatElevation = (elevation: number, units: UnitOptions = DefaultUnits): string => {
+  return `${convertElevation(elevation, units)} ft`;
 }
 
 /**
