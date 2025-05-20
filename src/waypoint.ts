@@ -67,12 +67,13 @@ export class Waypoint {
 }
 
 /**
- * Represents a reporting point in the flight plan.
- * A reporting point is a waypoint that may be required for the flight.
+ * Represents a reporting point in the flight planning system.
+ * 
+ * A reporting point is a specific location where pilots are required to report their position to air traffic control.
  * 
  * @extends Waypoint
  */
-export class ReportingPoint extends Waypoint {
+export class VisualReportingPoint extends Waypoint {
   public required: boolean;
 
   /**

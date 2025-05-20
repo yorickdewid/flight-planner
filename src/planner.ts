@@ -1,5 +1,5 @@
 import { AerodromeService, WeatherService } from './index.js';
-import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.js';
+import { Aerodrome, VisualReportingPoint, Waypoint } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
 import { point } from '@turf/turf';
@@ -115,7 +115,7 @@ export interface RouteOptions {
   landingFuel?: number;
 }
 
-type WaypointType = Aerodrome | ReportingPoint | Waypoint;
+type WaypointType = Aerodrome | VisualReportingPoint | Waypoint;
 
 /**
  * FlightPlanner class to handle flight route planning operations
@@ -329,7 +329,7 @@ class FlightPlanner {
   static getRouteWaypoints(routeTrip: RouteTrip): WaypointType[] {
     const allWaypoints = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
 
-    const uniqueWaypoints = new Map<string, Aerodrome | ReportingPoint | Waypoint>();
+    const uniqueWaypoints = new Map<string, Aerodrome | VisualReportingPoint | Waypoint>();
     for (const waypoint of allWaypoints) {
       uniqueWaypoints.set(waypoint.name, waypoint);
     }
@@ -373,8 +373,8 @@ class FlightPlanner {
    * @param waypoint - The waypoint to test
    * @returns True if the waypoint is a ReportingPoint, false otherwise
    */
-  static isReportingPoint(waypoint: WaypointType): waypoint is ReportingPoint {
-    return waypoint instanceof ReportingPoint;
+  static isReportingPoint(waypoint: WaypointType): waypoint is VisualReportingPoint {
+    return waypoint instanceof VisualReportingPoint;
   }
 
   /**
@@ -386,7 +386,7 @@ class FlightPlanner {
   static isWaypoint(waypoint: WaypointType): waypoint is Waypoint {
     return waypoint instanceof Waypoint
       && !(waypoint instanceof Aerodrome)
-      && !(waypoint instanceof ReportingPoint);
+      && !(waypoint instanceof VisualReportingPoint);
   }
 
   /**
