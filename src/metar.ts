@@ -235,7 +235,9 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   return now > expirationTime;
 }
 
-export function getMetarFlightRuleColor(metarData: Metar): string {
+export type MetarFlightRuleColor = 'green' | 'blue' | 'red' | 'purple' | 'black';
+
+export function getMetarFlightRuleColor(metarData: Metar): MetarFlightRuleColor {
   const flightRule = determineMetarFlightRule(metarData);
   switch (flightRule) {
     case FlightRules.VFR:
@@ -251,8 +253,9 @@ export function getMetarFlightRuleColor(metarData: Metar): string {
   }
 }
 
-// TODO: Return a type
-export function getMetarColorCode(metarData: Metar): string {
+export type MetarColorCode = 'green' | 'blue' | 'yellow' | 'amber' | 'red';
+
+export function getMetarColorCode(metarData: Metar): MetarColorCode {
   const visibility = metarData.visibility;
   const ceiling = calculateMetarCeiling(metarData);
   const windSpeed = metarData.wind?.speed;
