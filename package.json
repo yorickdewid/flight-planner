@@ -38,6 +38,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./aircraft": {
+      "import": "./dist/aircraft.js",
+      "types": "./dist/aircraft.d.ts"
+    },
     "./units": {
       "import": "./dist/units.js",
       "types": "./dist/units.d.ts"

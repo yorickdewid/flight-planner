@@ -1,4 +1,4 @@
-import { Aircraft } from './index.js';
+import { Aircraft } from './aircraft.js';
 import { StandardTemperature } from './index.js';
 
 /**

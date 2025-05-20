@@ -5,6 +5,8 @@
  * @property {string} [manufacturer] - The manufacturer of the aircraft.
  * @property {string} [icaoType] - The ICAO type designator of the aircraft.
  * @property {string} [registration] - The registration identifier of the aircraft.
+ * @property {string} [hexcode] - The hex code of the aircraft, typically used for ADS-B. 
+ * @property {string} [colors] - The color scheme of the aircraft.
  * @property {number} [numberOfEngines] - The number of engines the aircraft has.
  * @property {string[]} [avionics] - Array of avionics systems (e.g., 'Garmin G1000', 'Bendix King').
  * @property {number} [cruiseSpeed] - The cruising speed of the aircraft in knots.
@@ -28,8 +30,10 @@ export interface Aircraft {
   manufacturer?: string;
   icaoType?: string;
   registration?: string;
+  hexcode?: string;
+  colors?: string;
   numberOfEngines?: number;
-  avionics?: string[]; // array of avionics systems (e.g., 'Garmin G1000', 'Bendix King')
+  avionics?: string[];
   cruiseSpeed?: number;
   range?: number;
   fuelCapacity?: number;

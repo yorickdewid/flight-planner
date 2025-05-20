@@ -1,8 +1,9 @@
-import { AerodromeService, Aircraft, WeatherService } from './index.js';
+import { AerodromeService, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { Wind } from './metar.js';
 import { point } from '@turf/turf';
+import { Aircraft } from './aircraft.js';
 
 /**
  * Represents a course vector with distance and track.
@@ -262,6 +263,7 @@ class FlightPlanner {
       totalFuelConsumption += leg.performance?.fuelConsumption || 0;
     }
 
+    // Calculate total fuel required
     const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
     const totalFuelRequired = totalFuelConsumption
       + (reserveFuelRequired || 0)

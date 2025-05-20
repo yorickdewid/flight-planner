@@ -41,8 +41,6 @@ export const DefaultUnits: UnitOptions = {
   angle: 'deg',
 };
 
-export * from "./aircraft.js"
-
 /**
  * Exports various utility functions and types for flight planning and weather information.
  * 
