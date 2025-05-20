@@ -77,7 +77,7 @@ export const DefaultUnits: UnitOptions = {
  * @module flight-planner
  */
 
-export { normalizeICAO, isICAO, isIATA, normalizeIATA, isRegistration, normalizeRegistration } from "./utils.js";
+export { normalizeICAO, isICAO, isIATA, normalizeIATA, isAircraftRegistration, normalizeAircraftRegistration } from "./utils.js";
 
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.

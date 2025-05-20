@@ -120,7 +120,7 @@ export const normalizeIATA = (iata: string): string => {
  * @param registration - The string to check
  * @returns True if the string is a valid aircraft registration, false otherwise
  */
-export const isRegistration = (registration: string): boolean => {
+export const isAircraftRegistration = (registration: string): boolean => {
   return /^[A-Z0-9]{1,3}-?[A-Z0-9]+$/.test(registration.toUpperCase());
 }
 
@@ -130,7 +130,7 @@ export const isRegistration = (registration: string): boolean => {
  * @param registration - The aircraft registration to normalize
  * @returns The normalized aircraft registration
  */
-export const normalizeRegistration = (registration: string): string => {
+export const normalizeAircraftRegistration = (registration: string): string => {
   return registration.toUpperCase().replace(/-/g, '');
 }
 
