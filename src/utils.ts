@@ -81,7 +81,7 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
  * @returns True if the string is a valid ICAO code, false otherwise
  */
 export const isICAO = (icao: string): boolean => {
-  return /^[A-Z]{4}$/.test(normalizeICAO(icao));
+  return /^[A-Z]{4}$/.test(icao.toUpperCase());
 }
 
 /**
@@ -101,7 +101,7 @@ export const normalizeICAO = (icao: string): string => {
  * @returns True if the string is a valid IATA code, false otherwise
  */
 export const isIATA = (iata: string): boolean => {
-  return /^[A-Z]{3}$/.test(normalizeIATA(iata));
+  return /^[A-Z]{3}$/.test(iata.toUpperCase());
 }
 
 /**

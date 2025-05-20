@@ -1,5 +1,5 @@
 // import { ReportingPoint, Aerodrome } from './airport.js';
-import { isICAO, normalizeICAO, capitalizeWords } from './utils.js';
+import { isICAO, normalizeICAO, capitalizeWords, isIATA, normalizeIATA } from './utils.js';
 import { describe, it, expect } from '@jest/globals';
 // import { jest } from '@jest/globals';
 // import { point } from '@turf/turf';
@@ -47,6 +47,56 @@ describe('normalizeICAO', () => {
 
   it('should handle empty strings', () => {
     expect(normalizeICAO('')).toBe('');
+  });
+});
+
+describe('isIATA', () => {
+  it('should return true for valid IATA identifiers', () => {
+    expect(isIATA('AMS')).toBe(true);
+    expect(isIATA('CDG')).toBe(true);
+    expect(isIATA('JFK')).toBe(true);
+    expect(isIATA('LHR')).toBe(true);
+  });
+
+  it('should return false for invalid IATA identifiers', () => {
+    expect(isIATA('AM1')).toBe(false);
+    expect(isIATA('AMS1')).toBe(false);
+    expect(isIATA('')).toBe(false);
+  });
+
+  it('should handle edge cases', () => {
+    expect(isIATA('ZZZ')).toBe(true);
+  });
+});
+
+describe('normalizeIATA', () => {
+  it('should convert lowercase IATA codes to uppercase', () => {
+    expect(normalizeIATA('ams')).toBe('AMS');
+    expect(normalizeIATA('cdg')).toBe('CDG');
+    expect(normalizeIATA('jfk')).toBe('JFK');
+  });
+
+  it('should convert mixed case IATA codes to uppercase', () => {
+    expect(normalizeIATA('aMs')).toBe('AMS');
+    expect(normalizeIATA('cDg')).toBe('CDG');
+    expect(normalizeIATA('jFk')).toBe('JFK');
+  });
+
+  it('should leave uppercase IATA codes unchanged', () => {
+    expect(normalizeIATA('AMS')).toBe('AMS');
+    expect(normalizeIATA('CDG')).toBe('CDG');
+    expect(normalizeIATA('JFK')).toBe('JFK');
+  });
+
+  it('should handle empty strings', () => {
+    expect(normalizeIATA('')).toBe('');
+  });
+
+  it('should handle invalid IATA codes', () => {
+    expect(normalizeIATA('AM1')).toBe('AM1');
+    expect(normalizeIATA('ams')).toBe('AMS');
+    expect(normalizeIATA('AMS1')).toBe('AMS1');
+    expect(normalizeIATA('')).toBe('');
   });
 });
 
