@@ -74,7 +74,7 @@ export const normalizeAircraftRegistration = (registration: string): string => {
  * @param aircraft - The aircraft object
  * @returns The maximum payload in kilograms, or undefined if the weights are not provided
  */
-export const maxAircraftPayload = (aircraft: Aircraft): number | undefined => {
+export const aircraftMaxPayload = (aircraft: Aircraft): number | undefined => {
   if (aircraft.maxTakeoffWeight && aircraft.emptyWeight) {
     return aircraft.maxTakeoffWeight - aircraft.emptyWeight;
   }

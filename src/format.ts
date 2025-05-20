@@ -153,5 +153,5 @@ export const formatDuration = (totalMinutes: number): string => {
 export const formatElapsedTime = (start: Date, end: Date = new Date()): string => {
   const elapsed = Math.abs(end.getTime() - start.getTime());
   const totalMinutes = Math.floor(elapsed / (1000 * 60));
-  return formatDuration(totalMinutes) + `ago`;
+  return formatDuration(totalMinutes) + ` ago`;
 }
