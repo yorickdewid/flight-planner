@@ -95,6 +95,26 @@ export const normalizeICAO = (icao: string): string => {
 }
 
 /**
+ * Checks if the given string is a valid IATA code.
+ *
+ * @param iata - The string to check
+ * @returns True if the string is a valid IATA code, false otherwise
+ */
+export const isIATA = (iata: string): boolean => {
+  return /^[A-Z]{3}$/.test(normalizeIATA(iata));
+}
+
+/**
+ * Normalizes the given IATA code to uppercase.
+ * 
+ * @param iata - The IATA code to normalize
+ * @returns The normalized IATA code
+ */
+export const normalizeIATA = (iata: string): string => {
+  return iata.toUpperCase();
+}
+
+/**
  * Normalizes the given track angle to a value between 0 and 360 degrees.
  * 
  * @param track - The track angle to normalize
