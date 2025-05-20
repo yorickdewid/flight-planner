@@ -233,7 +233,7 @@ export class Aerodrome extends Waypoint {
   constructor(
     public ICAO: ICAO,
     public IATA: string | undefined,
-    public name: string,
+    name: string,
     public location: WaypointLocation,
     public runways: Runway[],
     public frequencies?: Frequency[],
