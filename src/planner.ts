@@ -276,10 +276,10 @@ class FlightPlanner {
     return {
       route: legs,
       aircraft,
-      totalDistance: Math.round(totalDistance),
-      totalDuration: Math.round(totalDuration),
-      totalFuelConsumption: Math.round(totalFuelConsumption),
-      totalFuelRequired: Math.round(totalFuelRequired),
+      totalDistance,
+      totalDuration,
+      totalFuelConsumption,
+      totalFuelRequired,
       departureDate,
       arrivalDate,
     };
