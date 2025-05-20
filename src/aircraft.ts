@@ -83,13 +83,27 @@ export const aircraftMaxPayload = (aircraft: Aircraft): number | undefined => {
 
 /**
  * Calculates the range of the aircraft based on its fuel capacity, fuel consumption, and cruise speed.
- * 
+ *
  * @param aircraft - The aircraft object
  * @returns The range in nautical miles, or undefined if the required properties are not provided
  */
 export const aircraftRange = (aircraft: Aircraft): number | undefined => {
-  if (aircraft.fuelCapacity && aircraft.fuelConsumption && aircraft.cruiseSpeed && aircraft.fuelConsumption > 0) {
-    return (aircraft.fuelCapacity / aircraft.fuelConsumption) * aircraft.cruiseSpeed;
+  const endurance = aircraftEndurance(aircraft);
+  if (endurance && aircraft.cruiseSpeed) {
+    return endurance * aircraft.cruiseSpeed;
+  }
+  return undefined;
+}
+
+/**
+ * Calculates the endurance of the aircraft based on its fuel capacity and fuel consumption.
+ *
+ * @param aircraft - The aircraft object
+ * @returns The endurance in hours, or undefined if the required properties are not provided or fuelConsumption is zero
+ */
+export const aircraftEndurance = (aircraft: Aircraft): number | undefined => {
+  if (aircraft.fuelCapacity && aircraft.fuelConsumption && aircraft.fuelConsumption > 0) {
+    return aircraft.fuelCapacity / aircraft.fuelConsumption;
   }
   return undefined;
 }
