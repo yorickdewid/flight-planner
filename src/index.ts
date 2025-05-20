@@ -23,36 +23,6 @@ export const StandardPressure = 1013.25;
 export const StandardTemperature = 15;
 
 /**
- * Represents an aircraft with its specifications and characteristics.
- * 
- * @interface Aircraft
- * @property {string} [manufacturer] - The manufacturer of the aircraft.
- * @property {string} [model] - The model of the aircraft.
- * @property {string} [registration] - The registration identifier of the aircraft.
- * @property {number} [numberOfEngines] - The number of engines the aircraft has.
- * @property {string[]} [avionics] - Array of avionics systems (e.g., 'Garmin G1000', 'Bendix King').
- * @property {number} [cruiseSpeed] - The cruising speed of the aircraft in knots.
- * @property {number} [range] - The maximum range of the aircraft in nautical miles.
- * @property {number} [fuelCapacity] - The fuel capacity of the aircraft in liters.
- * @property {number} [fuelConsumption] - The fuel consumption rate in liters per hour.
- * @property {'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft'} [engineType] - The type of engine used in the aircraft.
- * @property {number} [maxTakeoffWeight] - The maximum takeoff weight of the aircraft in kilograms.
- */
-export interface Aircraft {
-  manufacturer?: string;
-  model?: string;
-  registration?: string;
-  numberOfEngines?: number;
-  avionics?: string[]; // array of avionics systems (e.g., 'Garmin G1000', 'Bendix King')
-  cruiseSpeed?: number; // in knots
-  range?: number; // in nautical miles
-  fuelCapacity?: number; // in liters
-  fuelConsumption?: number; // in liters per hour
-  engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
-  maxTakeoffWeight?: number; // in kilograms
-}
-
-/**
  * Default unit settings used throughout the application when specific units aren't provided.
  * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
  * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
@@ -70,6 +40,8 @@ export const DefaultUnits: UnitOptions = {
   volume: 'l',
   angle: 'deg',
 };
+
+export * from "./aircraft.js"
 
 /**
  * Exports various utility functions and types for flight planning and weather information.
