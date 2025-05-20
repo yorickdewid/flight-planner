@@ -6,6 +6,8 @@ import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 
 export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 
+// TODO: Waypoint is not a class but an interface
+
 /**
  * Represents a waypoint in the flight planning system
  * 
@@ -20,7 +22,7 @@ export type WaypointLocation = Feature<Point, GeoJsonProperties>;
  */
 export class Waypoint {
   public readonly name: string;
-  public readonly location: WaypointLocation;
+  public readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position
   public metarStation?: MetarStation;
 
   /**
@@ -48,11 +50,8 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the distance to
    * @returns The distance in nautical miles
    */
-  distanceTo(waypoint: Waypoint): number {
-    // const distance = turf.distance(from, to, { units: 'nauticalmiles' });
-    const distanceInKm = distance(this.location, waypoint.location);
-    const distanceInNm = distanceInKm * 0.539957; // TODO: Move to constants
-    return distanceInNm;
+  distance(waypoint: Waypoint): number {
+    return distance(this.location, waypoint.location, { units: 'nauticalmiles' });
   }
 
   /**
@@ -61,7 +60,7 @@ export class Waypoint {
    * @param waypoint The waypoint to calculate the heading to
    * @returns The heading in degrees
    */
-  headingTo(waypoint: Waypoint): number {
+  heading(waypoint: Waypoint): number {
     const bearingValue = bearing(this.location, waypoint.location);
     return bearingToAzimuth(bearingValue)
   }

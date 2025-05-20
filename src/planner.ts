@@ -216,8 +216,8 @@ class FlightPlanner {
     const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
       const endWaypoint = waypoints[i + 1];
 
-      const distance = startWaypoint.distanceTo(endWaypoint);
-      const track = normalizeTrack(startWaypoint.headingTo(endWaypoint));
+      const distance = startWaypoint.distance(endWaypoint);
+      const track = normalizeTrack(startWaypoint.heading(endWaypoint));
 
       const course = {
         distance,

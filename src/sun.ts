@@ -136,7 +136,7 @@ export function flightInvolvesNight(
   departureTime: Date,
   speed: number
 ): boolean {
-  const distance = from.distanceTo(to);
+  const distance = from.distance(to);
   const flightTimeHours = distance / speed;
   const flightTimeMs = flightTimeHours * 60 * 60 * 1000;
   const arrivalTime = new Date(departureTime.getTime() + flightTimeMs);
