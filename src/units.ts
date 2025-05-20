@@ -164,7 +164,7 @@ export const formatMass = (mass: number, units: UnitOptions = DefaultUnits): str
  * @returns {number} The converted volume.
  */
 export const convertVolume = (volume: number, units: UnitOptions): number => {
-  return convert(volume).from(DefaultUnits.volume!).to(units.volume || DefaultUnits.volume!));
+  return convert(volume).from(DefaultUnits.volume!).to(units.volume || DefaultUnits.volume!);
 }
 
 /**
