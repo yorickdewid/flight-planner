@@ -119,9 +119,35 @@ export interface RouteOptions {
 
 type WaypointType = Aerodrome | VisualReportingPoint | Waypoint;
 
+// TODO: Add metarStation to segment
 interface RouteSegment {
   waypoint: WaypointType;
   altitude?: number;
+}
+
+export const isEastbound = (track: number): boolean => {
+  const normalizedTrack = ((track % 360) + 360) % 360;
+  return normalizedTrack >= 0 && normalizedTrack <= 179;
+}
+
+export const isWestbound = (track: number): boolean => {
+  return !isEastbound(track);
+}
+
+export const calculateVFRCruisingAltitude = (track: number, altitude: number): number => {
+  let altitudeLevel: number;
+  if (isEastbound(track)) {
+    altitudeLevel = 3500;
+    while (altitudeLevel < altitude) {
+      altitudeLevel += 2000;
+    }
+  } else {
+    altitudeLevel = 4500;
+    while (altitudeLevel < altitude) {
+      altitudeLevel += 2000;
+    }
+  }
+  return altitudeLevel;
 }
 
 /**
