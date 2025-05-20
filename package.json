@@ -23,7 +23,6 @@
   },
   "scripts": {
     "build": "tsc && npm run lint",
-    "start": "npm run build && node dist/test.js",
     "lint": "eslint src/",
     "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
     "prepare": "npm run build",
