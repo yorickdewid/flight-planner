@@ -156,3 +156,12 @@ export const convertMass = (mass: number, units: UnitOptions): number => {
 export const formatMass = (mass: number, units: UnitOptions = DefaultUnits): string => {
   return `${convertMass(mass, units)} kg`;
 }
+
+/**
+ * Formats date and time to a string in UTC format.
+ * @param {Date} date - The date to format.
+ * @returns {string} The formatted date string in UTC format.
+ */
+export const formatUTCTimestamp = (date: Date): string => {
+  return date.toUTCString().replace(/ GMT$/, ' UTC');
+}

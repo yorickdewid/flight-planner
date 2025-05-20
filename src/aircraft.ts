@@ -2,9 +2,9 @@
  * Represents an aircraft with its specifications and characteristics.
  * 
  * @interface Aircraft
+ * @property {string} [registration] - The registration identifier of the aircraft.
  * @property {string} [manufacturer] - The manufacturer of the aircraft.
  * @property {string} [icaoType] - The ICAO type designator of the aircraft.
- * @property {string} [registration] - The registration identifier of the aircraft.
  * @property {string} [hexcode] - The hex code of the aircraft, typically used for ADS-B. 
  * @property {string} [colors] - The color scheme of the aircraft.
  * @property {number} [numberOfEngines] - The number of engines the aircraft has.
@@ -27,9 +27,9 @@
  * @property {'fixed tricycle' | 'retractable tricycle' | 'fixed conventional' | 'retractable conventional' | 'skis' | 'floats'} [landingGearType] - The type of landing gear.
  */
 export interface Aircraft {
+  registration: string;
   manufacturer?: string;
   icaoType?: string;
-  registration?: string;
   hexcode?: string;
   colors?: string;
   numberOfEngines?: number;
