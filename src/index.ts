@@ -54,16 +54,15 @@ export { normalizeICAO, isICAO, isIATA, normalizeIATA } from "./utils.js";
  */
 export type { MetarStation, FlightRules, Metar } from "./metar.js";
 export {
-  createMetarFromRaw,
+  createMetarFromString,
   determineMetarFlightRule,
-  calculateMetarTimeElapsed,
   calculateMetarCeiling,
   isMetarExpired,
   getMetarFlightRuleColor,
   getMetarColorCode,
-  formatWind,
-  formatVisibility,
-  formatClouds
+  formatWind, // TODO: Move to format.ts
+  formatVisibility, // TODO: Move to format.ts
+  formatClouds // TODO: Move to format.ts
 } from "./metar.js";
 
 /**

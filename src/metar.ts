@@ -95,7 +95,7 @@ export interface Wind {
  * @param raw The raw METAR string
  * @returns A Metar object
  */
-export function createMetarFromRaw(raw: string): Metar {
+export function createMetarFromString(raw: string): Metar {
   const metar = parseMetar(raw);
 
   const observationTime = new Date();
@@ -211,12 +211,6 @@ export function determineMetarFlightRule(metar: Metar): FlightRules {
   return FlightRules.VFR;
 }
 
-export function calculateMetarTimeElapsed(metar: Metar): number {
-  const now = new Date();
-  const elapsed = now.getTime() - metar.observationTime.getTime();
-  return Math.floor(elapsed / (1000 * 60));
-}
-
 export function isMetarExpired(metar: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
   const now = new Date();
   const { customMinutes, useStandardRules = true } = options;
@@ -240,34 +234,6 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   expirationTime.setMinutes(metar.observationTime.getMinutes() + 60);
   return now > expirationTime;
 }
-
-// // TODO: Convert this to a utility function that can print dates in different formats
-// export function formatMetarObservationTime(metarData: Metar, locale?: string): string {
-//   if (!locale) {
-//     const date = metarData.observationTime;
-//     const year = date.getUTCFullYear();
-//     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-//     const day = String(date.getUTCDate()).padStart(2, '0');
-//     const hours = String(date.getUTCHours()).padStart(2, '0');
-//     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-//     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
-
-//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
-//   }
-
-//   const options: Intl.DateTimeFormatOptions = {
-//     year: 'numeric',
-//     month: '2-digit',
-//     day: '2-digit',
-//     hour: '2-digit',
-//     minute: '2-digit',
-//     second: '2-digit',
-//     hour12: false,
-//     timeZone: 'UTC',
-//     timeZoneName: 'short',
-//   };
-//   return metarData.observationTime.toLocaleString(locale, options);
-// }
 
 export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
   if (wind.speed === 0) {
@@ -353,6 +319,7 @@ export function getMetarFlightRuleColor(metarData: Metar): string {
   }
 }
 
+// TODO: Return a type
 export function getMetarColorCode(metarData: Metar): string {
   const visibility = metarData.visibility;
   const ceiling = calculateMetarCeiling(metarData);

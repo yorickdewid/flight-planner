@@ -122,7 +122,7 @@ export const formatUTCTimestamp = (date: Date): string => {
  * Formats the time duration in a human-readable format.
  * 
  * @param totalMinutes - The total duration in minutes.
- * @returns A string representing the duration, e.g., "1h 30min" or "45 min", or "N/A" if input is invalid.
+ * @returns A string representing the formatted duration, e.g., "1h 30min" or "45 min".
  */
 export const formatDuration = (totalMinutes: number): string => {
   const roundedMinutes = Math.round(totalMinutes);
