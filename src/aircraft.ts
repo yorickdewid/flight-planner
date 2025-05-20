@@ -3,7 +3,7 @@
  * 
  * @interface Aircraft
  * @property {string} [manufacturer] - The manufacturer of the aircraft.
- * @property {string} [model] - The model of the aircraft.
+ * @property {string} [icaoType] - The ICAO type designator of the aircraft.
  * @property {string} [registration] - The registration identifier of the aircraft.
  * @property {number} [numberOfEngines] - The number of engines the aircraft has.
  * @property {string[]} [avionics] - Array of avionics systems (e.g., 'Garmin G1000', 'Bendix King').
@@ -11,6 +11,7 @@
  * @property {number} [range] - The maximum range of the aircraft in nautical miles.
  * @property {number} [fuelCapacity] - The fuel capacity of the aircraft in liters.
  * @property {number} [fuelConsumption] - The fuel consumption rate in liters per hour.
+ * @property {number} [fuelType] - The type of fuel used by the aircraft (e.g., 'Avgas', 'Jet A', 'Mogas').
  * @property {'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft'} [engineType] - The type of engine used in the aircraft.
  * @property {number} [maxTakeoffWeight] - The maximum takeoff weight of the aircraft in kilograms.
  * @property {number} [rentalPrice] - The rental price of the aircraft per hour in the local currency.
@@ -25,7 +26,7 @@
  */
 export interface Aircraft {
   manufacturer?: string;
-  model?: string;
+  icaoType?: string;
   registration?: string;
   numberOfEngines?: number;
   avionics?: string[]; // array of avionics systems (e.g., 'Garmin G1000', 'Bendix King')
@@ -33,6 +34,7 @@ export interface Aircraft {
   range?: number;
   fuelCapacity?: number;
   fuelConsumption?: number;
+  fuelType?: 'Avgas' | 'Jet A' | 'Jet A1' | 'Jet B' | 'Mogas' | 'Diesel';
   engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
   maxTakeoffWeight?: number;
   rentalPrice?: number;

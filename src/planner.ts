@@ -96,7 +96,11 @@ export interface RouteTrip {
  * @property {Date} [departureDate] - The scheduled departure date and time.
  * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
  * @property {Aerodrome} [alternate] - An alternate aerodrome for the flight plan.
- * @property {number} [reserveFuel] - The amount of reserve fuel to carry in gallons or liters.
+ * @property {number} [reserveFuel] - The amount of reserve fuel to carry in liters.
+ * @property {number} [reserveFuelDuration] - The duration for which reserve fuel is calculated in minutes.
+ * @property {number} [taxiFuel] - The amount of fuel required for taxiing liters.
+ * @property {number} [takeoffFuel] - The amount of fuel required for takeoff in liters.
+ * @property {number} [landingFuel] - The amount of fuel required for landing in liters.
  */
 export interface RouteOptions {
   altitude?: number;
@@ -105,6 +109,9 @@ export interface RouteOptions {
   alternate?: Aerodrome;
   reserveFuel?: number;
   reserveFuelDuration?: number;
+  taxiFuel?: number;
+  takeoffFuel?: number;
+  landingFuel?: number;
 }
 
 type WaypointType = Aerodrome | ReportingPoint | Waypoint;
@@ -256,7 +263,11 @@ class FlightPlanner {
     }
 
     const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
-    const totalFuelRequired = totalFuelConsumption + (reserveFuelRequired || 0);
+    const totalFuelRequired = totalFuelConsumption
+      + (reserveFuelRequired || 0)
+      + (options.takeoffFuel || 0)
+      + (options.landingFuel || 0)
+      + (options.taxiFuel || 0);
 
     const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
 
