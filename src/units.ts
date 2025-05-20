@@ -38,6 +38,16 @@ export const convertSpeed = (speed: number, units: UnitOptions): number => {
 }
 
 /**
+ * Formats speed to a string with the specified or default units.
+ * @param {number} speed - The speed value.
+ * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
+ * @returns {string} The formatted speed string.
+ */
+export const formatSpeed = (speed: number, units: UnitOptions = DefaultUnits): string => {
+  return `${Math.round(convertSpeed(speed, units))} kt`;
+}
+
+/**
  * Converts elevation from default units to the specified units.
  * @param {number} elevation - The elevation value to convert.
  * @param {UnitOptions} units - The target unit options.
