@@ -9,9 +9,29 @@ import { bbox, buffer, point } from "@turf/turf";
  * @template T - The type of data to be fetched.
  */
 export abstract class RepositoryBase<T> {
+  /**
+   * Fetches data by ICAO codes.
+   * 
+   * @param icao - An array of ICAO codes.
+   * @returns A promise that resolves to an array of data.
+   */
   abstract fetchByICAO(icao: readonly ICAO[]): Promise<T[]>;
 
+  /**
+   * Fetches data by geographic bounding box.
+   * 
+   * @param bbox - The bounding box coordinates [west, south, east, north].
+   * @returns A promise that resolves to an array of data.
+   */
   fetchByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
+
+  /**
+   * Fetches data by geographic location within specified radius.
+   * 
+   * @param location - The location coordinates [longitude, latitude].
+   * @param distance - The radius in kilometers.
+   * @returns A promise that resolves to an array of data.
+   */
   fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 
   /**

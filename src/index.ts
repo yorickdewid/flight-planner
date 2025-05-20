@@ -1,4 +1,3 @@
-import { Metar } from "./metar.js";
 import RepositoryBase from "./repository.js";
 import AerodromeService from "./services/aerodrome.js";
 import WeatherService from "./services/weather.js";
@@ -54,20 +53,6 @@ export interface Aircraft {
 }
 
 /**
- * Represents a METAR (Meteorological Aerodrome Report) station.
- *
- * @interface MetarStation
- * @property {ICAO} station - The ICAO identifier for the METAR station.
- * @property {Metar} metar - The METAR data associated with the station.
- * @property {GeoJSON.Position} coords - The geographical coordinates of the station.
- */
-export interface MetarStation {
-  station: ICAO;
-  metar: Metar;
-  coords: GeoJSON.Position;
-}
-
-/**
  * Default unit settings used throughout the application when specific units aren't provided.
  * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
  * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
@@ -96,7 +81,7 @@ export { normalizeICAO, isICAO } from "./utils.js";
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export type { FlightRules, Metar } from "./metar.js";
+export type { MetarStation, FlightRules, Metar } from "./metar.js";
 export {
   createMetarFromRaw,
   determineMetarFlightRule,

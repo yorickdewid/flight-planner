@@ -1,8 +1,22 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
-import { DefaultUnits } from './index.js';
+import { DefaultUnits, ICAO } from './index.js';
 import { convertSpeed, UnitOptions } from './units.js';
+
+/**
+ * Represents a METAR (Meteorological Aerodrome Report) station.
+ *
+ * @interface MetarStation
+ * @property {ICAO} station - The ICAO identifier for the METAR station.
+ * @property {Metar} metar - The METAR data associated with the station.
+ * @property {GeoJSON.Position} coords - The geographical coordinates of the station.
+ */
+export interface MetarStation {
+  station: ICAO;
+  metar: Metar;
+  coords: GeoJSON.Position;
+}
 
 /**
  * Enumeration representing different flight rules categories.
