@@ -47,8 +47,8 @@ export interface AircraftPerformance {
  * Represents a segment of a flight route between two waypoints.
  * 
  * @interface RouteLeg
- * @property {Waypoint} start - The starting waypoint of the leg
- * @property {Waypoint} end - The ending waypoint of the leg
+ * @property {RouteSegment} start - The starting waypoint of the leg
+ * @property {RouteSegment} end - The ending waypoint of the leg
  * @property {number} distance - The distance of the leg in nautical miles
  * @property {number} trueTrack - The true track heading in degrees
  * @property {number | undefined} windDirection - The wind direction in degrees, if available
@@ -57,8 +57,8 @@ export interface AircraftPerformance {
  * @property {AircraftPerformance} [performance] - Optional performance calculations for this leg
  */
 export interface RouteLeg {
-  start: Waypoint;
-  end: Waypoint;
+  start: RouteSegment;
+  end: RouteSegment;
   course: CourseVector;
   wind?: Wind;
   arrivalDate?: Date;
@@ -91,12 +91,11 @@ export interface RouteTrip {
   remarks?: string;
 }
 
-// TODO: Add units
 /**
  * Options for configuring a flight route.
  * 
  * @interface RouteOptions
- * @property {number} [altitude] - The cruising altitude in feet.
+ * @property {number} [defaultAltitude] - The default altitude for the route in feet.
  * @property {Date} [departureDate] - The scheduled departure date and time.
  * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
  * @property {Aerodrome} [alternate] - An alternate aerodrome for the flight plan.
@@ -107,7 +106,7 @@ export interface RouteTrip {
  * @property {number} [landingFuel] - The amount of fuel required for landing in liters.
  */
 export interface RouteOptions {
-  altitude?: number;
+  defaultAltitude?: number;
   departureDate?: Date;
   aircraft?: Aircraft;
   alternate?: Aerodrome;
@@ -119,6 +118,11 @@ export interface RouteOptions {
 }
 
 type WaypointType = Aerodrome | VisualReportingPoint | Waypoint;
+
+interface RouteSegment {
+  waypoint: WaypointType;
+  altitude?: number;
+}
 
 /**
  * FlightPlanner class to handle flight route planning operations
@@ -155,7 +159,7 @@ class FlightPlanner {
    * @param waypoints - The waypoints to attach weather data to
    * @throws Will not throw but logs errors encountered during the process
    */
-  private async attachWeatherData(waypoints: WaypointType[]): Promise<void> {
+  private async attachWeatherData(waypoints: Waypoint[]): Promise<void> {
     await Promise.all(waypoints
       .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
       .map(async aerodrome => {
@@ -198,37 +202,46 @@ class FlightPlanner {
       throw new Error('No valid waypoints could be parsed from the route string');
     }
 
-    return this.createFlightPlan(waypoints, options);
+    return this.createFlightPlan(waypoints.map(waypoint => ({ waypoint })), options);
   }
 
   /**
    * Creates a flight plan based on an array of waypoints and optional route options.
    * 
-   * @param waypoints - An array of waypoints representing the route
+   * @param segments - An array of route segments, each containing a waypoint and optional altitude
    * @param options - Optional configuration options for the flight route
    * @returns A route trip object with legs, distances, durations, and fuel calculations
    * @throws Error if fewer than 2 waypoints are provided
    */
-  async createFlightPlan(waypoints: WaypointType[], options: RouteOptions = {}): Promise<RouteTrip> {
-    if (waypoints.length < 2) {
+  async createFlightPlan(segments: RouteSegment[], options: RouteOptions = {}): Promise<RouteTrip> {
+    if (segments.length < 2) {
       throw new Error('At least departure and arrival waypoints are required');
     }
 
     const {
-      altitude,
+      defaultAltitude,
       departureDate = new Date(),
       aircraft,
       reserveFuelDuration = 30,
       reserveFuel,
     } = options;
 
-    await this.attachWeatherData(waypoints);
+    await this.attachWeatherData(segments.map(segment => segment.waypoint));
 
-    const legs = waypoints.slice(0, -1).map((startWaypoint, i) => {
-      const endWaypoint = waypoints[i + 1];
+    const legs = segments.slice(0, -1).map((startSegment, i) => {
+      const endSegment = segments[i + 1];
 
-      const distance = startWaypoint.distance(endWaypoint);
-      const track = normalizeTrack(startWaypoint.heading(endWaypoint));
+      if (!startSegment.altitude) {
+        startSegment.altitude = defaultAltitude;
+      }
+      if (!endSegment.altitude) {
+        endSegment.altitude = defaultAltitude;
+      }
+
+      // TODO: Wrap these in course vectors
+      const distance = startSegment.waypoint.distance(endSegment.waypoint);
+      const track = normalizeTrack(startSegment.waypoint.heading(endSegment.waypoint));
+      const altitude = startSegment.altitude;
 
       const course = {
         distance,
@@ -237,8 +250,8 @@ class FlightPlanner {
       } as CourseVector;
 
       // TODO: 
-      // const temperature = startWaypoint.metarStation?.metar.temperature;
-      const wind = startWaypoint.metarStation?.metar.wind;
+      // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
+      const wind = startSegment.waypoint.metarStation?.metar.wind;
 
       const performance = aircraft && wind ? this.calculatePerformance(aircraft, course, wind) : undefined;
 
@@ -247,8 +260,8 @@ class FlightPlanner {
         : undefined;
 
       return {
-        start: startWaypoint,
-        end: endWaypoint,
+        start: startSegment,
+        end: endSegment,
         course,
         wind,
         arrivalDate,
@@ -330,7 +343,7 @@ class FlightPlanner {
    * @returns An array of unique waypoints representing all points in the route trip
    */
   static getRouteWaypoints(routeTrip: RouteTrip): WaypointType[] {
-    const allWaypoints = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+    const allWaypoints = routeTrip.route.flatMap(leg => [leg.start.waypoint, leg.end.waypoint]);
 
     const uniqueWaypoints = new Map<string, Aerodrome | VisualReportingPoint | Waypoint>();
     for (const waypoint of allWaypoints) {
@@ -347,7 +360,7 @@ class FlightPlanner {
    * @returns The departure waypoint, which is the first waypoint in the route
    */
   static getDepartureWaypoint(routeTrip: RouteTrip): WaypointType {
-    return routeTrip.route[0].start;
+    return routeTrip.route[0].start.waypoint;
   }
 
   /**
@@ -357,7 +370,7 @@ class FlightPlanner {
    * @returns The arrival waypoint, which is the last waypoint in the route
    */
   static getArrivalWaypoint(routeTrip: RouteTrip): WaypointType {
-    return routeTrip.route[routeTrip.route.length - 1].end;
+    return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
   }
 
   /**
