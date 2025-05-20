@@ -227,60 +227,19 @@ export interface AerodromeOptions {
  * @extends Waypoint
  */
 export class Aerodrome extends Waypoint {
-  private options: AerodromeOptions;
-
   /**
    * @param options The options for creating the Aerodrome instance
    * @returns An instance of the Aerodrome class
    */
-  constructor(options: AerodromeOptions) {
-    super(options.name, options.location);
-    this.options = options;
-  }
-
-  /**
-   * Returns the ICAO code of the airport.
-   *
-   * @returns The ICAO code of the airport
-   */
-  get ICAO(): ICAO {
-    return this.options.ICAO;
-  }
-
-  /**
-   * Returns the IATA code of the airport.
-   *
-   * @returns The IATA code of the airport
-   */
-  get IATA(): string | undefined {
-    return this.options.IATA;
-  }
-
-  /**
-   * Returns the runways of the airport.
-   *
-   * @returns An array of runways associated with the airport
-   */
-  get runways(): Runway[] {
-    return this.options.runways;
-  }
-
-  /**
-   * Returns the frequencies of the airport.
-   *
-   * @returns An array of frequencies associated with the airport
-   */
-  get frequencies(): Frequency[] | undefined {
-    return this.options.frequencies;
-  }
-
-  /**
-   * Returns the elevation of the airport.
-   * 
-   * @returns The elevation of the airport in feet
-   */
-  get fieldElevation(): number | undefined {
-    return this.options.elevation;
+  constructor(
+    public ICAO: ICAO,
+    public IATA: string | undefined,
+    public name: string,
+    public location: WaypointLocation,
+    public runways: Runway[],
+    public frequencies?: Frequency[],
+    public elevation?: number) {
+    super(name, location);
   }
 
   /**
@@ -289,7 +248,7 @@ export class Aerodrome extends Waypoint {
    * @returns A string representation of the airport
    */
   toString(): string {
-    return `${this.name} (${this.options.ICAO})`;
+    return `${this.name} (${this.ICAO})`;
   }
 
   /**
@@ -299,12 +258,12 @@ export class Aerodrome extends Waypoint {
    *          or undefined if elevation or QNH data is not available
    */
   get QFE(): number | undefined {
-    if (!this.fieldElevation || !this.metarStation || !this.metarStation.metar.qnh) {
+    if (!this.elevation || !this.metarStation || !this.metarStation.metar.qnh) {
       return undefined;
     }
 
     // TODO: Standardize units
-    return Math.round((this.metarStation.metar.qnh.value - (this.fieldElevation / 30)) * 100) / 100;
+    return Math.round((this.metarStation.metar.qnh.value - (this.elevation / 30)) * 100) / 100;
   }
 
   /**
@@ -317,7 +276,7 @@ export class Aerodrome extends Waypoint {
       return undefined;
     }
 
-    return this.options.runways
+    return this.runways
       .map(runway => Aerodrome.calculateRunwayWindVector(runway, this.metarStation!.metar.wind))
       .sort((a, b) => b.headwind - a.headwind)
   }
