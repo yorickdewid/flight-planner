@@ -91,6 +91,7 @@ export interface RouteTrip {
   remarks?: string;
 }
 
+// TODO: Add units
 /**
  * Options for configuring a flight route.
  * 
@@ -183,32 +184,32 @@ class FlightPlanner {
   }
 
   /**
-   * Creates a route from a string representation of waypoints.
+   * Creates a flight plan from a route string, which can include ICAO codes, reporting points, and waypoints.
    * 
-   * @param routeString - A string representing the route, e.g., "EDDF;EDDM;WP(50.05,8.57)"
-   * @param options - Optional configuration options for the flight route.
-   * @returns A route trip object with legs, distances, durations, and fuel calculations.
-   * @throws Error if no valid waypoints could be parsed or fewer than 2 waypoints are found
+   * @param routeString - A string representing the route, e.g., "EDDF;RP(ALPHA);WP(50.05,8.57)"
+   * @param options - Optional configuration options for the flight route
+   * @returns A route trip object with legs, distances, durations, and fuel calculations
+   * @throws Error if no valid waypoints could be parsed from the route string
    */
-  async createRouteFromString(routeString: string, options: RouteOptions = {}): Promise<RouteTrip> {
+  async createFlightPlanFromString(routeString: string, options: RouteOptions = {}): Promise<RouteTrip> {
     const waypoints = await this.parseRouteString(routeString);
 
     if (waypoints.length === 0) {
       throw new Error('No valid waypoints could be parsed from the route string');
     }
 
-    return this.createRoute(waypoints, options);
+    return this.createFlightPlan(waypoints, options);
   }
 
   /**
-   * Creates a route between the given waypoints.
+   * Creates a flight plan based on an array of waypoints and optional route options.
    * 
-   * @param waypoints - An array of waypoints to use in the route.
-   * @param options - Optional configuration options for the flight route.
-   * @returns A route trip object with legs, distances, durations, and fuel calculations.
-   * @throws Error if the waypoints array contains fewer than 2 points.
+   * @param waypoints - An array of waypoints representing the route
+   * @param options - Optional configuration options for the flight route
+   * @returns A route trip object with legs, distances, durations, and fuel calculations
+   * @throws Error if fewer than 2 waypoints are provided
    */
-  async createRoute(waypoints: WaypointType[], options: RouteOptions = {}): Promise<RouteTrip> {
+  async createFlightPlan(waypoints: WaypointType[], options: RouteOptions = {}): Promise<RouteTrip> {
     if (waypoints.length < 2) {
       throw new Error('At least departure and arrival waypoints are required');
     }
@@ -425,6 +426,9 @@ class FlightPlanner {
             throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
           }
         }
+
+        // TODO: Check for things like NAVAIDs, VORs, NDBs, etc.
+        // TOOD: Check for VFR waypoints, starting with VRP_XX
 
         // const rpMatch = part.match(reportingPointRegex);
         // if (rpMatch) {

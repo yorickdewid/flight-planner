@@ -23,6 +23,7 @@ export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 export class Waypoint {
   public readonly name: string;
   public readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position
+  public readonly elevation?: number;
   public metarStation?: MetarStation;
 
   /**
@@ -30,9 +31,10 @@ export class Waypoint {
    * @param location The location of the waypoint
    * @returns An instance of the Waypoint class
    */
-  constructor(name: string, location: WaypointLocation) {
+  constructor(name: string, location: WaypointLocation, elevation?: number) {
     this.name = capitalizeWords(name);
     this.location = location;
+    this.elevation = elevation;
   }
 
   /**
@@ -41,7 +43,7 @@ export class Waypoint {
    * @returns A string representation of the waypoint
    */
   toString(): string {
-    return `${this.name}`;
+    return this.name;
   }
 
   /**
@@ -205,23 +207,6 @@ export interface RunwayWindVector {
 }
 
 /**
- * Options for creating an Aerodrome instance.
- * 
- * @interface AerodromeOptions
- * @property {string} [IATA] - The IATA code of the airport (optional).
- * @property {Frequency[]} [frequencies] - An array of frequencies associated with the airport (optional).
- */
-export interface AerodromeOptions {
-  ICAO: ICAO;
-  IATA?: string;
-  name: string;
-  location: WaypointLocation;
-  runways: Runway[];
-  frequencies?: Frequency[];
-  elevation?: number;
-}
-
-/**
  * Represents an aerodrome (airport) in the flight planning system.
  * 
  * @extends Waypoint
@@ -238,8 +223,8 @@ export class Aerodrome extends Waypoint {
     public location: WaypointLocation,
     public runways: Runway[],
     public frequencies?: Frequency[],
-    public elevation?: number) {
-    super(name, location);
+    elevation?: number) {
+    super(name, location, elevation);
   }
 
   /**
