@@ -158,6 +158,26 @@ export const formatMass = (mass: number, units: UnitOptions = DefaultUnits): str
 }
 
 /**
+ * Converts volume from default units to the specified units.
+ * @param {number} volume - The volume value to convert.
+ * @param {UnitOptions} units - The target unit options.
+ * @returns {number} The converted volume.
+ */
+export const convertVolume = (volume: number, units: UnitOptions): number => {
+  return convert(volume).from(DefaultUnits.volume!).to(units.volume || DefaultUnits.volume!));
+}
+
+/**
+ * Formats volume to a string with the specified or default units.
+ * @param {number} volume - The volume value.
+ * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
+ * @returns {string} The formatted volume string.
+ */
+export const formatVolume = (volume: number, units: UnitOptions = DefaultUnits): string => {
+  return `${Math.round(convertVolume(volume, units))} L`;
+}
+
+/**
  * Formats date and time to a string in UTC format.
  * @param {Date} date - The date to format.
  * @returns {string} The formatted date string in UTC format.
