@@ -62,10 +62,12 @@ export {
   isMetarExpired,
   getMetarFlightRuleColor,
   getMetarColorCode,
-  formatWind, // TODO: Move to format.ts
-  formatVisibility, // TODO: Move to format.ts
-  formatClouds // TODO: Move to format.ts
 } from "./metar.js";
+
+/**
+ * Formatting exports
+ */
+export { formatWind, formatVisibility, formatClouds } from "./format.js";
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.

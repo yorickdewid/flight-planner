@@ -1,4 +1,5 @@
 import { DefaultUnits } from "./index.js";
+import { Cloud, Distance, Wind } from "./metar.js";
 import {
   convertAltitude,
   convertDistance,
@@ -154,4 +155,72 @@ export const formatElapsedTime = (start: Date, end: Date = new Date()): string =
   const elapsed = Math.abs(end.getTime() - start.getTime());
   const totalMinutes = Math.floor(elapsed / (1000 * 60));
   return formatDuration(totalMinutes) + ` ago`;
+}
+
+export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
+  if (wind.speed === 0) {
+    return 'Calm';
+  }
+
+  if (wind.direction !== undefined) {
+    let windString = `${wind.direction}° with ${convertSpeed(wind.speed, units)}kt`; // TODO: change the unit name
+    if (wind.gust) {
+      windString += ` gusting ${convertSpeed(wind.gust, units)}kt`; // TODO: change the unit name
+    }
+
+    if (wind.directionMin && wind.directionMax) {
+      windString += ` variable between ${wind.directionMin}° and ${wind.directionMax}°`;
+    }
+    return windString;
+  }
+
+  return 'Calm';
+}
+
+export function formatVisibility(visibility: Distance): string {
+  // if (metarData.visibility === undefined) {
+  //   if (metarData.raw.includes('CAVOK')) {
+  //     return '10 km+';
+  //   }
+  //   return '-';
+  // }
+
+  if (visibility.value >= 9999 && visibility.unit === 'm') {
+    return '10 km+';
+  } else if (visibility.value >= 10 && visibility.unit === 'sm') {
+    return '10 sm+';
+  }
+
+  if (visibility.unit === 'm') {
+    if (visibility.value < 1000) {
+      return `${visibility.value} m`;
+    }
+    return `${(visibility.value / 1000).toFixed(1)} km`;
+  } else {
+    return `${visibility.value} sm`;
+  }
+}
+
+export function formatClouds(clouds: Cloud[]): string {
+  const sortedClouds = [...clouds].sort((a, b) => {
+    if (a.height === undefined) return 1;
+    if (b.height === undefined) return -1;
+    return a.height - b.height;
+  });
+
+  const cloudQuantityMap: Record<string, string> = {
+    'SKC': 'Clear',
+    'FEW': 'Few',
+    'BKN': 'Broken',
+    'SCT': 'Scattered',
+    'OVC': 'Overcast',
+    'NSC': 'No Significant Clouds',
+  };
+
+  return sortedClouds.map(cloud => {
+    if (cloud.height) {
+      return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
+    }
+    return cloudQuantityMap[cloud.quantity];
+  }).join(', ');
 }

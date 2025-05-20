@@ -4,12 +4,9 @@ import {
   determineMetarFlightRule,
   getMetarFlightRuleColor,
   getMetarColorCode,
-  formatWind,
-  formatVisibility,
-  formatClouds,
   calculateMetarCeiling,
 } from './metar.js';
-import { formatAltitude, formatTemperature } from './format.js';
+import { formatAltitude, formatClouds, formatTemperature, formatVisibility, formatWind } from './format.js';
 
 describe('Metar functions', () => {
   describe('determineMetarFlightRule', () => {

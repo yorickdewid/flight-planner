@@ -1,8 +1,7 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
-import { DefaultUnits, ICAO } from './index.js';
-import { convertSpeed, UnitOptions } from './units.js';
+import { ICAO } from './index.js';
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.
@@ -42,7 +41,7 @@ export enum FlightRules {
  * @property {number} value - The numerical value of the distance.
  * @property {'m'|'sm'} unit - The unit of measurement, either meters ('m') or statute miles ('sm').
  */
-interface Distance {
+export interface Distance {
   value: number;
   unit: 'm' | 'sm';
 }
@@ -66,7 +65,7 @@ interface Pressure {
  * @property {'SKC' | 'FEW' | 'BKN' | 'SCT' | 'OVC' | 'NSC'} quantity - The cloud coverage quantity.
  * @property {number} [height] - The height of the cloud layer in feet (optional).
  */
-interface Cloud {
+export interface Cloud {
   quantity: 'SKC' | 'FEW' | 'BKN' | 'SCT' | 'OVC' | 'NSC';
   height?: number; // Height in feet
 }
@@ -233,74 +232,6 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   const expirationTime = new Date(metar.observationTime);
   expirationTime.setMinutes(metar.observationTime.getMinutes() + 60);
   return now > expirationTime;
-}
-
-export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
-  if (wind.speed === 0) {
-    return 'Calm';
-  }
-
-  if (wind.direction !== undefined) {
-    let windString = `${wind.direction}° with ${convertSpeed(wind.speed, units)}kt`; // TODO: change the unit name
-    if (wind.gust) {
-      windString += ` gusting ${convertSpeed(wind.gust, units)}kt`; // TODO: change the unit name
-    }
-
-    if (wind.directionMin && wind.directionMax) {
-      windString += ` variable between ${wind.directionMin}° and ${wind.directionMax}°`;
-    }
-    return windString;
-  }
-
-  return 'Calm';
-}
-
-export function formatVisibility(visibility: Distance): string {
-  // if (metarData.visibility === undefined) {
-  //   if (metarData.raw.includes('CAVOK')) {
-  //     return '10 km+';
-  //   }
-  //   return '-';
-  // }
-
-  if (visibility.value >= 9999 && visibility.unit === 'm') {
-    return '10 km+';
-  } else if (visibility.value >= 10 && visibility.unit === 'sm') {
-    return '10 sm+';
-  }
-
-  if (visibility.unit === 'm') {
-    if (visibility.value < 1000) {
-      return `${visibility.value} m`;
-    }
-    return `${(visibility.value / 1000).toFixed(1)} km`;
-  } else {
-    return `${visibility.value} sm`;
-  }
-}
-
-export function formatClouds(clouds: Cloud[]): string {
-  const sortedClouds = [...clouds].sort((a, b) => {
-    if (a.height === undefined) return 1;
-    if (b.height === undefined) return -1;
-    return a.height - b.height;
-  });
-
-  const cloudQuantityMap: Record<string, string> = {
-    'SKC': 'Clear',
-    'FEW': 'Few',
-    'BKN': 'Broken',
-    'SCT': 'Scattered',
-    'OVC': 'Overcast',
-    'NSC': 'No Significant Clouds',
-  };
-
-  return sortedClouds.map(cloud => {
-    if (cloud.height) {
-      return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
-    }
-    return cloudQuantityMap[cloud.quantity];
-  }).join(', ');
 }
 
 export function getMetarFlightRuleColor(metarData: Metar): string {
