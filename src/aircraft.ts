@@ -18,6 +18,7 @@
  * @property {number} [rentalPrice] - The rental price of the aircraft per hour in the local currency.
  * @property {number} [emptyWeight] - The weight of the aircraft without crew, passengers, or cargo in kilograms.
  * @property {number} [serviceCeiling] - The maximum altitude at which the aircraft can operate in feet.
+ * @property {number} [maxDemonstratedCrosswind] - The maximum crosswind component the aircraft can handle in knots.
  * @property {number} [takeoffDistance] - The distance required for the aircraft to take off in meters.
  * @property {number} [landingDistance] - The distance required for the aircraft to land in meters.
  * @property {number} [wingspan] - The length of the aircraft's wings from tip to tip in meters.
@@ -41,6 +42,7 @@ export interface Aircraft {
   rentalPrice?: number;
   emptyWeight?: number;
   serviceCeiling?: number;
+  maxDemonstratedCrosswind?: number;
   takeoffDistance?: number;
   landingDistance?: number;
   wingspan?: number;
