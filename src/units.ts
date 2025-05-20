@@ -54,7 +54,7 @@ export const convertElevation = (elevation: number, units: UnitOptions): number 
  * @returns {string} The formatted elevation string.
  */
 export const formatElevation = (elevation: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertElevation(elevation, units)} ft`;
+  return `${Math.round(convertElevation(elevation, units))} ft`;
 }
 
 /**
@@ -74,7 +74,7 @@ export const convertAltitude = (altitude: number, units: UnitOptions): number =>
  * @returns {string} The formatted altitude string.
  */
 export const formatAltitude = (altitude: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertAltitude(altitude, units)} ft`;
+  return `${Math.round(convertAltitude(altitude, units))} ft`;
 }
 
 /**
@@ -94,7 +94,7 @@ export const convertTemperature = (temperature: number, units: UnitOptions): num
  * @returns {string} The formatted temperature string.
  */
 export const formatTemperature = (temperature: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertTemperature(temperature, units)}°C`;
+  return `${Math.round(convertTemperature(temperature, units))}°C`;
 }
 
 /**
@@ -134,7 +134,7 @@ export const convertDistance = (distance: number, units: UnitOptions): number =>
  * @returns {string} The formatted distance string.
  */
 export const formatDistance = (distance: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertDistance(distance, units)} nm`;
+  return `${Math.round(convertDistance(distance, units))} nm`;
 }
 
 /**
