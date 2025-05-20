@@ -77,6 +77,7 @@ export interface RouteLeg {
  * @property {number} [totalFuelRequired] - Optional total fuel required for the trip in gallons/liters
  * @property {Date} [departureDate] - Optional planned departure date and time
  * @property {Date} [arrivalDate] - Optional estimated arrival date and time
+ * @property {string} [remarks] - Optional remarks or notes about the trip
  */
 export interface RouteTrip {
   route: RouteLeg[];
@@ -87,6 +88,7 @@ export interface RouteTrip {
   totalFuelRequired?: number;
   departureDate?: Date;
   arrivalDate?: Date;
+  remarks?: string;
 }
 
 /**

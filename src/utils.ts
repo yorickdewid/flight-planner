@@ -115,26 +115,6 @@ export const normalizeIATA = (iata: string): string => {
 }
 
 /**
- * Checks if the given string is a valid aircraft registration.
- * 
- * @param registration - The string to check
- * @returns True if the string is a valid aircraft registration, false otherwise
- */
-export const isAircraftRegistration = (registration: string): boolean => {
-  return /^[A-Z0-9]{1,3}-?[A-Z0-9]+$/.test(registration.toUpperCase());
-}
-
-/**
- * Normalizes the given aircraft registration to uppercase.
- *
- * @param registration - The aircraft registration to normalize
- * @returns The normalized aircraft registration
- */
-export const normalizeAircraftRegistration = (registration: string): string => {
-  return registration.toUpperCase().replace(/-/g, '');
-}
-
-/**
  * Normalizes the given track angle to a value between 0 and 360 degrees.
  * 
  * @param track - The track angle to normalize
