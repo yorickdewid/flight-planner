@@ -142,3 +142,16 @@ export const formatDuration = (totalMinutes: number): string => {
     return `${roundedMinutes} min`;
   }
 }
+
+/**
+ * Formats the time elapsed since a given start date to a human-readable format.
+ *
+ * @param start - The start date.
+ * @param end - The end date (default: current date).
+ * @returns A string representing the elapsed time, e.g., "1h 30min ago" or "45 min ago".
+ */
+export const formatElapsedTime = (start: Date, end: Date = new Date()): string => {
+  const elapsed = Math.abs(end.getTime() - start.getTime());
+  const totalMinutes = Math.floor(elapsed / (1000 * 60));
+  return formatDuration(totalMinutes) + `ago`;
+}

@@ -241,33 +241,33 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   return now > expirationTime;
 }
 
-// TODO: Convert this to a utility function that can print dates in different formats
-export function formatMetarObservationTime(metarData: Metar, locale?: string): string {
-  if (!locale) {
-    const date = metarData.observationTime;
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const hours = String(date.getUTCHours()).padStart(2, '0');
-    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
-    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+// // TODO: Convert this to a utility function that can print dates in different formats
+// export function formatMetarObservationTime(metarData: Metar, locale?: string): string {
+//   if (!locale) {
+//     const date = metarData.observationTime;
+//     const year = date.getUTCFullYear();
+//     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+//     const day = String(date.getUTCDate()).padStart(2, '0');
+//     const hours = String(date.getUTCHours()).padStart(2, '0');
+//     const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+//     const seconds = String(date.getUTCSeconds()).padStart(2, '0');
 
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
-  }
+//     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+//   }
 
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-    timeZone: 'UTC',
-    timeZoneName: 'short',
-  };
-  return metarData.observationTime.toLocaleString(locale, options);
-}
+//   const options: Intl.DateTimeFormatOptions = {
+//     year: 'numeric',
+//     month: '2-digit',
+//     day: '2-digit',
+//     hour: '2-digit',
+//     minute: '2-digit',
+//     second: '2-digit',
+//     hour12: false,
+//     timeZone: 'UTC',
+//     timeZoneName: 'short',
+//   };
+//   return metarData.observationTime.toLocaleString(locale, options);
+// }
 
 export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): string {
   if (wind.speed === 0) {
