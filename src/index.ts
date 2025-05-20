@@ -20,6 +20,7 @@ export const StandardPressure = 1013.25;
 
 /**
  * Standard atmospheric temperature at sea level in Celsius.
+ * 
  * @constant {number}
  */
 export const StandardTemperature = 15;

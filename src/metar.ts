@@ -17,6 +17,7 @@ export interface MetarStation {
   coords: GeoJSON.Position;
 }
 
+// TODO: Move this to index.ts
 /**
  * Enumeration representing different flight rules categories.
  * 
