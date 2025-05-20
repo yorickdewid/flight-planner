@@ -49,6 +49,10 @@
     "./utils": {
       "import": "./dist/utils.js",
       "types": "./dist/utils.d.ts"
+    },
+    "./format": {
+      "import": "./dist/format.js",
+      "types": "./dist/format.d.ts"
     }
   },
   "dependencies": {

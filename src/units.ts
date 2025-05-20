@@ -29,6 +29,7 @@ export interface UnitOptions {
 
 /**
  * Converts speed from default units to the specified units.
+ * 
  * @param {number} speed - The speed value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted speed.
@@ -38,17 +39,8 @@ export const convertSpeed = (speed: number, units: UnitOptions): number => {
 }
 
 /**
- * Formats speed to a string with the specified or default units.
- * @param {number} speed - The speed value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted speed string.
- */
-export const formatSpeed = (speed: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertSpeed(speed, units))} kt`;
-}
-
-/**
  * Converts elevation from default units to the specified units.
+ * 
  * @param {number} elevation - The elevation value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted elevation.
@@ -58,17 +50,8 @@ export const convertElevation = (elevation: number, units: UnitOptions): number 
 }
 
 /**
- * Formats elevation to a string with the specified or default units.
- * @param {number} elevation - The elevation value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted elevation string.
- */
-export const formatElevation = (elevation: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertElevation(elevation, units))} ft`;
-}
-
-/**
  * Converts altitude from default units to the specified units.
+ * 
  * @param {number} altitude - The altitude value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted altitude.
@@ -78,17 +61,8 @@ export const convertAltitude = (altitude: number, units: UnitOptions): number =>
 }
 
 /**
- * Formats altitude to a string with the specified or default units.
- * @param {number} altitude - The altitude value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted altitude string.
- */
-export const formatAltitude = (altitude: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertAltitude(altitude, units))} ft`;
-}
-
-/**
  * Converts temperature from default units to the specified units.
+ * 
  * @param {number} temperature - The temperature value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted temperature.
@@ -98,17 +72,8 @@ export const convertTemperature = (temperature: number, units: UnitOptions): num
 }
 
 /**
- * Formats temperature to a string with the specified or default units.
- * @param {number} temperature - The temperature value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted temperature string.
- */
-export const formatTemperature = (temperature: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertTemperature(temperature, units))}°C`;
-}
-
-/**
  * Converts pressure from default units to the specified units.
+ * 
  * @param {number} pressure - The pressure value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted pressure.
@@ -118,17 +83,8 @@ export const convertPressure = (pressure: number, units: UnitOptions): number =>
 }
 
 /**
- * Formats pressure to a string with the specified or default units.
- * @param {number} pressure - The pressure value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted pressure string.
- */
-export const formatPressure = (pressure: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertPressure(pressure, units)} hPa`;
-}
-
-/**
  * Converts distance from default units to the specified units.
+ * 
  * @param {number} distance - The distance value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted distance.
@@ -138,17 +94,8 @@ export const convertDistance = (distance: number, units: UnitOptions): number =>
 }
 
 /**
- * Formats distance to a string with the specified or default units.
- * @param {number} distance - The distance value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted distance string.
- */
-export const formatDistance = (distance: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertDistance(distance, units))} nm`;
-}
-
-/**
  * Converts mass from default units to the specified units.
+ * 
  * @param {number} mass - The mass value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted mass.
@@ -158,40 +105,12 @@ export const convertMass = (mass: number, units: UnitOptions): number => {
 }
 
 /**
- * Formats mass to a string with the specified or default units.
- * @param {number} mass - The mass value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted mass string.
- */
-export const formatMass = (mass: number, units: UnitOptions = DefaultUnits): string => {
-  return `${convertMass(mass, units)} kg`;
-}
-
-/**
  * Converts volume from default units to the specified units.
+ * 
  * @param {number} volume - The volume value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted volume.
  */
 export const convertVolume = (volume: number, units: UnitOptions): number => {
   return convert(volume).from(DefaultUnits.volume!).to(units.volume || DefaultUnits.volume!);
-}
-
-/**
- * Formats volume to a string with the specified or default units.
- * @param {number} volume - The volume value.
- * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
- * @returns {string} The formatted volume string.
- */
-export const formatVolume = (volume: number, units: UnitOptions = DefaultUnits): string => {
-  return `${Math.round(convertVolume(volume, units))} L`;
-}
-
-/**
- * Formats date and time to a string in UTC format.
- * @param {Date} date - The date to format.
- * @returns {string} The formatted date string in UTC format.
- */
-export const formatUTCTimestamp = (date: Date): string => {
-  return date.toUTCString().replace(/ GMT$/, ' UTC');
 }

@@ -9,7 +9,7 @@ import {
   formatClouds,
   calculateMetarCeiling,
 } from './metar.js';
-import { formatAltitude, formatTemperature } from './units.js';
+import { formatAltitude, formatTemperature } from './format.js';
 
 describe('Metar functions', () => {
   describe('determineMetarFlightRule', () => {
