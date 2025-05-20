@@ -156,32 +156,3 @@ export const capitalizeWords = (text: string): string => {
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
-
-/**
- * Formats the time duration in a human-readable format.
- * 
- * @param totalMinutes - The total duration in minutes.
- * @returns A string representing the duration, e.g., "1h 30min" or "45 min", or "N/A" if input is invalid.
- */
-export const formatDuration = (totalMinutes?: number): string => {
-  if (totalMinutes === undefined || totalMinutes === null || typeof totalMinutes !== 'number' || totalMinutes < 0) {
-    return "N/A";
-  }
-
-  const roundedMinutes = Math.round(totalMinutes);
-
-  if (roundedMinutes === 0) {
-    return "0 min";
-  }
-
-  if (roundedMinutes >= 60) {
-    const hours = Math.floor(roundedMinutes / 60);
-    const minutes = roundedMinutes % 60;
-    if (minutes === 0) {
-      return `${hours}h`;
-    }
-    return `${hours}h ${minutes}min`;
-  } else {
-    return `${roundedMinutes} min`;
-  }
-}

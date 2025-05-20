@@ -117,3 +117,28 @@ export const formatAngle = (angle: number): string => {
 export const formatUTCTimestamp = (date: Date): string => {
   return date.toUTCString().replace(/ GMT$/, ' UTC');
 }
+
+/**
+ * Formats the time duration in a human-readable format.
+ * 
+ * @param totalMinutes - The total duration in minutes.
+ * @returns A string representing the duration, e.g., "1h 30min" or "45 min", or "N/A" if input is invalid.
+ */
+export const formatDuration = (totalMinutes: number): string => {
+  const roundedMinutes = Math.round(totalMinutes);
+
+  if (roundedMinutes === 0) {
+    return "0 min";
+  }
+
+  if (roundedMinutes >= 60) {
+    const hours = Math.floor(roundedMinutes / 60);
+    const minutes = roundedMinutes % 60;
+    if (minutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}h ${minutes}min`;
+  } else {
+    return `${roundedMinutes} min`;
+  }
+}
