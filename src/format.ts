@@ -1,5 +1,5 @@
 import { DefaultUnits } from "./index.js";
-import { Cloud, Distance, Wind } from "./metar.js";
+import { Cloud, Wind } from "./metar.js";
 import {
   convertAltitude,
   convertDistance,
@@ -177,7 +177,7 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
   return 'Calm';
 }
 
-export function formatVisibility(visibility: Distance): string {
+export function formatVisibility(visibility: number): string {
   // if (metarData.visibility === undefined) {
   //   if (metarData.raw.includes('CAVOK')) {
   //     return '10 km+';
@@ -185,20 +185,14 @@ export function formatVisibility(visibility: Distance): string {
   //   return '-';
   // }
 
-  if (visibility.value >= 9999 && visibility.unit === 'm') {
+  if (visibility >= 9999) {
     return '10 km+';
-  } else if (visibility.value >= 10 && visibility.unit === 'sm') {
-    return '10 sm+';
   }
 
-  if (visibility.unit === 'm') {
-    if (visibility.value < 1000) {
-      return `${visibility.value} m`;
-    }
-    return `${(visibility.value / 1000).toFixed(1)} km`;
-  } else {
-    return `${visibility.value} sm`;
+  if (visibility < 1000) {
+    return `${visibility} m`;
   }
+  return `${(visibility / 1000).toFixed(1)} km`;
 }
 
 export function formatClouds(clouds: Cloud[]): string {

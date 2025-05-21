@@ -248,7 +248,7 @@ export class Aerodrome extends Waypoint {
     }
 
     // TODO: Standardize units
-    return Math.round((this.metarStation.metar.qnh.value - (this.elevation / 30)) * 100) / 100;
+    return Math.round((this.metarStation.metar.qnh - (this.elevation / 30)) * 100) / 100;
   }
 
   /**

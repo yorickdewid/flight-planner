@@ -16,7 +16,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 10000, unit: 'm' },
+        visibility: 10000,
         clouds: [{ quantity: 'FEW', height: 5000 }]
       };
       expect(metarFlightRule(metarData)).toBe(FlightRules.VFR);
@@ -28,7 +28,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 800, unit: 'm' }
+        visibility: 800,
       };
       expect(metarFlightRule(metarData)).toBe(FlightRules.LIFR);
     });
@@ -52,7 +52,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 10000, unit: 'm' },
+        visibility: 10000,
         clouds: [{ quantity: 'FEW', height: 5000 }]
       };
       expect(metarFlightRuleColor(metarData)).toBe('green');
@@ -64,7 +64,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 800, unit: 'm' }
+        visibility: 800,
       };
       expect(metarFlightRuleColor(metarData)).toBe('purple');
     });
@@ -75,7 +75,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 4000, unit: 'm' },
+        visibility: 4000,
         clouds: [{ quantity: 'OVC', height: 700 }]
       };
       expect(metarFlightRuleColor(metarData)).toBe('red');
@@ -100,7 +100,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 45 },
-        visibility: { value: 1000, unit: 'm' }
+        visibility: 1000,
       };
       expect(metarColorCode(metarData)).toBe('red');
     });
@@ -111,7 +111,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 32 },
-        visibility: { value: 1500, unit: 'm' }
+        visibility: 1500,
       };
       expect(metarColorCode(metarData)).toBe('amber');
     });
@@ -144,7 +144,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 8000, unit: 'm' },
+        visibility: 8000,
         clouds: [{ quantity: 'FEW', height: 3500 }]
       };
       expect(metarColorCode(metarData)).toBe('green');
@@ -156,20 +156,9 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 15, gust: 35 },
-        visibility: { value: 8000, unit: 'm' }
+        visibility: 8000,
       };
       expect(metarColorCode(metarData)).toBe('yellow');
-    });
-
-    it('should handle visibility in statute miles', () => {
-      const metarData: Metar = {
-        station: 'TEST',
-        observationTime: new Date(),
-        raw: 'RAW DATA',
-        wind: { direction: 180, speed: 10 },
-        visibility: { value: 0.75, unit: 'sm' } // Roughly 1200m
-      };
-      expect(metarColorCode(metarData)).toBe('amber');
     });
   });
 
@@ -269,7 +258,7 @@ describe('Metar functions', () => {
         observationTime: new Date(),
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
-        visibility: { value: 9999, unit: 'm' }
+        visibility: 9999,
       };
       expect(formatVisibility(metarData.visibility!)).toBe('10 km+');
     });

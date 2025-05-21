@@ -18,30 +18,6 @@ export interface MetarStation {
 }
 
 /**
- * Represents a distance measurement.
- * 
- * @interface Distance
- * @property {number} value - The numerical value of the distance.
- * @property {'m'|'sm'} unit - The unit of measurement, either meters ('m') or statute miles ('sm').
- */
-export interface Distance {
-  value: number;
-  unit: 'm' | 'sm';
-}
-
-/**
- * Represents atmospheric pressure information.
- * 
- * @interface Pressure
- * @property {number} value - The numeric value of the pressure measurement
- * @property {'hPa' | 'inHg'} unit - The unit of measurement for pressure, either hectopascals (hPa) or inches of mercury (inHg)
- */
-interface Pressure {
-  value: number;
-  unit: 'hPa' | 'inHg';
-}
-
-/**
  * Represents cloud information.
  * 
  * @interface Cloud
@@ -95,7 +71,16 @@ export function createMetarFromString(raw: string): Metar {
   observationTime.setUTCSeconds(0);
   observationTime.setUTCMilliseconds(0);
 
-  // TODO: This is where we do all the conversion to the correct units
+  let visibility = metar.visibility?.value;
+  if (metar.visibility && metar.visibility.unit === 'SM') {
+    visibility = convert(metar.visibility?.value).from('mi').to('m');
+  }
+
+  let altimeter = metar.altimeter?.value;
+  if (metar.altimeter && metar.altimeter.unit === 'inHg') {
+    altimeter = metar.altimeter?.value * 33.8639; // TODO: sumbit PR to convert-units to add inHg
+  }
+
   return {
     station: normalizeICAO(metar.station),
     observationTime,
@@ -109,14 +94,8 @@ export function createMetarFromString(raw: string): Metar {
     } as Wind,
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
-    visibility: metar.visibility ? {
-      value: metar.visibility.value,
-      unit: metar.visibility.unit === 'm' ? 'm' : 'sm', // TODO: Drop the unit, convert to meters
-    } as Distance : undefined,
-    qnh: metar.altimeter ? {
-      value: metar.altimeter.value,
-      unit: metar.altimeter.unit === 'hPa' ? 'hPa' : 'inHg' // TODO: Drop the unit, convert to hPa
-    } as Pressure : undefined,
+    visibility,
+    qnh: altimeter,
     clouds: metar.clouds?.map((cloud: ICloud) => ({
       quantity: cloud.quantity,
       height: cloud.height,
@@ -152,8 +131,8 @@ export interface Metar {
   wind: Wind;
   temperature?: number;
   dewpoint?: number;
-  visibility?: Distance;
-  qnh?: Pressure;
+  visibility?: number;
+  qnh?: number;
   clouds?: Cloud[];
 }
 
@@ -169,24 +148,16 @@ export function metarCeiling(metar: Metar): number | undefined {
 
 export function metarFlightRule(metar: Metar): FlightRules {
   const ceiling = metarCeiling(metar);
-  let visibilityMeters: number | undefined;
 
-  if (metar.visibility !== undefined) {
-    visibilityMeters = metar.visibility.value;
-    if (metar.visibility.unit === 'sm') {
-      // TODO: Move this to a utility function so it can be used once the METAR is parsed
-      visibilityMeters = convert(visibilityMeters).from('mi').to('m');
-    }
-  }
-  if ((visibilityMeters !== undefined && visibilityMeters <= 1500) ||
+  if ((metar.visibility !== undefined && metar.visibility <= 1500) ||
     (ceiling !== undefined && ceiling <= 500)) {
     return FlightRules.LIFR;
   }
-  if ((visibilityMeters !== undefined && visibilityMeters <= 5000) ||
+  if ((metar.visibility !== undefined && metar.visibility <= 5000) ||
     (ceiling !== undefined && ceiling <= 1000)) {
     return FlightRules.IFR;
   }
-  if ((visibilityMeters !== undefined && visibilityMeters <= 8000) ||
+  if ((metar.visibility !== undefined && metar.visibility <= 8000) ||
     (ceiling !== undefined && ceiling <= 3000)) {
     return FlightRules.MVFR;
   }
@@ -237,51 +208,61 @@ export function metarFlightRuleColor(metarData: Metar): MetarFlightRuleColor {
 
 export type MetarColorCode = 'green' | 'blue' | 'yellow' | 'amber' | 'red';
 
+interface ColorCondition {
+  color: MetarColorCode;
+  visibilityLessThan?: number;
+  ceilingLessThan?: number;
+  windSpeedGreaterThan?: number;
+  gustSpeedGreaterThan?: number;
+}
+
+const colorConditions: ColorCondition[] = [
+  {
+    color: 'red',
+    visibilityLessThan: 800,
+    ceilingLessThan: 200,
+    windSpeedGreaterThan: 40,
+    gustSpeedGreaterThan: 50,
+  },
+  {
+    color: 'amber',
+    visibilityLessThan: 1600,
+    ceilingLessThan: 400,
+    windSpeedGreaterThan: 30,
+    gustSpeedGreaterThan: 40,
+  },
+  {
+    color: 'yellow',
+    visibilityLessThan: 3200,
+    ceilingLessThan: 700,
+    windSpeedGreaterThan: 20,
+    gustSpeedGreaterThan: 30,
+  },
+  {
+    color: 'blue',
+    visibilityLessThan: 5000,
+    ceilingLessThan: 1500,
+    windSpeedGreaterThan: 15,
+    gustSpeedGreaterThan: 20,
+  },
+];
+
 export function metarColorCode(metarData: Metar): MetarColorCode {
   const visibility = metarData.visibility;
   const ceiling = metarCeiling(metarData);
   const windSpeed = metarData.wind?.speed;
   const gustSpeed = metarData.wind?.gust;
 
-  let visibilityMeters: number | undefined;
-  if (visibility) {
-    visibilityMeters = visibility.value;
-    if (visibility.unit === 'sm') {
-      // TODO: Move this to a utility function so it can be used once the METAR is parsed
-      visibilityMeters = convert(visibilityMeters).from('mi').to('m');
+  for (const condition of colorConditions) {
+    if (
+      (condition.visibilityLessThan && visibility && visibility < condition.visibilityLessThan) ||
+      (condition.ceilingLessThan && ceiling && ceiling < condition.ceilingLessThan) ||
+      (condition.windSpeedGreaterThan && windSpeed && windSpeed > condition.windSpeedGreaterThan) ||
+      (condition.gustSpeedGreaterThan && gustSpeed && gustSpeed > condition.gustSpeedGreaterThan)
+    ) {
+      return condition.color;
     }
   }
-  if (
-    (visibilityMeters !== undefined && visibilityMeters < 800) ||
-    (ceiling !== undefined && ceiling < 200) ||
-    (windSpeed !== undefined && windSpeed > 40) ||
-    (gustSpeed !== undefined && gustSpeed > 50)
-  ) {
-    return 'red';
-  }
-  if (
-    (visibilityMeters !== undefined && visibilityMeters < 1600) ||
-    (ceiling !== undefined && ceiling < 400) ||
-    (windSpeed !== undefined && windSpeed > 30) ||
-    (gustSpeed !== undefined && gustSpeed > 40)
-  ) {
-    return 'amber';
-  }
-  if (
-    (visibilityMeters !== undefined && visibilityMeters < 3200) ||
-    (ceiling !== undefined && ceiling < 700) ||
-    (windSpeed !== undefined && windSpeed > 20) ||
-    (gustSpeed !== undefined && gustSpeed > 30)
-  ) {
-    return 'yellow';
-  }
-  if (
-    (visibilityMeters !== undefined && visibilityMeters < 5000) ||
-    (ceiling !== undefined && ceiling < 1500) ||
-    (windSpeed !== undefined && windSpeed > 15) ||
-    (gustSpeed !== undefined && gustSpeed > 20)
-  ) {
-    return 'blue';
-  }
+
   return 'green';
 }
