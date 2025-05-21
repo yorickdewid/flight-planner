@@ -67,7 +67,7 @@ export function createMetarFromString(raw: string): Metar {
   if (metar.wind && metar.wind.unit === 'MPS') {
     windSpeed = metar.wind.speed && convert(metar.wind.speed).from('m/s').to('knot');
   } else if (metar.wind && metar.wind.unit === 'KM/H') {
-    windSpeed = metar.wind.speed & convert(metar.wind.speed).from('km/h').to('knot');
+    windSpeed = metar.wind.speed && convert(metar.wind.speed).from('km/h').to('knot');
   }
   let windGust = metar.wind?.gust;
   if (metar.wind && metar.wind.unit === 'MPS') {

@@ -223,26 +223,18 @@ class FlightPlanner {
     await Promise.all(waypoints
       .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
       .map(async aerodrome => {
-        try {
-          const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
-          if (stations?.length) {
-            aerodrome.metarStation = stations[0];
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch weather for aerodrome ${(aerodrome as Aerodrome).ICAO}:`, error);
+        const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
+        if (stations?.length) {
+          aerodrome.metarStation = stations[0];
         }
       }));
 
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
       .map(async waypoint => {
-        try {
-          const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
-          if (station) {
-            waypoint.metarStation = station;
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch nearest weather station for waypoint ${waypoint.name}:`, error);
+        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+        if (station) {
+          waypoint.metarStation = station;
         }
       }));
   }
@@ -301,7 +293,7 @@ class FlightPlanner {
       const course = {
         distance: startSegment.waypoint.distance(endSegment.waypoint),
         track: normalizeTrack(startSegment.waypoint.heading(endSegment.waypoint)),
-        altitude: startSegment.altitude,
+        altitude: startSegment.altitude || endSegment.altitude,
       } as CourseVector;
 
       // TODO: 
