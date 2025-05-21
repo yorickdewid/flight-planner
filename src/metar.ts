@@ -157,7 +157,7 @@ export interface Metar {
   clouds?: Cloud[];
 }
 
-export function calculateMetarCeiling(metar: Metar): number | undefined {
+export function metarCeiling(metar: Metar): number | undefined {
   const cloudCeilingQuantity = ['BKN', 'OVC'];
   const clouds = metar.clouds || [];
   const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
@@ -167,8 +167,8 @@ export function calculateMetarCeiling(metar: Metar): number | undefined {
   return undefined;
 }
 
-export function determineMetarFlightRule(metar: Metar): FlightRules {
-  const ceiling = calculateMetarCeiling(metar);
+export function metarFlightRule(metar: Metar): FlightRules {
+  const ceiling = metarCeiling(metar);
   let visibilityMeters: number | undefined;
 
   if (metar.visibility !== undefined) {
@@ -219,8 +219,8 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
 
 export type MetarFlightRuleColor = 'green' | 'blue' | 'red' | 'purple' | 'black';
 
-export function getMetarFlightRuleColor(metarData: Metar): MetarFlightRuleColor {
-  const flightRule = determineMetarFlightRule(metarData);
+export function metarFlightRuleColor(metarData: Metar): MetarFlightRuleColor {
+  const flightRule = metarFlightRule(metarData);
   switch (flightRule) {
     case FlightRules.VFR:
       return 'green';
@@ -237,9 +237,9 @@ export function getMetarFlightRuleColor(metarData: Metar): MetarFlightRuleColor 
 
 export type MetarColorCode = 'green' | 'blue' | 'yellow' | 'amber' | 'red';
 
-export function getMetarColorCode(metarData: Metar): MetarColorCode {
+export function metarColorCode(metarData: Metar): MetarColorCode {
   const visibility = metarData.visibility;
-  const ceiling = calculateMetarCeiling(metarData);
+  const ceiling = metarCeiling(metarData);
   const windSpeed = metarData.wind?.speed;
   const gustSpeed = metarData.wind?.gust;
 

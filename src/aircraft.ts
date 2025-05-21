@@ -66,7 +66,7 @@ export const isAircraftRegistration = (registration: string): boolean => {
  * @param registration - The aircraft registration to normalize
  * @returns The normalized aircraft registration
  */
-export const normalizeAircraftRegistration = (registration: string): string => {
+export const aircraftNormalizeRegistration = (registration: string): string => {
   return registration.toUpperCase().replace(/-/g, '');
 }
 

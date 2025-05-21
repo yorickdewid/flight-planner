@@ -1,15 +1,15 @@
 import {
   Metar,
-  determineMetarFlightRule,
-  getMetarFlightRuleColor,
-  getMetarColorCode,
-  calculateMetarCeiling,
+  metarFlightRule,
+  metarFlightRuleColor,
+  metarColorCode,
+  metarCeiling,
 } from './metar.js';
-import { formatAltitude, formatClouds, formatTemperature, formatVisibility, formatWind } from './format.js';
+import { formatClouds, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './index.js';
 
 describe('Metar functions', () => {
-  describe('determineMetarFlightRule', () => {
+  describe('metarFlightRule', () => {
     it('should return VFR for good weather conditions', () => {
       const metarData: Metar = {
         station: 'TEST',
@@ -19,7 +19,7 @@ describe('Metar functions', () => {
         visibility: { value: 10000, unit: 'm' },
         clouds: [{ quantity: 'FEW', height: 5000 }]
       };
-      expect(determineMetarFlightRule(metarData)).toBe(FlightRules.VFR);
+      expect(metarFlightRule(metarData)).toBe(FlightRules.VFR);
     });
 
     it('should return LIFR for very poor visibility', () => {
@@ -30,7 +30,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         visibility: { value: 800, unit: 'm' }
       };
-      expect(determineMetarFlightRule(metarData)).toBe(FlightRules.LIFR);
+      expect(metarFlightRule(metarData)).toBe(FlightRules.LIFR);
     });
 
     it('should return LIFR for very low ceiling', () => {
@@ -41,11 +41,11 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'OVC', height: 300 }]
       };
-      expect(determineMetarFlightRule(metarData)).toBe(FlightRules.LIFR);
+      expect(metarFlightRule(metarData)).toBe(FlightRules.LIFR);
     });
   });
 
-  describe('getMetarFlightRuleColor', () => {
+  describe('metarFlightRuleColor', () => {
     it('should return "green" for VFR', () => {
       const metarData: Metar = {
         station: 'TEST',
@@ -55,7 +55,7 @@ describe('Metar functions', () => {
         visibility: { value: 10000, unit: 'm' },
         clouds: [{ quantity: 'FEW', height: 5000 }]
       };
-      expect(getMetarFlightRuleColor(metarData)).toBe('green');
+      expect(metarFlightRuleColor(metarData)).toBe('green');
     });
 
     it('should return "purple" for LIFR', () => {
@@ -66,7 +66,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         visibility: { value: 800, unit: 'm' }
       };
-      expect(getMetarFlightRuleColor(metarData)).toBe('purple');
+      expect(metarFlightRuleColor(metarData)).toBe('purple');
     });
 
     it('should return "red" for IFR', () => {
@@ -78,7 +78,7 @@ describe('Metar functions', () => {
         visibility: { value: 4000, unit: 'm' },
         clouds: [{ quantity: 'OVC', height: 700 }]
       };
-      expect(getMetarFlightRuleColor(metarData)).toBe('red');
+      expect(metarFlightRuleColor(metarData)).toBe('red');
     });
 
     it('should return "blue" for MVFR', () => {
@@ -89,11 +89,11 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'OVC', height: 2500 }]
       };
-      expect(getMetarFlightRuleColor(metarData)).toBe('blue');
+      expect(metarFlightRuleColor(metarData)).toBe('blue');
     });
   });
 
-  describe('getMetarColorCode', () => {
+  describe('metarColorCode', () => {
     it('should return "red" for very hazardous conditions', () => {
       const metarData: Metar = {
         station: 'TEST',
@@ -102,7 +102,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 45 },
         visibility: { value: 1000, unit: 'm' }
       };
-      expect(getMetarColorCode(metarData)).toBe('red');
+      expect(metarColorCode(metarData)).toBe('red');
     });
 
     it('should return "amber" for hazardous conditions', () => {
@@ -113,7 +113,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 32 },
         visibility: { value: 1500, unit: 'm' }
       };
-      expect(getMetarColorCode(metarData)).toBe('amber');
+      expect(metarColorCode(metarData)).toBe('amber');
     });
 
     it('should return "yellow" for significant deterioration', () => {
@@ -124,7 +124,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 22 },
         clouds: [{ quantity: 'BKN', height: 650 }]
       };
-      expect(getMetarColorCode(metarData)).toBe('yellow');
+      expect(metarColorCode(metarData)).toBe('yellow');
     });
 
     it('should return "blue" for minor deterioration', () => {
@@ -135,7 +135,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 16 },
         clouds: [{ quantity: 'BKN', height: 1400 }]
       };
-      expect(getMetarColorCode(metarData)).toBe('blue');
+      expect(metarColorCode(metarData)).toBe('blue');
     });
 
     it('should return "green" for normal operations', () => {
@@ -147,7 +147,7 @@ describe('Metar functions', () => {
         visibility: { value: 8000, unit: 'm' },
         clouds: [{ quantity: 'FEW', height: 3500 }]
       };
-      expect(getMetarColorCode(metarData)).toBe('green');
+      expect(metarColorCode(metarData)).toBe('green');
     });
 
     it('should handle wind gusts correctly', () => {
@@ -158,7 +158,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 15, gust: 35 },
         visibility: { value: 8000, unit: 'm' }
       };
-      expect(getMetarColorCode(metarData)).toBe('yellow');
+      expect(metarColorCode(metarData)).toBe('yellow');
     });
 
     it('should handle visibility in statute miles', () => {
@@ -169,7 +169,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         visibility: { value: 0.75, unit: 'sm' } // Roughly 1200m
       };
-      expect(getMetarColorCode(metarData)).toBe('amber');
+      expect(metarColorCode(metarData)).toBe('amber');
     });
   });
 
@@ -197,7 +197,7 @@ describe('Metar functions', () => {
   // });
   // });
 
-  describe('formatMetarCeiling', () => {
+  describe('metarCeiling', () => {
     // it('should return "No ceiling" when no clouds are present', () => {
     //   const metarData: Metar = {
     //     station: 'TEST',
@@ -216,8 +216,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'BKN', height: 3000 }]
       };
-      const ceiling = calculateMetarCeiling(metarData);
-      expect(formatAltitude(ceiling!)).toBe('3000 ft');
+      expect(metarCeiling(metarData)).toBe(3000);
     });
   });
 

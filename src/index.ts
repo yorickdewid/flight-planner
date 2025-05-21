@@ -75,11 +75,11 @@ export { normalizeICAO, isICAO, isIATA, normalizeIATA } from "./utils.js";
 export type { MetarStation, Metar } from "./metar.js";
 export {
   createMetarFromString,
-  determineMetarFlightRule,
-  calculateMetarCeiling,
+  metarFlightRule,
+  metarCeiling,
   isMetarExpired,
-  getMetarFlightRuleColor,
-  getMetarColorCode,
+  metarFlightRuleColor,
+  metarColorCode,
 } from "./metar.js";
 
 /**
