@@ -1,7 +1,7 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import convert from 'convert-units';
-import { ICAO } from './index.js';
+import { FlightRules, ICAO } from './index.js';
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.
@@ -15,24 +15,6 @@ export interface MetarStation {
   station: ICAO;
   metar: Metar;
   coords: GeoJSON.Position;
-}
-
-// TODO: Move this to index.ts
-/**
- * Enumeration representing different flight rules categories.
- * 
- * @enum {string}
- * @readonly
- * @property {string} VFR - Visual Flight Rules
- * @property {string} MVFR - Marginal Visual Flight Rules
- * @property {string} IFR - Instrument Flight Rules
- * @property {string} LIFR - Low Instrument Flight Rules
- */
-export enum FlightRules {
-  VFR = 'VFR',
-  MVFR = 'MVFR',
-  IFR = 'IFR',
-  LIFR = 'LIFR',
 }
 
 /**

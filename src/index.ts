@@ -26,6 +26,23 @@ export const StandardPressure = 1013.25;
 export const StandardTemperature = 15;
 
 /**
+ * Enumeration representing different flight rules categories.
+ * 
+ * @enum {string}
+ * @readonly
+ * @property {string} VFR - Visual Flight Rules
+ * @property {string} MVFR - Marginal Visual Flight Rules
+ * @property {string} IFR - Instrument Flight Rules
+ * @property {string} LIFR - Low Instrument Flight Rules
+ */
+export enum FlightRules {
+  VFR = 'VFR',
+  MVFR = 'MVFR',
+  IFR = 'IFR',
+  LIFR = 'LIFR',
+}
+
+/**
  * Default unit settings used throughout the application when specific units aren't provided.
  * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
  * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
@@ -55,7 +72,7 @@ export { normalizeICAO, isICAO, isIATA, normalizeIATA } from "./utils.js";
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export type { MetarStation, FlightRules, Metar } from "./metar.js";
+export type { MetarStation, Metar } from "./metar.js";
 export {
   createMetarFromString,
   determineMetarFlightRule,

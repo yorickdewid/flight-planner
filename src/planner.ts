@@ -172,6 +172,7 @@ export const calculateVFRCruisingAltitude = (track: number, altitude: number): n
   return altitudeLevel;
 }
 
+// TODO: Maybe convert altitude to pressure altitude
 /**
  * Converts an altitude in feet to the corresponding flight level.
  * Flight levels are typically expressed in hundreds of feet, so the function divides the altitude by 1000.
