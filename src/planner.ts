@@ -1,7 +1,7 @@
 import { AerodromeService, WeatherService } from './index.js';
 import { Aerodrome, VisualReportingPoint, Waypoint } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
-import { Wind } from './metar.js';
+import { MetarStation, Wind } from './metar.js';
 import { point } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
 
@@ -220,14 +220,25 @@ class FlightPlanner {
    * @throws Will not throw but logs errors encountered during the process
    */
   private async attachWeatherData(waypoints: Waypoint[]): Promise<void> {
-    await Promise.all(waypoints
-      .filter(waypoint => FlightPlanner.isAerodrome(waypoint))
-      .map(async aerodrome => {
-        const stations = await this.weatherService.get((aerodrome as Aerodrome).ICAO);
-        if (stations?.length) {
-          aerodrome.metarStation = stations[0];
+    const aerodromes = waypoints.filter(waypoint => FlightPlanner.isAerodrome(waypoint)) as Aerodrome[];
+    const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO);
+
+    if (icaoCodes.length > 0) {
+      const stations = await this.weatherService.get(icaoCodes);
+      if (stations?.length) {
+        const stationMap = new Map<string, MetarStation>();
+        for (const station of stations) {
+          stationMap.set(station.station, station);
         }
-      }));
+
+        for (const aerodrome of aerodromes) {
+          const station = stationMap.get(aerodrome.ICAO);
+          if (station) {
+            aerodrome.metarStation = station;
+          }
+        }
+      }
+    }
 
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
@@ -249,8 +260,7 @@ class FlightPlanner {
    */
   async createFlightPlanFromString(routeString: string, options: RouteOptions = {}): Promise<RouteTrip> {
     const waypoints = await this.parseRouteString(routeString);
-
-    if (waypoints.length === 0) {
+    if (!waypoints.length) {
       throw new Error('No valid waypoints could be parsed from the route string');
     }
 
