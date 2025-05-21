@@ -57,31 +57,23 @@ export function createMetarFromString(raw: string): Metar {
   const metar = parseMetar(raw);
 
   const observationTime = new Date();
-  if (metar.day) {
-    observationTime.setUTCDate(metar.day);
-  } else {
-    observationTime.setUTCDate(observationTime.getUTCDate() - 1);
-  }
-  if (metar.hour) {
-    observationTime.setUTCHours(metar.hour);
-  }
-  if (metar.minute) {
-    observationTime.setUTCMinutes(metar.minute);
-  }
+  observationTime.setUTCDate(metar.day ?? observationTime.getUTCDate());
+  observationTime.setUTCHours(metar.hour ?? observationTime.getUTCHours());
+  observationTime.setUTCMinutes(metar.minute ?? observationTime.getUTCMinutes());
   observationTime.setUTCSeconds(0);
   observationTime.setUTCMilliseconds(0);
 
   let windSpeed = metar.wind?.speed;
   if (metar.wind && metar.wind.unit === 'MPS') {
-    windSpeed = convert(metar.wind?.speed).from('m/h').to('knot');
+    windSpeed = metar.wind.speed && convert(metar.wind.speed).from('m/s').to('knot');
   } else if (metar.wind && metar.wind.unit === 'KM/H') {
-    windSpeed = convert(metar.wind?.speed).from('km/h').to('knot');
+    windSpeed = metar.wind.speed & convert(metar.wind.speed).from('km/h').to('knot');
   }
   let windGust = metar.wind?.gust;
   if (metar.wind && metar.wind.unit === 'MPS') {
-    windGust = convert(metar.wind?.gust).from('m/h').to('knot');
+    windGust = metar.wind.gust && convert(metar.wind.gust).from('m/s').to('knot');
   } else if (metar.wind && metar.wind.unit === 'KM/H') {
-    windGust = convert(metar.wind?.gust).from('km/h').to('knot');
+    windGust = metar.wind.gust && convert(metar.wind.gust).from('km/h').to('knot');
   }
 
   let visibility = metar.visibility?.value;
