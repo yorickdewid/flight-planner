@@ -71,6 +71,19 @@ export function createMetarFromString(raw: string): Metar {
   observationTime.setUTCSeconds(0);
   observationTime.setUTCMilliseconds(0);
 
+  let windSpeed = metar.wind?.speed;
+  if (metar.wind && metar.wind.unit === 'MPS') {
+    windSpeed = convert(metar.wind?.speed).from('m/h').to('knot');
+  } else if (metar.wind && metar.wind.unit === 'KM/H') {
+    windSpeed = convert(metar.wind?.speed).from('km/h').to('knot');
+  }
+  let windGust = metar.wind?.gust;
+  if (metar.wind && metar.wind.unit === 'MPS') {
+    windGust = convert(metar.wind?.gust).from('m/h').to('knot');
+  } else if (metar.wind && metar.wind.unit === 'KM/H') {
+    windGust = convert(metar.wind?.gust).from('km/h').to('knot');
+  }
+
   let visibility = metar.visibility?.value;
   if (metar.visibility && metar.visibility.unit === 'SM') {
     visibility = convert(metar.visibility?.value).from('mi').to('m');
@@ -89,8 +102,8 @@ export function createMetarFromString(raw: string): Metar {
       direction: metar.wind?.degrees,
       directionMin: metar.wind?.minVariation,
       directionMax: metar.wind?.maxVariation,
-      speed: metar.wind?.speed,
-      gust: metar.wind?.gust,
+      speed: windSpeed,
+      gust: windGust,
     } as Wind,
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
