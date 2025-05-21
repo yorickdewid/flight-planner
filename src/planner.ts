@@ -125,15 +125,37 @@ interface RouteSegment {
   altitude?: number;
 }
 
+/**
+ * Checks if a given track is eastbound (0-179 degrees).
+ *
+ * @param {number} track - The track in degrees.
+ * @returns {boolean} True if the track is eastbound, false otherwise.
+ */
 export const isEastbound = (track: number): boolean => {
   const normalizedTrack = ((track % 360) + 360) % 360;
   return normalizedTrack >= 0 && normalizedTrack <= 179;
 }
 
+/**
+ * Checks if a given track is westbound (180-359 degrees).
+ *
+ * @param {number} track - The track in degrees.
+ * @returns {boolean} True if the track is westbound, false otherwise.
+ */
 export const isWestbound = (track: number): boolean => {
   return !isEastbound(track);
 }
 
+/**
+ * Calculates the appropriate VFR cruising altitude based on the track and desired minimum altitude.
+ * Eastbound flights (0-179 degrees) use odd thousands + 500 feet (e.g., 3500, 5500).
+ * Westbound flights (180-359 degrees) use even thousands + 500 feet (e.g., 4500, 6500).
+ * The function returns the lowest VFR cruising altitude that is at or above the given minimum altitude.
+ *
+ * @param {number} track - The true track in degrees.
+ * @param {number} altitude - The minimum desired altitude in feet.
+ * @returns {number} The calculated VFR cruising altitude in feet.
+ */
 export const calculateVFRCruisingAltitude = (track: number, altitude: number): number => {
   let altitudeLevel: number;
   if (isEastbound(track)) {
@@ -148,6 +170,17 @@ export const calculateVFRCruisingAltitude = (track: number, altitude: number): n
     }
   }
   return altitudeLevel;
+}
+
+/**
+ * Converts an altitude in feet to the corresponding flight level.
+ * Flight levels are typically expressed in hundreds of feet, so the function divides the altitude by 1000.
+ *
+ * @param {number} altitude - The altitude in feet.
+ * @returns {number} The flight level (FL) corresponding to the given altitude.
+ */
+export const flightLevel = (altitude: number): number => {
+  return Math.floor(altitude / 1000);
 }
 
 /**
