@@ -298,15 +298,10 @@ class FlightPlanner {
         endSegment.altitude = defaultAltitude;
       }
 
-      // TODO: Wrap these in course vectors
-      const distance = startSegment.waypoint.distance(endSegment.waypoint);
-      const track = normalizeTrack(startSegment.waypoint.heading(endSegment.waypoint));
-      const altitude = startSegment.altitude;
-
       const course = {
-        distance,
-        track,
-        altitude,
+        distance: startSegment.waypoint.distance(endSegment.waypoint),
+        track: normalizeTrack(startSegment.waypoint.heading(endSegment.waypoint)),
+        altitude: startSegment.altitude,
       } as CourseVector;
 
       // TODO: 

@@ -139,6 +139,7 @@ export interface Metar {
   visibility?: number;
   qnh?: number;
   clouds?: Cloud[];
+  // TODO: Add weather phenomena (e.g., rain, snow, fog)
 }
 
 export function metarCeiling(metar: Metar): number | undefined {
