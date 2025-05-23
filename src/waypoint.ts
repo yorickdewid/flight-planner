@@ -25,16 +25,22 @@ export class Waypoint {
   public readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position
   public readonly elevation?: number;
   public metarStation?: MetarStation;
+  public declination?: number;
 
   /**
+   * Creates a new Waypoint instance.
+   * 
    * @param name The name of the waypoint
    * @param location The location of the waypoint
+   * @param elevation The elevation of the waypoint in feet
+   * @param declination The magnetic declination at the waypoint in degrees
    * @returns An instance of the Waypoint class
    */
-  constructor(name: string, location: WaypointLocation, elevation?: number) {
+  constructor(name: string, location: WaypointLocation, elevation?: number, declination?: number) {
     this.name = capitalizeWords(name);
     this.location = location;
     this.elevation = elevation;
+    this.declination = declination;
   }
 
   /**
@@ -258,7 +264,6 @@ export class Aerodrome extends Waypoint {
     public runways: Runway[],
     public frequencies?: Frequency[],
     public ppr?: boolean,
-    public declination?: number,
     elevation?: number) {
     super(name, location, elevation);
   }

@@ -301,13 +301,10 @@ class FlightPlanner {
         endSegment.altitude = defaultAltitude;
       }
 
-      // TODO: Fallback to destination aerodrome
-      // TOOD: Every waypoint should have a magnetic declination
       const trueTrack = startSegment.waypoint.heading(endSegment.waypoint);
-      let magneticDeclination = 0;
-      if (FlightPlanner.isAerodrome(startSegment.waypoint) && typeof (startSegment.waypoint as Aerodrome).declination === 'number') {
-        magneticDeclination = (startSegment.waypoint as Aerodrome).declination || 0;
-      }
+      let magneticDeclination = startSegment.waypoint.declination
+        || endSegment.waypoint.declination
+        || 0;
 
       const course = {
         distance: startSegment.waypoint.distance(endSegment.waypoint),
