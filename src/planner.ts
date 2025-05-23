@@ -81,7 +81,6 @@ export interface RouteLeg {
  */
 export interface RouteTrip {
   route: RouteLeg[];
-  aircraft?: Aircraft;
   totalDistance: number;
   totalDuration: number;
   totalFuelConsumption?: number;
