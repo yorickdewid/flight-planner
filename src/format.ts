@@ -195,6 +195,23 @@ export function formatVisibility(visibility: number): string {
   return `${(visibility / 1000).toFixed(1)} km`;
 }
 
+export function formatCloud(cloud: Cloud): string {
+  const cloudQuantityMap: Record<string, string> = {
+    'SKC': 'Clear',
+    'FEW': 'Few',
+    'BKN': 'Broken',
+    'SCT': 'Scattered',
+    'OVC': 'Overcast',
+    'NSC': 'No Significant Clouds',
+  };
+
+  if (cloud.height) {
+    return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
+  }
+  return cloudQuantityMap[cloud.quantity];
+}
+
+// TODO: Obsolete function, remove it
 export function formatClouds(clouds: Cloud[]): string {
   const sortedClouds = [...clouds].sort((a, b) => {
     if (a.height === undefined) return 1;
