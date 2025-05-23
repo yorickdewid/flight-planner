@@ -223,6 +223,8 @@ export class Aerodrome extends Waypoint {
     public location: WaypointLocation,
     public runways: Runway[],
     public frequencies?: Frequency[],
+    public ppr?: boolean,
+    public declination?: number,
     elevation?: number) {
     super(name, location, elevation);
   }
