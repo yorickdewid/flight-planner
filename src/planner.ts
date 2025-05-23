@@ -1,4 +1,5 @@
 import { AerodromeService, WeatherService } from './index.js';
+import AircraftService from './services/aircraft.js';
 import { Aerodrome, VisualReportingPoint, Waypoint } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { MetarStation, Wind } from './metar.js';
@@ -196,10 +197,13 @@ class FlightPlanner {
    *                         Used to get wind information and other meteorological conditions
    * @param aerodromeService - Aerodrome service for fetching airport and airfield data
    *                           Used to look up airports by ICAO code and retrieve their information
+   * @param aircraftService - Aircraft service for managing aircraft data
+   *                          Used to fetch aircraft details and calculate performance metrics
    */
   constructor(
     private weatherService: WeatherService,
-    private aerodromeService: AerodromeService
+    private aerodromeService: AerodromeService,
+    private aircraftService: AircraftService,
   ) { }
 
   /**
@@ -210,7 +214,7 @@ class FlightPlanner {
    * @returns The fuel consumption in gallons/liters or undefined if not available
    */
   private calculateFuelConsumption(aircraft: Aircraft, duration: number): number | undefined {
-    return aircraft.fuelConsumption ? aircraft.fuelConsumption * (duration / 60) : undefined;
+    return aircraft.fuelConsumption && (aircraft.fuelConsumption * (duration / 60));
   }
 
   /**
@@ -220,7 +224,7 @@ class FlightPlanner {
    * @param waypoints - The waypoints to attach weather data to
    * @throws Will not throw but logs errors encountered during the process
    */
-  private async attachWeatherData(waypoints: Waypoint[]): Promise<void> {
+  public async attachWeatherToWaypoint(waypoints: Waypoint[]): Promise<void> {
     const aerodromes = waypoints.filter(waypoint => FlightPlanner.isAerodrome(waypoint)) as Aerodrome[];
     const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO);
 
@@ -289,7 +293,7 @@ class FlightPlanner {
       reserveFuel,
     } = options;
 
-    await this.attachWeatherData(segments.map(segment => segment.waypoint));
+    await this.attachWeatherToWaypoint(segments.map(segment => segment.waypoint));
 
     const legs = segments.slice(0, -1).map((startSegment, i) => {
       const endSegment = segments[i + 1];
@@ -302,7 +306,7 @@ class FlightPlanner {
       }
 
       const trueTrack = startSegment.waypoint.heading(endSegment.waypoint);
-      let magneticDeclination = startSegment.waypoint.declination
+      const magneticDeclination = startSegment.waypoint.declination
         || endSegment.waypoint.declination
         || 0;
 

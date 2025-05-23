@@ -1,4 +1,4 @@
-import { Aircraft } from "../aircraft.js";
+import { Aircraft, aircraftNormalizeRegistration, isAircraftRegistration } from "../aircraft.js";
 
 /**
  * Defines the signature for a function that fetches aircraft data.
@@ -96,13 +96,17 @@ class AircraftService {
    * @returns A promise that resolves to the Aircraft object or undefined if not found.
    */
   async get(registration: string): Promise<Aircraft | undefined> {
-    let aircraft = this.aircrafts.get(registration);
+    if (!isAircraftRegistration(registration)) {
+      throw new Error(`Invalid aircraft registration: ${registration}`);
+    }
+
+    let aircraft = this.aircrafts.get(aircraftNormalizeRegistration(registration));
     if (aircraft) {
       this.updateAccessOrder(registration);
       return aircraft;
     }
 
-    const results = await this.fetcher([registration]);
+    const results = await this.fetcher([aircraftNormalizeRegistration(registration)]);
     if (results && results.length > 0) {
       await this.addToCache(results);
       return results[0];
