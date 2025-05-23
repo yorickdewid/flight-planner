@@ -103,20 +103,12 @@ export const formatVolume = (volume: number, units: UnitOptions = DefaultUnits):
  * Formats angle to a string with the specified or default units.
  * 
  * @param {number} angle - The angle value.
-  * @returns {string} The formatted angle string.
+ * @param {boolean} [magnetic=false] - Whether the angle is magnetic.
+ * @returns {string} The formatted angle string.
  */
-export const formatAngle = (angle: number): string => {
-  return `${Math.round(angle)}°`;
-}
-
-/**
- * Formats angle to a string with the specified or default units.
- * 
- * @param {number} angle - The angle value.
- * @returns {string} The formatted angle string in magnetic format.
- */
-export const formatAngleMagnetic = (angle: number): string => {
-  return `${Math.round(angle)}°M`;
+export const formatAngle = (angle: number, magnetic: boolean = false): string => {
+  const roundedAngle = Math.round(angle).toString().padStart(3, '0');
+  return magnetic ? `${roundedAngle}°M` : `${roundedAngle}°`;
 }
 
 /**
