@@ -10,12 +10,14 @@ import { Aircraft } from './aircraft.js';
  *
  * @interface CourseVector
  * @property {number} distance - The distance of the course vector in nautical miles.
- * @property {number} track - The track heading in degrees.
+ * @property {number} track - The true track heading in degrees.
+ * @property {number} magneticTrack - The magnetic track heading in degrees, if available.
  * @property {number | undefined} altitude - The altitude in feet, if available.
  */
 export interface CourseVector {
   distance: number;
   track: number;
+  magneticTrack: number;
   altitude?: number;
 }
 
@@ -27,7 +29,7 @@ export interface CourseVector {
  * @property {number} crossWind - The component of wind perpendicular to the aircraft's motion, measured in knots.
  * @property {number} trueAirSpeed - The speed of the aircraft relative to the air mass it's flying through, measured in knots.
  * @property {number} windCorrectionAngle - The angle between the aircraft's heading and its track, measured in degrees.
- * @property {number} heading - The direction the aircraft is pointed, measured in degrees from true north.
+ * @property {number} heading - The magnetic direction the aircraft is pointed, measured in degrees from magnetic north.
  * @property {number} groundSpeed - The actual speed of the aircraft over the ground, measured in knots.
  * @property {number} duration - The time duration for a segment of flight, typically measured in minutes.
  * @property {number} [fuelConsumption] - Optional property representing the fuel consumption rate, typically measured in gallons or liters per hour.
@@ -299,9 +301,18 @@ class FlightPlanner {
         endSegment.altitude = defaultAltitude;
       }
 
+      // TODO: Fallback to destination aerodrome
+      // TOOD: Every waypoint should have a magnetic declination
+      const trueTrack = startSegment.waypoint.heading(endSegment.waypoint);
+      let magneticDeclination = 0;
+      if (FlightPlanner.isAerodrome(startSegment.waypoint) && typeof (startSegment.waypoint as Aerodrome).declination === 'number') {
+        magneticDeclination = (startSegment.waypoint as Aerodrome).declination || 0;
+      }
+
       const course = {
         distance: startSegment.waypoint.distance(endSegment.waypoint),
-        track: normalizeTrack(startSegment.waypoint.heading(endSegment.waypoint)),
+        track: normalizeTrack(trueTrack),
+        magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
         altitude: startSegment.altitude || endSegment.altitude,
       } as CourseVector;
 
@@ -360,25 +371,30 @@ class FlightPlanner {
    * Calculates the performance of the aircraft based on wind and course vector.
    * 
    * @param aircraft - The aircraft for which to calculate performance
-   * @param course - The course vector containing distance and track
+   * @param course - The course vector containing distance, true track, and magnetic track
    * @param wind - The wind conditions affecting the flight
    * @returns An object containing performance metrics or undefined if not applicable
    */
   private calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
     if (aircraft.cruiseSpeed) {
-      const windVector = calculateWindVector(wind, course.track);
       const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
-      const heading = normalizeTrack(course.track + wca); // TODO: Correct for magnetic variation
-      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, heading);
+      const trueHeading = normalizeTrack(course.track + wca);
+      const magneticHeading = normalizeTrack(course.magneticTrack + wca);
+
+      // Groundspeed calculation uses true heading.
+      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, trueHeading);
       const duration = (course.distance / groundSpeed) * 60;
       const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
+
+      // Calculate wind vector components
+      const windVector = calculateWindVector(wind, course.track);
 
       return {
         headWind: windVector.headwind,
         crossWind: windVector.crosswind,
         trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
         windCorrectionAngle: wca,
-        heading,
+        heading: magneticHeading,
         groundSpeed,
         duration,
         fuelConsumption
