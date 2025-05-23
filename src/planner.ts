@@ -347,7 +347,6 @@ class FlightPlanner {
 
     return {
       route: legs,
-      aircraft,
       totalDistance,
       totalDuration,
       totalFuelConsumption,
