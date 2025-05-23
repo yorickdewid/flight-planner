@@ -24,8 +24,8 @@ export class Waypoint {
   public readonly name: string;
   public readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position
   public readonly elevation?: number;
+  public readonly declination?: number;
   public metarStation?: MetarStation;
-  public declination?: number;
 
   /**
    * Creates a new Waypoint instance.

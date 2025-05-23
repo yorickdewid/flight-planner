@@ -110,6 +110,16 @@ export const formatAngle = (angle: number): string => {
 }
 
 /**
+ * Formats angle to a string with the specified or default units.
+ * 
+ * @param {number} angle - The angle value.
+ * @returns {string} The formatted angle string in magnetic format.
+ */
+export const formatAngleMagnetic = (angle: number): string => {
+  return `${Math.round(angle)}°M`;
+}
+
+/**
  * Formats date and time to a string in UTC format.
  * 
  * @param {Date} date - The date to format.
