@@ -30,7 +30,8 @@ export interface CourseVector {
  * @property {number} crossWind - The component of wind perpendicular to the aircraft's motion, measured in knots.
  * @property {number} trueAirSpeed - The speed of the aircraft relative to the air mass it's flying through, measured in knots.
  * @property {number} windCorrectionAngle - The angle between the aircraft's heading and its track, measured in degrees.
- * @property {number} heading - The magnetic direction the aircraft is pointed, measured in degrees from magnetic north.
+ * @property {number} trueHeading - The heading of the aircraft relative to true north, measured in degrees.
+ * @property {number} magneticHeading - The heading of the aircraft corrected for magnetic declination, measured in degrees.
  * @property {number} groundSpeed - The actual speed of the aircraft over the ground, measured in knots.
  * @property {number} duration - The time duration for a segment of flight, typically measured in minutes.
  * @property {number} [fuelConsumption] - Optional property representing the fuel consumption rate, typically measured in gallons or liters per hour.
@@ -40,7 +41,8 @@ export interface AircraftPerformance {
   crossWind: number;
   trueAirSpeed: number;
   windCorrectionAngle: number;
-  heading: number;
+  trueHeading: number;
+  magneticHeading: number;
   groundSpeed: number;
   duration: number;
   fuelConsumption?: number;
@@ -385,32 +387,34 @@ class FlightPlanner {
    * @returns An object containing performance metrics or undefined if not applicable
    */
   private calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
-    if (aircraft.cruiseSpeed) {
-      const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
-      const trueHeading = normalizeTrack(course.track + wca);
-      const magneticHeading = normalizeTrack(course.magneticTrack + wca);
-
-      // Groundspeed calculation uses true heading.
-      const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, trueHeading);
-      const duration = (course.distance / groundSpeed) * 60;
-      const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
-
-      // Calculate wind vector components
-      const windVector = calculateWindVector(wind, course.track);
-
-      return {
-        headWind: windVector.headwind,
-        crossWind: windVector.crosswind,
-        trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
-        windCorrectionAngle: wca,
-        heading: magneticHeading,
-        groundSpeed,
-        duration,
-        fuelConsumption
-      };
+    if (!aircraft.cruiseSpeed) {
+      return undefined;
     }
 
-    return undefined;
+    // Calculate wind correction angle and magnetic heading
+    const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
+    const trueHeading = normalizeTrack(course.track + wca);
+    const magneticHeading = normalizeTrack(course.magneticTrack + wca);
+
+    // Groundspeed calculation uses true heading.
+    const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, trueHeading);
+    const duration = (course.distance / groundSpeed) * 60;
+    const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
+
+    // Calculate wind vector components
+    const windVector = calculateWindVector(wind, course.track);
+
+    return {
+      headWind: windVector.headwind,
+      crossWind: windVector.crosswind,
+      trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
+      windCorrectionAngle: wca,
+      trueHeading,
+      magneticHeading,
+      groundSpeed,
+      duration,
+      fuelConsumption
+    };
   }
 
   /**
