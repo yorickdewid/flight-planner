@@ -222,11 +222,19 @@ class FlightPlanner {
    * First tries to get data for aerodromes by ICAO code, then finds nearest stations for other waypoints
    * 
    * @param waypoints - The waypoints to attach weather data to
+   * @param reassign - Whether to reassign the weather station for aerodromes
+   *                 If true, it clears the existing METAR station before fetching new data
    * @throws Will not throw but logs errors encountered during the process
    */
-  public async attachWeatherToWaypoint(waypoints: Waypoint[]): Promise<void> {
+  public async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
     const aerodromes = waypoints.filter(waypoint => FlightPlanner.isAerodrome(waypoint)) as Aerodrome[];
     const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO);
+
+    if (reassign) {
+      for (const aerodrome of aerodromes) {
+        aerodrome.metarStation = undefined;
+      }
+    }
 
     if (icaoCodes.length > 0) {
       const stations = await this.weatherService.get(icaoCodes);
