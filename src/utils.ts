@@ -1,5 +1,5 @@
 import { degreesToRadians, radiansToDegrees } from '@turf/turf';
-import { Wind } from "./metar.js";
+import { Cloud, Wind } from "./metar.js";
 
 /**
  * Represents a wind vector with angle and decomposed components.
@@ -72,6 +72,21 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
 
   const groundspeedSquared = Math.pow(airSpeed, 2) + Math.pow(wind.speed, 2) - 2 * airSpeed * windVector.headwind;
   return Math.sqrt(groundspeedSquared);
+}
+
+/**
+ * Sorts an array of clouds by their height in ascending order.
+ * 
+ * @param clouds - The array of clouds to sort
+ * @returns The sorted array of clouds
+ */
+export function sortClouds(clouds: Cloud[]): Cloud[] {
+  if (!clouds || clouds.length === 0) return [];
+  return clouds.sort((a, b) => {
+    if (a.height === undefined) return 1;
+    if (b.height === undefined) return -1;
+    return a.height - b.height;
+  });
 }
 
 /**
