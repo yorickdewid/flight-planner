@@ -16,14 +16,28 @@ export type ICAO = string;
  * 
  * @constant {number}
  */
-export const StandardPressure = 1013.25;
+export const ISAStandardPressure = 1013.25;
 
 /**
- * Standard atmospheric temperature at sea level in Celsius.
+ * Standard atmospheric pressure lapse rate in the troposphere in hectopascals per meter (hPa/m).
  * 
  * @constant {number}
  */
-export const StandardTemperature = 15;
+export const ISAStandardPressureLapseRate = 0.00012;
+
+/**
+ * Standard atmospheric temperature at sea level in degrees Celsius (°C).
+ * 
+ * @constant {number}
+ */
+export const ISAStandardTemperature = 15;
+
+/**
+ * Standard temperature lapse rate in the troposphere in degrees Celsius per meter (°C/m).
+ * 
+ * @constant {number}
+ */
+export const ISAStandardTemperatureLapseRate = 0.0065;
 
 /**
  * Enumeration representing different flight rules categories.

@@ -28,7 +28,7 @@ export interface CourseVector {
  * @interface AircraftPerformance
  * @property {number} headWind - The component of wind directly opposing the aircraft's motion, measured in knots.
  * @property {number} crossWind - The component of wind perpendicular to the aircraft's motion, measured in knots.
- * @property {number} trueAirSpeed - The speed of the aircraft relative to the air mass it's flying through, measured in knots.
+ * @property {number} trueAirspeed - The speed of the aircraft relative to the air mass it's flying through, measured in knots.
  * @property {number} windCorrectionAngle - The angle between the aircraft's heading and its track, measured in degrees.
  * @property {number} trueHeading - The heading of the aircraft relative to true north, measured in degrees.
  * @property {number} magneticHeading - The heading of the aircraft corrected for magnetic declination, measured in degrees.
@@ -39,7 +39,7 @@ export interface CourseVector {
 export interface AircraftPerformance {
   headWind: number;
   crossWind: number;
-  trueAirSpeed: number;
+  trueAirspeed: number;
   windCorrectionAngle: number;
   trueHeading: number;
   magneticHeading: number;
@@ -391,13 +391,16 @@ class FlightPlanner {
       return undefined;
     }
 
+    // Calculate the true airspeed
+    const trueAirspeed = aircraft.cruiseSpeed; // (cruise speed is indicated airspeed)
+
     // Calculate wind correction angle and magnetic heading
-    const wca = calculateWindCorrectionAngle(wind, course.track, aircraft.cruiseSpeed);
+    const wca = calculateWindCorrectionAngle(wind, course.track, trueAirspeed);
     const trueHeading = normalizeTrack(course.track + wca);
     const magneticHeading = normalizeTrack(course.magneticTrack + wca);
 
     // Groundspeed calculation uses true heading.
-    const groundSpeed = calculateGroundspeed(wind, aircraft.cruiseSpeed, trueHeading);
+    const groundSpeed = calculateGroundspeed(wind, trueAirspeed, trueHeading);
     const duration = (course.distance / groundSpeed) * 60;
     const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
 
@@ -407,7 +410,7 @@ class FlightPlanner {
     return {
       headWind: windVector.headwind,
       crossWind: windVector.crosswind,
-      trueAirSpeed: aircraft.cruiseSpeed, // TODO: Correct for altitude, temperature
+      trueAirspeed,
       windCorrectionAngle: wca,
       trueHeading,
       magneticHeading,
