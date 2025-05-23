@@ -96,7 +96,8 @@ export class VisualReportingPoint extends Waypoint {
  * @interface Runway
  * @property {string} designator - The identifier of the runway (e.g., "09L", "27R").
  * @property {number} heading - The magnetic heading of the runway in degrees.
- * @property {string} [length] - The length of the runway, typically in feet or meters.
+ * @property {string} [length] - The length of the runway, in meters.
+ * @property {string} [width] - The width of the runway, in meters.
  * @property {string} [surface] - The surface material of the runway (e.g., "asphalt", "concrete").
  * @property {boolean} [isActive] - Indicates whether the runway is currently active/operational.
  */
@@ -104,6 +105,7 @@ export interface Runway {
   designator: string;
   heading: number;
   length?: string;
+  width?: string;
   surface?: string;
   isActive?: boolean;
 }
