@@ -8,6 +8,7 @@ import { DefaultUnits } from "./index.js";
  * @interface UnitOptions
  * @property {UnitSpeed} [speed='kts'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
  * @property {UnitDistance} [distance='nm'] - Unit for distance measurements (nautical miles, kilometers, or miles).
+ * @property {UnitDistance} [runway='m'] - Unit for runway length measurements (meters or feet).
  * @property {UnitAltitude} [altitude='ft'] - Unit for altitude measurements (feet or meters).
  * @property {UnitTemperature} [temperature='C'] - Unit for temperature measurements (Celsius or Fahrenheit).
  * @property {UnitPressure} [pressure='hPa'] - Unit for pressure measurements (hectopascals or inches of mercury).
@@ -18,6 +19,7 @@ import { DefaultUnits } from "./index.js";
 export interface UnitOptions {
   speed?: Speed;
   distance?: Distance;
+  runway?: Distance;
   altitude?: Distance;
   elevation?: Distance;
   temperature?: Temperature;
