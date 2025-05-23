@@ -91,6 +91,38 @@ export class VisualReportingPoint extends Waypoint {
 }
 
 /**
+ * Enum representing the main composite of a runway surface.
+ * 
+ * @enum {number}
+ * @readonly
+ */
+export enum RunwaySurface {
+  Asphalt = 0,
+  Concrete = 1,
+  Grass = 2,
+  Sand = 3,
+  Water = 4,
+  BituminousTarOrAsphalt = 5, // "earth cement"
+  Brick = 6,
+  MacadamOrTarmac = 7, // water-bound crushed rock
+  Stone = 8,
+  Coral = 9,
+  Clay = 10,
+  Laterite = 11, // high iron clay formed in tropical areas
+  Gravel = 12,
+  Earth = 13,
+  Ice = 14,
+  Snow = 15,
+  ProtectiveLaminate = 16, // usually made of rubber
+  Metal = 17,
+  LandingMat = 18, // portable system usually made of aluminium
+  PiercedSteelPlanking = 19,
+  Wood = 20,
+  NonBituminousMix = 21,
+  Unknown = 22,
+}
+
+/**
  * Represents a runway at an airport.
  * 
  * @interface Runway
@@ -98,7 +130,7 @@ export class VisualReportingPoint extends Waypoint {
  * @property {number} heading - The magnetic heading of the runway in degrees.
  * @property {string} [length] - The length of the runway, in meters.
  * @property {string} [width] - The width of the runway, in meters.
- * @property {string} [surface] - The surface material of the runway (e.g., "asphalt", "concrete").
+ * @property {RunwaySurface} [surface] - The surface material of the runway.
  * @property {boolean} [isActive] - Indicates whether the runway is currently active/operational.
  */
 export interface Runway {
@@ -106,7 +138,7 @@ export interface Runway {
   heading: number;
   length?: string;
   width?: string;
-  surface?: string;
+  surface?: RunwaySurface;
   isActive?: boolean;
 }
 
