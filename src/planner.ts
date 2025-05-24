@@ -320,13 +320,6 @@ class FlightPlanner {
       reserveFuel,
     } = options;
 
-    if (!alternate) {
-      const alternate = await this.aerodromeService.nearest(segments[segments.length - 1].waypoint.location.geometry.coordinates);
-      if (alternate) {
-        options.alternate = alternate;
-      }
-    }
-
     await this.attachWeatherToWaypoint(segments.map(segment => segment.waypoint));
 
     // TODO: Set the start and end altitudes to the aerodrome elevation
@@ -369,6 +362,17 @@ class FlightPlanner {
         performance,
       };
     });
+
+    if (!alternate) {
+      const lastWaypoint = segments[segments.length - 1].waypoint;
+      const alternateRadius = 50;
+      const lastWaypointIcao = FlightPlanner.isAerodrome(lastWaypoint) ? lastWaypoint.ICAO : undefined;
+      const alternateExclude = lastWaypointIcao ? [lastWaypointIcao] : [];
+      const alternate = await this.aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
+      if (alternate) {
+        options.alternate = alternate;
+      }
+    }
 
     let routeAlternate: RouteLeg | undefined;
     if (options.alternate) {
