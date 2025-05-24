@@ -340,10 +340,7 @@ class FlightPlanner {
       const wind = startSegment.waypoint.metarStation?.metar.wind;
 
       const performance = aircraft && wind && this.calculatePerformance(aircraft, course, wind);
-
-      const arrivalDate = performance
-        ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
-        : undefined;
+      const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
 
       return {
         start: startSegment,

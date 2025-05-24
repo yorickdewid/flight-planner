@@ -113,6 +113,11 @@ export { Aerodrome, FrequencyType, VisualReportingPoint, RunwaySurface, Waypoint
 export { RepositoryBase, AerodromeService, WeatherService };
 
 /**
+ * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.
+ */
+export * from "./services/aircraft.js";
+
+/**
  * Route planning exports including route options, legs, trips, and planning functions.
  */
 export type { RouteOptions, RouteLeg, RouteTrip, } from "./planner.js";
