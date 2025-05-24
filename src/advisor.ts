@@ -8,6 +8,7 @@
 // - Minimum Safe Altitude (SERA.5005.f / NCO.OP.145): Enroute altitude > 500 ft
 // - Minimum Safe Altitude (SERA.5005.f / NCO.OP.145): Enroute altitude > 1000 ft above highest obstacle within 500 M
 // - Low temparature warning
+// - Check for significant weather along route like thunderstorms, icing, turbulence
 // - Flight plan for controlled airspace
 
 import { Aircraft } from './aircraft.js';
@@ -133,7 +134,7 @@ function checkVfrMinimumFuel(
  * @param routeTrip The flight plan's route trip.
  * @returns An array of advisories related to waypoint weather conditions.
  */
-function checkWaypointMetarConditions(
+function checkVfrMinimumWeatherConditions(
   routeTrip: RouteTrip,
 ): Advisory[] {
   const advisories: Advisory[] = [];
@@ -147,7 +148,7 @@ function checkWaypointMetarConditions(
 
       if (flightRule === FlightRules.IFR || flightRule === FlightRules.LIFR) {
         advisories.push({
-          code: 'WAYPOINT_WEATHER_BELOW_MVFR',
+          code: 'WEATHER_BELOW_MINIMUM',
           message: `Weather conditions at waypoint '${waypoint.name}' (${metarStation.station}) are ${flightRule}, which is below MVFR.`,
           level: AdvisoryLevel.Error,
           details: {
@@ -160,6 +161,121 @@ function checkWaypointMetarConditions(
           },
         });
       }
+    }
+  }
+
+  return advisories;
+}
+
+/**
+ * Checks wind conditions (headwind and crosswind) at departure and arrival waypoints.
+ *
+ * @param routeTrip The flight plan's route trip.
+ * @param aircraft The aircraft being used.
+ * @returns An array of advisories related to wind conditions.
+ */
+function checkWindLimits(
+  routeTrip: RouteTrip,
+  aircraft: Aircraft,
+): Advisory[] {
+  const advisories: Advisory[] = [];
+
+  const departureLeg = routeTrip.route[0];
+  const arrivalLeg = routeTrip.route[routeTrip.route.length - 1];
+
+  // --- Check Departure Waypoint ---
+  const departureWaypoint = departureLeg.start.waypoint;
+  if (departureLeg.performance) {
+    const { headWind, crossWind } = departureLeg.performance;
+
+    // Crosswind check for departure
+    if (aircraft.maxDemonstratedCrosswind !== undefined && aircraft.maxDemonstratedCrosswind > 0) {
+      if (Math.abs(crossWind) > aircraft.maxDemonstratedCrosswind) {
+        advisories.push({
+          code: 'DEPARTURE_CROSSWIND_EXCEEDS_LIMITS',
+          message: `Crosswind at departure waypoint '${departureWaypoint.name}' (${crossWind.toFixed(1)} kts) exceeds aircraft's maximum demonstrated crosswind (${aircraft.maxDemonstratedCrosswind} kts).`,
+          level: AdvisoryLevel.Error,
+          details: {
+            waypointName: departureWaypoint.name,
+            crosswind: crossWind,
+            maxDemonstratedCrosswind: aircraft.maxDemonstratedCrosswind,
+            headwind: headWind,
+          },
+        });
+      }
+    }
+
+    // Headwind/Tailwind information for departure
+    if (headWind < -5) {
+      advisories.push({
+        code: 'DEPARTURE_SIGNIFICANT_TAILWIND',
+        message: `Significant tailwind at departure waypoint '${departureWaypoint.name}' (${(-headWind).toFixed(1)} kts).`,
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: departureWaypoint.name,
+          tailwind: -headWind,
+          crosswind: crossWind,
+        },
+      });
+    } else if (headWind > 15) {
+      advisories.push({
+        code: 'DEPARTURE_SIGNIFICANT_HEADWIND',
+        message: `Significant headwind at departure waypoint '${departureWaypoint.name}' (${headWind.toFixed(1)} kts).`,
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: departureWaypoint.name,
+          headwind: headWind,
+          crosswind: crossWind,
+        },
+      });
+    }
+  }
+
+  // --- Check Arrival Waypoint ---
+  const arrivalWaypoint = arrivalLeg.end.waypoint;
+  if (arrivalLeg.performance) {
+    const { headWind, crossWind } = arrivalLeg.performance;
+
+    // Crosswind check for arrival
+    if (aircraft.maxDemonstratedCrosswind !== undefined && aircraft.maxDemonstratedCrosswind > 0) {
+      if (Math.abs(crossWind) > aircraft.maxDemonstratedCrosswind) {
+        advisories.push({
+          code: 'ARRIVAL_CROSSWIND_EXCEEDS_LIMITS',
+          message: `Crosswind at arrival waypoint '${arrivalWaypoint.name}' (${crossWind.toFixed(1)} kts) exceeds aircraft's maximum demonstrated crosswind (${aircraft.maxDemonstratedCrosswind} kts).`,
+          level: AdvisoryLevel.Error,
+          details: {
+            waypointName: arrivalWaypoint.name,
+            crosswind: crossWind,
+            maxDemonstratedCrosswind: aircraft.maxDemonstratedCrosswind,
+            headwind: headWind,
+          },
+        });
+      }
+    }
+
+    // Headwind/Tailwind information for arrival
+    if (headWind < -5) {
+      advisories.push({
+        code: 'ARRIVAL_SIGNIFICANT_TAILWIND',
+        message: `Significant tailwind at arrival waypoint '${arrivalWaypoint.name}' (${(-headWind).toFixed(1)} kts).`,
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: arrivalWaypoint.name,
+          tailwind: -headWind,
+          crosswind: crossWind,
+        },
+      });
+    } else if (headWind > 15) {
+      advisories.push({
+        code: 'ARRIVAL_SIGNIFICANT_HEADWIND',
+        message: `Significant headwind at arrival waypoint '${arrivalWaypoint.name}' (${headWind.toFixed(1)} kts).`,
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: arrivalWaypoint.name,
+          headwind: headWind,
+          crosswind: crossWind,
+        },
+      });
     }
   }
 
@@ -184,13 +300,11 @@ export function routeTripValidate(
   const fuelAdvisories = checkVfrMinimumFuel(routeTrip, aircraft, options);
   allAdvisories = allAdvisories.concat(fuelAdvisories);
 
-  const metarAdvisories = checkWaypointMetarConditions(routeTrip);
-  allAdvisories = allAdvisories.concat(metarAdvisories);
+  const weatherAdvisories = checkVfrMinimumWeatherConditions(routeTrip);
+  allAdvisories = allAdvisories.concat(weatherAdvisories);
 
-  // --- Future checks can be added below ---
-  // e.g., Crosswind Limitations
-  // const crosswindAdvisories = checkCrosswindLimits(routeTrip, aircraft);
-  // allAdvisories = allAdvisories.concat(crosswindAdvisories);
+  const crosswindAdvisories = checkWindLimits(routeTrip, aircraft);
+  allAdvisories = allAdvisories.concat(crosswindAdvisories);
 
   return allAdvisories;
 }
