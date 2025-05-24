@@ -331,7 +331,7 @@ class FlightPlanner {
       // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
       const wind = startSegment.waypoint.metarStation?.metar.wind;
 
-      const performance = aircraft && wind ? this.calculatePerformance(aircraft, course, wind) : undefined;
+      const performance = aircraft && wind && this.calculatePerformance(aircraft, course, wind);
 
       const arrivalDate = performance
         ? new Date(departureDate.getTime() + performance.duration * 60 * 1000)
@@ -357,6 +357,8 @@ class FlightPlanner {
       totalFuelConsumption += leg.performance?.fuelConsumption || 0;
     }
 
+    // TODO: Break down the fuel consumption
+    // TODO: Rename 'totalFuelRequired' to 'TripFuel'
     // Calculate total fuel required
     const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
     const totalFuelRequired = totalFuelConsumption
