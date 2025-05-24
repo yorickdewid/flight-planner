@@ -264,8 +264,9 @@ export class Aerodrome extends Waypoint {
     public runways: Runway[],
     public frequencies?: Frequency[],
     public ppr?: boolean,
-    elevation?: number) {
-    super(name, location, elevation);
+    elevation?: number,
+    declination?: number) {
+    super(name, location, elevation, declination);
   }
 
   /**
