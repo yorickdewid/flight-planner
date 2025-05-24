@@ -174,7 +174,7 @@ function checkWaypointMetarConditions(
  * @param options Optional route configuration.
  * @returns An array of advisories.
  */
-export function validateRouteTrip(
+export function routeTripValidate(
   routeTrip: RouteTrip,
   aircraft: Aircraft,
   options?: RouteOptions,
@@ -193,4 +193,14 @@ export function validateRouteTrip(
   // allAdvisories = allAdvisories.concat(crosswindAdvisories);
 
   return allAdvisories;
+}
+
+/**
+ * Checks if advisories contain any errors.
+ *
+ * @param advisories An array of advisories to check.
+ * @returns True if any advisory has an error level, false otherwise.
+ */
+export function advisoryHasErrors(advisories: Advisory[]): boolean {
+  return advisories.some(advisory => advisory.level === AdvisoryLevel.Error);
 }
