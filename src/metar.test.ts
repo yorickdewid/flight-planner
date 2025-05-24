@@ -227,7 +227,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10 },
       };
-      expect(formatWind(metarData.wind)).toBe('180° with 10kt');
+      expect(formatWind(metarData.wind)).toBe('180° with 10 kt');
     });
 
     it('should include gusting wind speed when windGust is defined', () => {
@@ -237,7 +237,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 180, speed: 10, gust: 20 },
       };
-      expect(formatWind(metarData.wind)).toBe('180° with 10kt gusting 20kt');
+      expect(formatWind(metarData.wind)).toBe('180° with 10 kt gusting 20 kt');
     });
 
     it('should include variable wind direction when windDirection is an array', () => {
@@ -247,7 +247,7 @@ describe('Metar functions', () => {
         raw: 'RAW DATA',
         wind: { direction: 350, speed: 12, directionMin: 340, directionMax: 360 },
       };
-      expect(formatWind(metarData.wind)).toBe('350° with 12kt variable between 340° and 360°');
+      expect(formatWind(metarData.wind)).toBe('350° with 12 kt variable between 340° and 360°');
     });
   });
 
