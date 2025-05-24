@@ -76,6 +76,7 @@ export interface RouteLeg {
  * 
  * @interface RouteTrip
  * @property {RouteLeg[]} route - Array of route legs that make up the complete trip
+ * @property {RouteLeg} [routeAlternate] - Optional alternate route leg for the trip
  * @property {number} totalDistance - Total distance of the trip in nautical miles
  * @property {number} totalDuration - Total duration of the trip in minutes
  * @property {number} [totalFuelConsumption] - Optional total fuel consumption for the trip in gallons/liters
@@ -86,6 +87,7 @@ export interface RouteLeg {
  */
 export interface RouteTrip {
   route: RouteLeg[];
+  routeAlternate?: RouteLeg;
   totalDistance: number;
   totalDuration: number;
   totalFuelConsumption?: number;
@@ -123,7 +125,13 @@ export interface RouteOptions {
 
 type WaypointType = Aerodrome | VisualReportingPoint | Waypoint;
 
-// TODO: Add metarStation to segment
+/**
+ * Represents a segment of a flight route, containing a waypoint and optional altitude.
+ *
+ * @interface RouteSegment
+ * @property {WaypointType} waypoint - The waypoint for this segment, which can be an Aerodrome, ReportingPoint, or Waypoint.
+ * @property {number} [altitude] - Optional altitude for the segment in feet.
+ */
 interface RouteSegment {
   waypoint: WaypointType;
   altitude?: number;
@@ -306,12 +314,22 @@ class FlightPlanner {
     const {
       defaultAltitude,
       departureDate = new Date(),
+      alternate,
       aircraft,
       reserveFuelDuration = 30,
       reserveFuel,
     } = options;
 
+    if (!alternate) {
+      const alternate = await this.aerodromeService.nearest(segments[segments.length - 1].waypoint.location.geometry.coordinates);
+      if (alternate) {
+        options.alternate = alternate;
+      }
+    }
+
     await this.attachWeatherToWaypoint(segments.map(segment => segment.waypoint));
+
+    // TODO: Set the start and end altitudes to the aerodrome elevation
 
     const legs = segments.slice(0, -1).map((startSegment, i) => {
       const endSegment = segments[i + 1];
@@ -352,6 +370,40 @@ class FlightPlanner {
       };
     });
 
+    let routeAlternate: RouteLeg | undefined;
+    if (options.alternate) {
+      await this.attachWeatherToWaypoint(options.alternate ? [options.alternate] : []);
+
+      const alternateStartSegment = segments[segments.length - 1];
+      const alternateEndSegment = { waypoint: options.alternate } as RouteSegment;
+
+      const trueTrack = alternateStartSegment.waypoint.heading(alternateEndSegment.waypoint);
+      const magneticDeclination = alternateStartSegment.waypoint.declination
+        || alternateEndSegment.waypoint.declination
+        || 0;
+
+      const course = {
+        distance: alternateStartSegment.waypoint.distance(alternateEndSegment.waypoint),
+        track: normalizeTrack(trueTrack),
+        magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
+        altitude: alternateStartSegment.altitude,
+      } as CourseVector;
+
+      const wind = alternateStartSegment.waypoint.metarStation?.metar.wind;
+
+      const performance = aircraft && wind && this.calculatePerformance(aircraft, course, wind);
+      const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
+
+      routeAlternate = {
+        start: alternateStartSegment,
+        end: alternateEndSegment,
+        course,
+        wind,
+        arrivalDate,
+        performance,
+      };
+    }
+
     let totalDistance = 0;
     let totalDuration = 0;
     let totalFuelConsumption = 0;
@@ -376,6 +428,7 @@ class FlightPlanner {
 
     return {
       route: legs,
+      routeAlternate,
       totalDistance,
       totalDuration,
       totalFuelConsumption,
@@ -439,7 +492,7 @@ class FlightPlanner {
   static getRouteWaypoints(routeTrip: RouteTrip): WaypointType[] {
     const allWaypoints = routeTrip.route.flatMap(leg => [leg.start.waypoint, leg.end.waypoint]);
 
-    const uniqueWaypoints = new Map<string, Aerodrome | VisualReportingPoint | Waypoint>();
+    const uniqueWaypoints = new Map<string, WaypointType>();
     for (const waypoint of allWaypoints) {
       uniqueWaypoints.set(waypoint.name, waypoint);
     }
