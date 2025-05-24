@@ -1,5 +1,5 @@
 import { Aircraft } from './aircraft.js';
-import { StandardTemperature } from './index.js';
+import { ISAStandardTemperature } from './index.js';
 
 /**
  * Enum defining different flight phases used in performance calculations.
@@ -152,7 +152,7 @@ export interface FlightPerformance {
 export function calculateRateOfClimb(
   aircraft: Aircraft,
   pressureAltitude: number = 0,
-  temperature: number = StandardTemperature
+  temperature: number = ISAStandardTemperature
 ): number {
   if (!aircraft.engineType) {
     // Default value if engine type is unknown
@@ -175,7 +175,7 @@ export function calculateRateOfClimb(
   const altitudeFactor = Math.max(0.5, 1 - (pressureAltitude / 30000));
 
   // Adjust for temperature (higher temps = lower performance)
-  const tempDiff = temperature - StandardTemperature;
+  const tempDiff = temperature - ISAStandardTemperature;
   const tempFactor = Math.max(0.7, 1 - (tempDiff * 0.02));
 
   return baseRate * altitudeFactor * tempFactor;

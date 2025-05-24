@@ -100,7 +100,7 @@ class AircraftService {
       throw new Error(`Invalid aircraft registration: ${registration}`);
     }
 
-    let aircraft = this.aircrafts.get(aircraftNormalizeRegistration(registration));
+    const aircraft = this.aircrafts.get(aircraftNormalizeRegistration(registration));
     if (aircraft) {
       this.updateAccessOrder(registration);
       return aircraft;

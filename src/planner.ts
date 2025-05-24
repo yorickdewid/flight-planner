@@ -269,14 +269,22 @@ class FlightPlanner {
    * Creates a flight plan from a route string, which can include ICAO codes, reporting points, and waypoints.
    * 
    * @param routeString - A string representing the route, e.g., "EDDF;RP(ALPHA);WP(50.05,8.57)"
+   * @param aircraftRegistration - The registration of the aircraft for which the flight plan is being created
    * @param options - Optional configuration options for the flight route
    * @returns A route trip object with legs, distances, durations, and fuel calculations
    * @throws Error if no valid waypoints could be parsed from the route string
    */
-  async createFlightPlanFromString(routeString: string, options: RouteOptions = {}): Promise<RouteTrip> {
+  async createFlightPlanFromString(routeString: string, aircraftRegistration: string, options: RouteOptions = {}): Promise<RouteTrip> {
     const waypoints = await this.parseRouteString(routeString);
     if (!waypoints.length) {
       throw new Error('No valid waypoints could be parsed from the route string');
+    }
+
+    const aircraft = await this.aircraftService.get(aircraftRegistration);
+    if (aircraft) {
+      options.aircraft = aircraft;
+    } else {
+      throw new Error(`Aircraft with registration ${aircraftRegistration} not found`);
     }
 
     return this.createFlightPlan(waypoints.map(waypoint => ({ waypoint })), options);
