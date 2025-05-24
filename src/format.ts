@@ -165,13 +165,13 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
   }
 
   if (wind.direction !== undefined) {
-    let windString = `${wind.direction}° with ${convertSpeed(wind.speed, units)}kt`; // TODO: change the unit name
+    let windString = `${formatAngle(wind.direction)} with ${formatSpeed(wind.speed, units)}`;
     if (wind.gust) {
-      windString += ` gusting ${convertSpeed(wind.gust, units)}kt`; // TODO: change the unit name
+      windString += ` gusting ${formatSpeed(wind.gust, units)}`;
     }
 
     if (wind.directionMin && wind.directionMax) {
-      windString += ` variable between ${wind.directionMin}° and ${wind.directionMax}°`;
+      windString += ` variable between ${formatAngle(wind.directionMin)} and ${formatAngle(wind.directionMax)}`;
     }
     return windString;
   }
@@ -197,7 +197,7 @@ export function formatVisibility(visibility: number): string {
   return `${(visibility / 1000).toFixed(1)} km`;
 }
 
-export function formatCloud(cloud: Cloud): string {
+export function formatCloud(cloud: Cloud, units: UnitOptions = DefaultUnits): string {
   const cloudQuantityMap: Record<string, string> = {
     'SKC': 'Clear',
     'FEW': 'Few',
@@ -208,7 +208,7 @@ export function formatCloud(cloud: Cloud): string {
   };
 
   if (cloud.height) {
-    return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
+    return `${cloudQuantityMap[cloud.quantity]} at ${formatAltitude(cloud.height, units)}`;
   }
   return cloudQuantityMap[cloud.quantity];
 }
