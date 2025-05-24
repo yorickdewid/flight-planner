@@ -37,7 +37,7 @@ export interface Advisory {
   code: string;
   message: string;
   level: AdvisoryLevel;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 /**
