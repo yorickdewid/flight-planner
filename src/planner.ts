@@ -83,6 +83,7 @@ export interface RouteLeg {
  * @property {number} [totalFuelRequired] - Optional total fuel required for the trip in gallons/liters
  * @property {Date} [departureDate] - Optional planned departure date and time
  * @property {Date} [arrivalDate] - Optional estimated arrival date and time
+ * @property {Date} generatedAt - The date and time when the trip was generated
  * @property {string} [remarks] - Optional remarks or notes about the trip
  */
 export interface RouteTrip {
@@ -94,6 +95,7 @@ export interface RouteTrip {
   totalFuelRequired?: number;
   departureDate?: Date;
   arrivalDate?: Date;
+  generatedAt: Date;
   remarks?: string;
 }
 
@@ -363,6 +365,7 @@ class FlightPlanner {
       };
     });
 
+    // TODO: Improve this logic to find the alternate aerodrome
     if (!alternate) {
       const lastWaypoint = segments[segments.length - 1].waypoint;
       const alternateRadius = 50;
@@ -439,6 +442,7 @@ class FlightPlanner {
       totalFuelRequired,
       departureDate,
       arrivalDate,
+      generatedAt: new Date(),
     };
   }
 
