@@ -115,7 +115,7 @@ export { RepositoryBase, AerodromeService, WeatherService };
 /**
  * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.
  */
-export * from "./services/aircraft.js";
+export { default as AircraftService } from "./services/aircraft.js";
 
 /**
  * Route planning exports including route options, legs, trips, and planning functions.
