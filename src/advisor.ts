@@ -30,13 +30,11 @@ export enum AdvisoryLevel {
  * 
  * @interface Advisory
  * @property {string} code - A unique code identifying the advisory.
- * @property {string} message - A human-readable message describing the advisory.
  * @property {AdvisoryLevel} level - The severity level of the advisory.
  * @property {any} [details] - Optional additional details about the advisory.
  */
 export interface Advisory {
   code: string;
-  message: string;
   level: AdvisoryLevel;
   details?: Record<string, unknown>;
 }
@@ -60,10 +58,11 @@ function checkVfrMinimumFuel(
 
   if (!aircraft.fuelConsumption || aircraft.fuelConsumption <= 0) {
     advisories.push({
-      code: 'AIRCRAFT_FUEL_CONSUMPTION_INVALID',
-      message: 'Aircraft fuel consumption rate is not defined or invalid.',
+      code: 'ERROR_AIRCRAFT_FUEL_CONSUMPTION_INVALID',
       level: AdvisoryLevel.Error,
-      details: { fuelConsumption: aircraft.fuelConsumption },
+      details: {
+        fuelConsumption: aircraft.fuelConsumption
+      },
     });
     return advisories;
   }
@@ -71,8 +70,7 @@ function checkVfrMinimumFuel(
   const tripFuel = routeTrip.totalFuelConsumption;
   if (tripFuel === undefined || tripFuel === null) {
     advisories.push({
-      code: 'TRIP_FUEL_MISSING',
-      message: 'Total trip fuel consumption is not calculated in the RouteTrip.',
+      code: 'WARN_TRIP_FUEL_MISSING',
       level: AdvisoryLevel.Warning,
     });
     return advisories;
@@ -91,27 +89,29 @@ function checkVfrMinimumFuel(
 
   if (routeTrip.totalFuelRequired !== undefined && Math.abs(routeTrip.totalFuelRequired - finalTotalFuelRequired) > 0.1) {
     advisories.push({
-      code: 'TOTAL_FUEL_MISMATCH',
-      message: `RouteTrip.totalFuelRequired (${routeTrip.totalFuelRequired?.toFixed(2)}L) does not match calculated required fuel including reserves and contingencies (${finalTotalFuelRequired.toFixed(2)}L). Using calculated value for checks.`,
+      code: 'WARN_TOTAL_FUEL_MISMATCH',
       level: AdvisoryLevel.Warning,
-      details: { routeTripValue: routeTrip.totalFuelRequired, calculatedValue: finalTotalFuelRequired }
+      details: {
+        routeTripValue: routeTrip.totalFuelRequired,
+        calculatedValue: finalTotalFuelRequired
+      }
     });
   }
 
   if (!aircraft.fuelCapacity || aircraft.fuelCapacity <= 0) {
     advisories.push({
-      code: 'AIRCRAFT_FUEL_CAPACITY_INVALID',
-      message: 'Aircraft fuel capacity is not defined or invalid.',
+      code: 'ERROR_AIRCRAFT_FUEL_CAPACITY_INVALID',
       level: AdvisoryLevel.Error,
-      details: { fuelCapacity: aircraft.fuelCapacity },
+      details: {
+        fuelCapacity: aircraft.fuelCapacity
+      },
     });
     return advisories;
   }
 
   if (finalTotalFuelRequired > aircraft.fuelCapacity) {
     advisories.push({
-      code: 'INSUFFICIENT_FUEL_FOR_VFR_RESERVE',
-      message: `Insufficient fuel for the trip plus VFR reserves. Required: ${finalTotalFuelRequired.toFixed(2)}L, Capacity: ${aircraft.fuelCapacity.toFixed(2)}L.`,
+      code: 'ERROR_INSUFFICIENT_FUEL_FOR_VFR_RESERVE',
       level: AdvisoryLevel.Error,
       details: {
         requiredFuel: finalTotalFuelRequired,
@@ -148,8 +148,7 @@ function checkVfrMinimumWeatherConditions(
 
       if (flightRule === FlightRules.IFR || flightRule === FlightRules.LIFR) {
         advisories.push({
-          code: 'WEATHER_BELOW_MINIMUM',
-          message: `Weather conditions at waypoint '${waypoint.name}' (${metarStation.station}) are ${flightRule}, which is below MVFR.`,
+          code: 'ERROR_WEATHER_BELOW_MINIMUM',
           level: AdvisoryLevel.Error,
           details: {
             waypointName: waypoint.name,
@@ -157,13 +156,11 @@ function checkVfrMinimumWeatherConditions(
             flightRule: flightRule,
             visibility: metar.visibility,
             ceiling: metarCeiling(metar),
-            rawMetar: metar.raw,
           },
         });
       } else if (flightRule === FlightRules.MVFR) {
         advisories.push({
-          code: 'WEATHER_MVFR',
-          message: `Weather conditions at waypoint '${waypoint.name}' (${metarStation.station}) are MVFR.`,
+          code: 'WARN_WEATHER_MVFR',
           level: AdvisoryLevel.Warning,
           details: {
             waypointName: waypoint.name,
@@ -171,7 +168,6 @@ function checkVfrMinimumWeatherConditions(
             flightRule: flightRule,
             visibility: metar.visibility,
             ceiling: metarCeiling(metar),
-            rawMetar: metar.raw,
           },
         });
       }
@@ -206,8 +202,7 @@ function checkWindLimits(
     if (aircraft.maxDemonstratedCrosswind !== undefined && aircraft.maxDemonstratedCrosswind > 0) {
       if (Math.abs(crossWind) > aircraft.maxDemonstratedCrosswind) {
         advisories.push({
-          code: 'DEPARTURE_CROSSWIND_EXCEEDS_LIMITS',
-          message: `Crosswind at departure waypoint '${departureWaypoint.name}' (${crossWind.toFixed(1)} kts) exceeds aircraft's maximum demonstrated crosswind (${aircraft.maxDemonstratedCrosswind} kts).`,
+          code: 'ERROR_WIND_DEPARTURE_CROSSWIND_EXCEEDS_LIMITS',
           level: AdvisoryLevel.Error,
           details: {
             waypointName: departureWaypoint.name,
@@ -222,8 +217,7 @@ function checkWindLimits(
     // Headwind/Tailwind information for departure
     if (headWind < -5) {
       advisories.push({
-        code: 'DEPARTURE_SIGNIFICANT_TAILWIND',
-        message: `Significant tailwind at departure waypoint '${departureWaypoint.name}' (${(-headWind).toFixed(1)} kts).`,
+        code: 'INFO_WIND_DEPARTURE_SIGNIFICANT_TAILWIND',
         level: AdvisoryLevel.Info,
         details: {
           waypointName: departureWaypoint.name,
@@ -233,8 +227,7 @@ function checkWindLimits(
       });
     } else if (headWind > 15) {
       advisories.push({
-        code: 'DEPARTURE_SIGNIFICANT_HEADWIND',
-        message: `Significant headwind at departure waypoint '${departureWaypoint.name}' (${headWind.toFixed(1)} kts).`,
+        code: 'INFO_WIND_DEPARTURE_SIGNIFICANT_HEADWIND',
         level: AdvisoryLevel.Info,
         details: {
           waypointName: departureWaypoint.name,
@@ -254,8 +247,7 @@ function checkWindLimits(
     if (aircraft.maxDemonstratedCrosswind !== undefined && aircraft.maxDemonstratedCrosswind > 0) {
       if (Math.abs(crossWind) > aircraft.maxDemonstratedCrosswind) {
         advisories.push({
-          code: 'ARRIVAL_CROSSWIND_EXCEEDS_LIMITS',
-          message: `Crosswind at arrival waypoint '${arrivalWaypoint.name}' (${crossWind.toFixed(1)} kts) exceeds aircraft's maximum demonstrated crosswind (${aircraft.maxDemonstratedCrosswind} kts).`,
+          code: 'ERROR_WIND_ARRIVAL_CROSSWIND_EXCEEDS_LIMITS',
           level: AdvisoryLevel.Error,
           details: {
             waypointName: arrivalWaypoint.name,
@@ -270,8 +262,7 @@ function checkWindLimits(
     // Headwind/Tailwind information for arrival
     if (headWind < -5) {
       advisories.push({
-        code: 'ARRIVAL_SIGNIFICANT_TAILWIND',
-        message: `Significant tailwind at arrival waypoint '${arrivalWaypoint.name}' (${(-headWind).toFixed(1)} kts).`,
+        code: 'INFO_WIND_ARRIVAL_SIGNIFICANT_TAILWIND',
         level: AdvisoryLevel.Info,
         details: {
           waypointName: arrivalWaypoint.name,
@@ -281,8 +272,7 @@ function checkWindLimits(
       });
     } else if (headWind > 15) {
       advisories.push({
-        code: 'ARRIVAL_SIGNIFICANT_HEADWIND',
-        message: `Significant headwind at arrival waypoint '${arrivalWaypoint.name}' (${headWind.toFixed(1)} kts).`,
+        code: 'INFO_WIND_ARRIVAL_SIGNIFICANT_HEADWIND',
         level: AdvisoryLevel.Info,
         details: {
           waypointName: arrivalWaypoint.name,
