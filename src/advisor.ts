@@ -160,6 +160,20 @@ function checkVfrMinimumWeatherConditions(
             rawMetar: metar.raw,
           },
         });
+      } else if (flightRule === FlightRules.MVFR) {
+        advisories.push({
+          code: 'WEATHER_MVFR',
+          message: `Weather conditions at waypoint '${waypoint.name}' (${metarStation.station}) are MVFR.`,
+          level: AdvisoryLevel.Warning,
+          details: {
+            waypointName: waypoint.name,
+            station: metarStation.station,
+            flightRule: flightRule,
+            visibility: metar.visibility,
+            ceiling: metarCeiling(metar),
+            rawMetar: metar.raw,
+          },
+        });
       }
     }
   }
