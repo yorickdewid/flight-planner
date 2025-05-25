@@ -126,4 +126,5 @@ export { default as FlightPlanner } from "./planner.js";
 /**
  * Route plan advisory exports including validation and error checking for route trips.
  */
+export type { Advisory } from "./advisor.js";
 export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
