@@ -122,3 +122,8 @@ export { default as AircraftService } from "./services/aircraft.js";
  */
 export type { RouteOptions, RouteLeg, RouteTrip, } from "./planner.js";
 export { default as FlightPlanner } from "./planner.js";
+
+/**
+ * Route plan advisory exports including validation and error checking for route trips.
+ */
+export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
