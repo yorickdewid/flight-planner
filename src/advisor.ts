@@ -2,14 +2,13 @@
 // - Fuel for Alternate Aerodrome
 // - Crosswind Limitations
 // - Check wind and gust
-// - Check service ceiling
 // - Check runway length
 // - Check weight & balance
-// - Minimum Safe Altitude (SERA.5005.f / NCO.OP.145): Enroute altitude > 500 ft
 // - Minimum Safe Altitude (SERA.5005.f / NCO.OP.145): Enroute altitude > 1000 ft above highest obstacle within 500 M
 // - Low temparature warning
 // - Check for significant weather along route like thunderstorms, icing, turbulence
 // - Flight plan for controlled airspace
+// - Also check for alternate aerodrome
 
 import { Aircraft } from './aircraft.js';
 import { RouteTrip, RouteOptions } from './planner.js';
@@ -287,6 +286,77 @@ function checkWindLimits(
 }
 
 /**
+ * Checks if the planned flight altitude exceeds the aircraft's service ceiling.
+ *
+ * @param routeTrip The flight plan's route trip.
+ * @param aircraft The aircraft being used for the flight.
+ * @returns An array of advisories.
+ */
+function checkServiceCeiling(
+  routeTrip: RouteTrip,
+  aircraft: Aircraft,
+): Advisory[] {
+  const advisories: Advisory[] = [];
+  if (aircraft.serviceCeiling === undefined || aircraft.serviceCeiling <= 0) {
+    advisories.push({
+      code: 'WARN_AIRCRAFT_SERVICE_CEILING_MISSING',
+      level: AdvisoryLevel.Warning,
+      details: {
+        aircraftRegistration: aircraft.registration,
+      },
+    });
+    return advisories;
+  }
+
+  for (const leg of routeTrip.route) {
+    const legAltitude = leg.course.altitude ?? leg.start.altitude ?? leg.end.altitude;
+
+    if (legAltitude !== undefined && legAltitude > aircraft.serviceCeiling) {
+      advisories.push({
+        code: 'ERROR_ALTITUDE_EXCEEDS_SERVICE_CEILING',
+        level: AdvisoryLevel.Error,
+        details: {
+          waypointName: `${leg.start.waypoint.name} to ${leg.end.waypoint.name}`,
+          plannedAltitude: legAltitude,
+          serviceCeiling: aircraft.serviceCeiling,
+        },
+      });
+    }
+  }
+  return advisories;
+}
+
+/**
+ * Checks if the enroute altitude is above the minimum safe altitude of 500 ft.
+ *
+ * @param routeTrip The flight plan's route trip.
+ * @returns An array of advisories.
+ */
+function checkMinimumSafeAltitude(
+  routeTrip: RouteTrip,
+): Advisory[] {
+  const advisories: Advisory[] = [];
+  const minimumAltitude = 500;
+
+  for (const leg of routeTrip.route) {
+    const legAltitude = leg.course.altitude ?? leg.start.altitude ?? leg.end.altitude;
+
+    if (legAltitude !== undefined && legAltitude < minimumAltitude) {
+      advisories.push({
+        code: 'WARN_ALTITUDE_BELOW_MINIMUM_SAFE_ENROUTE',
+        level: AdvisoryLevel.Warning,
+        details: {
+          waypointName: `${leg.start.waypoint.name} to ${leg.end.waypoint.name}`,
+          plannedAltitude: legAltitude,
+          minimumSafeAltitude: minimumAltitude,
+        },
+      });
+    }
+  }
+  return advisories;
+}
+
+/**
  * Validates a RouteTrip against various aviation regulations and best practices.
  *
  * @param routeTrip The flight plan's route trip.
@@ -309,6 +379,12 @@ export function routeTripValidate(
 
   const crosswindAdvisories = checkWindLimits(routeTrip, aircraft);
   allAdvisories = allAdvisories.concat(crosswindAdvisories);
+
+  const serviceCeilingAdvisories = checkServiceCeiling(routeTrip, aircraft);
+  allAdvisories = allAdvisories.concat(serviceCeilingAdvisories);
+
+  const minSafeAltitudeAdvisories = checkMinimumSafeAltitude(routeTrip);
+  allAdvisories = allAdvisories.concat(minSafeAltitudeAdvisories);
 
   return allAdvisories;
 }
