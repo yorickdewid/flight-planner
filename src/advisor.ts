@@ -309,16 +309,15 @@ function checkServiceCeiling(
     return advisories;
   }
 
-  for (const leg of routeTrip.route) {
-    const legAltitude = leg.course.altitude ?? leg.start.altitude ?? leg.end.altitude;
-
-    if (legAltitude !== undefined && legAltitude > aircraft.serviceCeiling) {
+  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  for (const routeSegment of routeSegments) {
+    if (routeSegment.altitude !== undefined && routeSegment.altitude > aircraft.serviceCeiling) {
       advisories.push({
         code: 'ERROR_ALTITUDE_EXCEEDS_SERVICE_CEILING',
         level: AdvisoryLevel.Error,
         details: {
-          waypointName: `${leg.start.waypoint.name} to ${leg.end.waypoint.name}`,
-          plannedAltitude: legAltitude,
+          waypointName: routeSegment.waypoint.name,
+          altitude: routeSegment.altitude,
           serviceCeiling: aircraft.serviceCeiling,
         },
       });
@@ -339,16 +338,18 @@ function checkMinimumSafeAltitude(
   const advisories: Advisory[] = [];
   const minimumAltitude = 500;
 
-  for (const leg of routeTrip.route) {
-    const legAltitude = leg.course.altitude ?? leg.start.altitude ?? leg.end.altitude;
+  // Iterate from the second leg to the second-to-last leg
+  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  for (let i = 1; i < routeSegments.length - 1; i++) {
+    const routeSegment = routeSegments[i];
 
-    if (legAltitude !== undefined && legAltitude < minimumAltitude) {
+    if (routeSegment.altitude !== undefined && routeSegment.altitude < minimumAltitude) {
       advisories.push({
         code: 'WARN_ALTITUDE_BELOW_MINIMUM_SAFE_ENROUTE',
         level: AdvisoryLevel.Warning,
         details: {
-          waypointName: `${leg.start.waypoint.name} to ${leg.end.waypoint.name}`,
-          plannedAltitude: legAltitude,
+          waypointName: routeSegment.waypoint.name,
+          altitude: routeSegment.altitude,
           minimumSafeAltitude: minimumAltitude,
         },
       });
