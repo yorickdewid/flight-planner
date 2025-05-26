@@ -48,15 +48,11 @@ export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
  * @returns The wind correction angle in degrees.
  */
 export function calculateWindCorrectionAngle(wind: Wind, trueTrack: number, airSpeed: number): number {
-  // Formula: WCA = arcsin((wind.speed * sin(wind angle)) / airSpeed)
-  // const windAngleRad = degreesToRadians(wind.direction - trueTrack);
-  // const wcaRad = Math.asin((wind.speed * Math.sin(windAngleRad)) / airSpeed);
-
-  // return radiansToDegrees(wcaRad);
   const windVector = calculateWindVector(wind, trueTrack);
-  const wca = radiansToDegrees(windVector.crosswind / airSpeed);
+  const wcaInRadians = Math.asin(windVector.crosswind / airSpeed);
+  const wca = radiansToDegrees(wcaInRadians);
 
-  return windVector.angle > 0 ? -wca : wca; // Positive windAngle means wind from the right
+  return wca; // Positive WCA means wind from the right
 }
 
 /**

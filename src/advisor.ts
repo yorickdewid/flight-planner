@@ -9,6 +9,7 @@
 // - Check for significant weather along route like thunderstorms, icing, turbulence
 // - Flight plan for controlled airspace
 // - Also check for alternate aerodrome
+// - Check for wind gusts
 
 import { Aircraft } from './aircraft.js';
 import { RouteTrip, RouteOptions } from './planner.js';
