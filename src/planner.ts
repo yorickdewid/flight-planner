@@ -324,7 +324,8 @@ class FlightPlanner {
 
     await this.attachWeatherToWaypoint(segments.map(segment => segment.waypoint));
 
-    // TODO: Set the start and end altitudes to the aerodrome elevation
+    segments[0].altitude = segments[0].waypoint.elevation;
+    segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
 
     const legs = segments.slice(0, -1).map((startSegment, i) => {
       const endSegment = segments[i + 1];
@@ -383,6 +384,9 @@ class FlightPlanner {
 
       const alternateStartSegment = segments[segments.length - 1];
       const alternateEndSegment = { waypoint: options.alternate } as RouteSegment;
+
+      alternateStartSegment.altitude = alternateStartSegment.waypoint.elevation;
+      alternateEndSegment.altitude = options.alternate.elevation;
 
       const trueTrack = alternateStartSegment.waypoint.heading(alternateEndSegment.waypoint);
       const magneticDeclination = alternateStartSegment.waypoint.declination
