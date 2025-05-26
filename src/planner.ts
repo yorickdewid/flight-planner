@@ -13,13 +13,11 @@ import { Aircraft } from './aircraft.js';
  * @property {number} distance - The distance of the course vector in nautical miles.
  * @property {number} track - The true track heading in degrees.
  * @property {number} magneticTrack - The magnetic track heading in degrees, if available.
- * @property {number | undefined} altitude - The altitude in feet, if available.
  */
 export interface CourseVector {
   distance: number;
   track: number;
   magneticTrack: number;
-  altitude?: number;
 }
 
 /**
@@ -346,7 +344,6 @@ class FlightPlanner {
         distance: startSegment.waypoint.distance(endSegment.waypoint),
         track: normalizeTrack(trueTrack),
         magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
-        altitude: startSegment.altitude || endSegment.altitude,
       } as CourseVector;
 
       // TODO: 
@@ -397,7 +394,6 @@ class FlightPlanner {
         distance: alternateStartSegment.waypoint.distance(alternateEndSegment.waypoint),
         track: normalizeTrack(trueTrack),
         magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
-        altitude: alternateStartSegment.altitude,
       } as CourseVector;
 
       const wind = alternateStartSegment.waypoint.metarStation?.metar.wind;
