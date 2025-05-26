@@ -298,9 +298,13 @@ function checkServiceCeiling(
   aircraft: Aircraft,
 ): Advisory[] {
   const advisories: Advisory[] = [];
-  if (aircraft.serviceCeiling === undefined || aircraft.serviceCeiling <= 0) {
+  if (aircraft.serviceCeiling === undefined) {
+    return advisories;
+  }
+
+  if (aircraft.serviceCeiling <= 0) {
     advisories.push({
-      code: 'WARN_AIRCRAFT_SERVICE_CEILING_MISSING',
+      code: 'WARN_AIRCRAFT_SERVICE_CEILING_INVALID',
       level: AdvisoryLevel.Warning,
       details: {
         aircraftRegistration: aircraft.registration,
