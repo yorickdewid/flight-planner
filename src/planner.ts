@@ -77,8 +77,7 @@ export interface RouteLeg {
  * @property {RouteLeg} [routeAlternate] - Optional alternate route leg for the trip
  * @property {number} totalDistance - Total distance of the trip in nautical miles
  * @property {number} totalDuration - Total duration of the trip in minutes
- * @property {number} [totalFuelConsumption] - Optional total fuel consumption for the trip in gallons/liters
- * @property {number} [totalFuelRequired] - Optional total fuel required for the trip in gallons/liters
+ * @property {number} [totalTripFuel] - Optional total fuel consumption for the trip in gallons or liters
  * @property {Date} [departureDate] - Optional planned departure date and time
  * @property {Date} [arrivalDate] - Optional estimated arrival date and time
  * @property {Date} generatedAt - The date and time when the trip was generated
@@ -89,8 +88,15 @@ export interface RouteTrip {
   routeAlternate?: RouteLeg;
   totalDistance: number;
   totalDuration: number;
-  totalFuelConsumption?: number;
-  totalFuelRequired?: number;
+  totalTripFuel?: number;
+  fuelBreakdown?: {
+    trip: number;
+    reserve: number;
+    takeoff?: number;
+    landing?: number;
+    taxi?: number;
+    alternate?: number;
+  };
   departureDate?: Date;
   arrivalDate?: Date;
   generatedAt: Date;
@@ -328,10 +334,10 @@ class FlightPlanner {
     const legs = segments.slice(0, -1).map((startSegment, i) => {
       const endSegment = segments[i + 1];
 
-      if (!startSegment.altitude) {
+      if (startSegment.altitude === undefined && defaultAltitude !== undefined) {
         startSegment.altitude = defaultAltitude;
       }
-      if (!endSegment.altitude) {
+      if (endSegment.altitude === undefined && defaultAltitude !== undefined) {
         endSegment.altitude = defaultAltitude;
       }
 
@@ -364,6 +370,8 @@ class FlightPlanner {
     });
 
     // TODO: Improve this logic to find the alternate aerodrome
+    // Consider factors like runway length, instrument approaches, and services available.
+    // This might involve more complex lookups or integration with additional data sources.
     if (!alternate) {
       const lastWaypoint = segments[segments.length - 1].waypoint;
       const alternateRadius = 50;
@@ -421,15 +429,21 @@ class FlightPlanner {
       totalFuelConsumption += leg.performance?.fuelConsumption || 0;
     }
 
-    // TODO: Break down the fuel consumption
-    // TODO: Rename 'totalFuelRequired' to 'TripFuel'
-    // Calculate total fuel required
     const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
-    const totalFuelRequired = totalFuelConsumption
+    const totalTripFuel = totalFuelConsumption
       + (reserveFuelRequired || 0)
       + (options.takeoffFuel || 0)
       + (options.landingFuel || 0)
       + (options.taxiFuel || 0);
+
+    const fuelBreakdown = {
+      trip: totalFuelConsumption,
+      reserve: reserveFuelRequired || 0,
+      takeoff: options.takeoffFuel,
+      landing: options.landingFuel,
+      taxi: options.taxiFuel,
+      alternate: routeAlternate?.performance?.fuelConsumption,
+    };
 
     const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
 
@@ -438,8 +452,8 @@ class FlightPlanner {
       routeAlternate,
       totalDistance,
       totalDuration,
-      totalFuelConsumption,
-      totalFuelRequired,
+      totalTripFuel,
+      fuelBreakdown,
       departureDate,
       arrivalDate,
       generatedAt: new Date(),
@@ -455,9 +469,7 @@ class FlightPlanner {
    * @returns An object containing performance metrics or undefined if not applicable
    */
   private calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
-    if (!aircraft.cruiseSpeed) {
-      return undefined;
-    }
+    if (!aircraft.cruiseSpeed) return undefined;
 
     // Calculate the true airspeed
     const trueAirspeed = aircraft.cruiseSpeed; // (cruise speed is indicated airspeed)

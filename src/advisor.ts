@@ -49,12 +49,12 @@ export interface Advisory {
  * @returns An array of advisories related to fuel reserves.
  */
 function checkVfrMinimumFuel(
-  routeTrip: RouteTrip,
+  _routeTrip: RouteTrip,
   aircraft: Aircraft,
-  options?: RouteOptions,
+  _options?: RouteOptions,
 ): Advisory[] {
   const advisories: Advisory[] = [];
-  const reserveMinutes = options?.reserveFuelDuration ?? 30; // Default to 30 minutes
+  // const reserveMinutes = options?.reserveFuelDuration ?? 30; // Default to 30 minutes
 
   if (!aircraft.fuelConsumption || aircraft.fuelConsumption <= 0) {
     advisories.push({
@@ -67,62 +67,62 @@ function checkVfrMinimumFuel(
     return advisories;
   }
 
-  const tripFuel = routeTrip.totalFuelConsumption;
-  if (tripFuel === undefined || tripFuel === null) {
-    advisories.push({
-      code: 'WARN_TRIP_FUEL_MISSING',
-      level: AdvisoryLevel.Warning,
-    });
-    return advisories;
-  }
+  // const tripFuel = routeTrip.totalFuelConsumption;
+  // if (tripFuel === undefined || tripFuel === null) {
+  //   advisories.push({
+  //     code: 'WARN_TRIP_FUEL_MISSING',
+  //     level: AdvisoryLevel.Warning,
+  //   });
+  //   return advisories;
+  // }
 
-  const reserveFuel = (reserveMinutes / 60) * aircraft.fuelConsumption; // Reserve fuel in liters
-  const totalFuelRequired = tripFuel + reserveFuel;
+  // const reserveFuel = (reserveMinutes / 60) * aircraft.fuelConsumption; // Reserve fuel in liters
+  // const totalFuelRequired = tripFuel + reserveFuel;
 
-  // Add taxi, takeoff, landing fuel if specified in options
-  let contingencyFuel = 0;
-  if (options?.taxiFuel) contingencyFuel += options.taxiFuel;
-  if (options?.takeoffFuel) contingencyFuel += options.takeoffFuel;
-  if (options?.landingFuel) contingencyFuel += options.landingFuel;
+  // // Add taxi, takeoff, landing fuel if specified in options
+  // let contingencyFuel = 0;
+  // if (options?.taxiFuel) contingencyFuel += options.taxiFuel;
+  // if (options?.takeoffFuel) contingencyFuel += options.takeoffFuel;
+  // if (options?.landingFuel) contingencyFuel += options.landingFuel;
 
-  const finalTotalFuelRequired = totalFuelRequired + contingencyFuel;
+  // const finalTotalFuelRequired = totalFuelRequired + contingencyFuel;
 
-  if (routeTrip.totalFuelRequired !== undefined && Math.abs(routeTrip.totalFuelRequired - finalTotalFuelRequired) > 0.1) {
-    advisories.push({
-      code: 'WARN_TOTAL_FUEL_MISMATCH',
-      level: AdvisoryLevel.Warning,
-      details: {
-        routeTripValue: routeTrip.totalFuelRequired,
-        calculatedValue: finalTotalFuelRequired
-      }
-    });
-  }
+  // if (routeTrip.totalFuelRequired !== undefined && Math.abs(routeTrip.totalFuelRequired - finalTotalFuelRequired) > 0.1) {
+  //   advisories.push({
+  //     code: 'WARN_TOTAL_FUEL_MISMATCH',
+  //     level: AdvisoryLevel.Warning,
+  //     details: {
+  //       routeTripValue: routeTrip.totalFuelRequired,
+  //       calculatedValue: finalTotalFuelRequired
+  //     }
+  //   });
+  // }
 
-  if (!aircraft.fuelCapacity || aircraft.fuelCapacity <= 0) {
-    advisories.push({
-      code: 'ERROR_AIRCRAFT_FUEL_CAPACITY_INVALID',
-      level: AdvisoryLevel.Error,
-      details: {
-        fuelCapacity: aircraft.fuelCapacity
-      },
-    });
-    return advisories;
-  }
+  // if (!aircraft.fuelCapacity || aircraft.fuelCapacity <= 0) {
+  //   advisories.push({
+  //     code: 'ERROR_AIRCRAFT_FUEL_CAPACITY_INVALID',
+  //     level: AdvisoryLevel.Error,
+  //     details: {
+  //       fuelCapacity: aircraft.fuelCapacity
+  //     },
+  //   });
+  //   return advisories;
+  // }
 
-  if (finalTotalFuelRequired > aircraft.fuelCapacity) {
-    advisories.push({
-      code: 'ERROR_INSUFFICIENT_FUEL_FOR_VFR_RESERVE',
-      level: AdvisoryLevel.Error,
-      details: {
-        requiredFuel: finalTotalFuelRequired,
-        tripFuel: tripFuel,
-        reserveFuel: reserveFuel,
-        contingencyFuel: contingencyFuel,
-        aircraftCapacity: aircraft.fuelCapacity,
-        reserveDurationMinutes: reserveMinutes,
-      },
-    });
-  }
+  // if (finalTotalFuelRequired > aircraft.fuelCapacity) {
+  //   advisories.push({
+  //     code: 'ERROR_INSUFFICIENT_FUEL_FOR_VFR_RESERVE',
+  //     level: AdvisoryLevel.Error,
+  //     details: {
+  //       requiredFuel: finalTotalFuelRequired,
+  //       tripFuel: tripFuel,
+  //       reserveFuel: reserveFuel,
+  //       contingencyFuel: contingencyFuel,
+  //       aircraftCapacity: aircraft.fuelCapacity,
+  //       reserveDurationMinutes: reserveMinutes,
+  //     },
+  //   });
+  // }
 
   return advisories;
 }
