@@ -1,6 +1,7 @@
 import { AerodromeService, WeatherService } from './index.js';
 import AircraftService from './services/aircraft.js';
-import { Aerodrome, VisualReportingPoint, Waypoint } from './waypoint.js';
+import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
+import { waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
 import { MetarStation, Wind } from './metar.js';
 import { point } from '@turf/turf';
@@ -129,7 +130,7 @@ export interface RouteOptions {
   landingFuel?: number;
 }
 
-type WaypointType = Aerodrome | VisualReportingPoint | Waypoint;
+type WaypointType = Aerodrome | ReportingPoint | Waypoint;
 
 /**
  * Represents a segment of a flight route, containing a waypoint and optional altitude.
@@ -176,6 +177,7 @@ export const isWestbound = (track: number): boolean => {
  */
 export const calculateVFRCruisingAltitude = (track: number, altitude: number): number => {
   let altitudeLevel: number;
+
   if (isEastbound(track)) {
     altitudeLevel = 3500;
     while (altitudeLevel < altitude) {
@@ -187,6 +189,7 @@ export const calculateVFRCruisingAltitude = (track: number, altitude: number): n
       altitudeLevel += 2000;
     }
   }
+
   return altitudeLevel;
 }
 
@@ -243,8 +246,8 @@ class FlightPlanner {
    * @throws Will not throw but logs errors encountered during the process
    */
   public async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
-    const aerodromes = waypoints.filter(waypoint => FlightPlanner.isAerodrome(waypoint)) as Aerodrome[];
-    const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO);
+    const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
+    const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
 
     if (reassign) {
       for (const aerodrome of aerodromes) {
@@ -261,7 +264,7 @@ class FlightPlanner {
         }
 
         for (const aerodrome of aerodromes) {
-          const station = stationMap.get(aerodrome.ICAO);
+          const station = stationMap.get(aerodrome.ICAO!);
           if (station) {
             aerodrome.metarStation = station;
           }
@@ -341,13 +344,13 @@ class FlightPlanner {
         endSegment.altitude = defaultAltitude;
       }
 
-      const trueTrack = startSegment.waypoint.heading(endSegment.waypoint);
+      const trueTrack = waypointHeading(startSegment.waypoint, endSegment.waypoint);
       const magneticDeclination = startSegment.waypoint.declination
         || endSegment.waypoint.declination
         || 0;
 
       const course = {
-        distance: startSegment.waypoint.distance(endSegment.waypoint),
+        distance: waypointDistance(startSegment.waypoint, endSegment.waypoint),
         track: normalizeTrack(trueTrack),
         magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
       } as CourseVector;
@@ -370,13 +373,12 @@ class FlightPlanner {
     });
 
     // TODO: Improve this logic to find the alternate aerodrome
-    // Consider factors like runway length, instrument approaches, and services available.
-    // This might involve more complex lookups or integration with additional data sources.
+    // - Consider factors like runway length, instrument approaches, and services available.
+    // - This might involve more complex lookups or integration with additional data sources.
     if (!alternate) {
       const lastWaypoint = segments[segments.length - 1].waypoint;
       const alternateRadius = 50;
-      const lastWaypointIcao = FlightPlanner.isAerodrome(lastWaypoint) ? lastWaypoint.ICAO : undefined;
-      const alternateExclude = lastWaypointIcao ? [lastWaypointIcao] : [];
+      const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
       const alternate = await this.aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
       if (alternate) {
         options.alternate = alternate;
@@ -393,13 +395,13 @@ class FlightPlanner {
       alternateStartSegment.altitude = alternateStartSegment.waypoint.elevation;
       alternateEndSegment.altitude = options.alternate.elevation;
 
-      const trueTrack = alternateStartSegment.waypoint.heading(alternateEndSegment.waypoint);
+      const trueTrack = waypointHeading(alternateStartSegment.waypoint, alternateEndSegment.waypoint);
       const magneticDeclination = alternateStartSegment.waypoint.declination
         || alternateEndSegment.waypoint.declination
         || 0;
 
       const course = {
-        distance: alternateStartSegment.waypoint.distance(alternateEndSegment.waypoint),
+        distance: waypointDistance(alternateStartSegment.waypoint, alternateEndSegment.waypoint),
         track: normalizeTrack(trueTrack),
         magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
       } as CourseVector;
@@ -540,37 +542,37 @@ class FlightPlanner {
     return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
   }
 
-  /**
-   * Tests if a given waypoint is an Aerodrome.
-   * 
-   * @param waypoint - The waypoint to test
-   * @returns True if the waypoint is an Aerodrome, false otherwise
-   */
-  static isAerodrome(waypoint: WaypointType): waypoint is Aerodrome {
-    return waypoint instanceof Aerodrome;
-  }
+  // /**
+  //  * Tests if a given waypoint is an Aerodrome.
+  //  * 
+  //  * @param waypoint - The waypoint to test
+  //  * @returns True if the waypoint is an Aerodrome, false otherwise
+  //  */
+  // static isAerodrome(waypoint: WaypointType): waypoint is Aerodrome {
+  //   return waypoint instanceof Aerodrome;
+  // }
 
-  /**
-   * Tests if a given waypoint is a ReportingPoint.
-   * 
-   * @param waypoint - The waypoint to test
-   * @returns True if the waypoint is a ReportingPoint, false otherwise
-   */
-  static isReportingPoint(waypoint: WaypointType): waypoint is VisualReportingPoint {
-    return waypoint instanceof VisualReportingPoint;
-  }
+  // /**
+  //  * Tests if a given waypoint is a ReportingPoint.
+  //  * 
+  //  * @param waypoint - The waypoint to test
+  //  * @returns True if the waypoint is a ReportingPoint, false otherwise
+  //  */
+  // static isReportingPoint(waypoint: WaypointType): waypoint is VisualReportingPoint {
+  //   return waypoint instanceof VisualReportingPoint;
+  // }
 
-  /**
-   * Tests if a given waypoint is a basic Waypoint.
-   * 
-   * @param waypoint - The waypoint to test
-   * @returns True if the waypoint is a basic Waypoint, false otherwise
-   */
-  static isWaypoint(waypoint: WaypointType): waypoint is Waypoint {
-    return waypoint instanceof Waypoint
-      && !(waypoint instanceof Aerodrome)
-      && !(waypoint instanceof VisualReportingPoint);
-  }
+  // /**
+  //  * Tests if a given waypoint is a basic Waypoint.
+  //  * 
+  //  * @param waypoint - The waypoint to test
+  //  * @returns True if the waypoint is a basic Waypoint, false otherwise
+  //  */
+  // static isWaypoint(waypoint: WaypointType): waypoint is Waypoint {
+  //   return waypoint instanceof Waypoint
+  //     && !(waypoint instanceof Aerodrome)
+  //     && !(waypoint instanceof VisualReportingPoint);
+  // }
 
   /**
    * Parses a route string and returns an array of Aerodrome or Waypoint objects.
@@ -590,7 +592,6 @@ class FlightPlanner {
     const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
 
     const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
-    // const reportingPointRegex = /^RP\(([A-Z0-9_]+)\)$/;
 
     const parseErrors: string[] = [];
 
@@ -607,17 +608,6 @@ class FlightPlanner {
           }
         }
 
-        // TODO: Check for things like NAVAIDs, VORs, NDBs, etc.
-        // TOOD: Check for VFR waypoints, starting with VRP_XX
-
-        // const rpMatch = part.match(reportingPointRegex);
-        // if (rpMatch) {
-        //   const name = rpMatch[1];
-        //   const rp = new ReportingPoint(name, point([0, 0])); // Coordinates would need to be looked up
-        //   waypoints.push(rp);
-        //   continue;
-        // }
-
         const waypointMatch = part.match(waypointRegex);
         if (waypointMatch) {
           const lat = parseFloat(waypointMatch[1]);
@@ -625,9 +615,22 @@ class FlightPlanner {
           if (isNaN(lat) || isNaN(lng)) {
             throw new Error(`Invalid coordinates in waypoint: ${part}`);
           }
-          waypoints.push(new Waypoint(`WP-${lat.toFixed(2)},${lng.toFixed(2)}`, point([lng, lat])));
+
+          const name = `WP-${lat.toFixed(2)},${lng.toFixed(2)}`;
+          waypoints.push({ name, location: point([lng, lat]) } as Waypoint);
           continue;
         }
+
+        // TODO: Check for things like NAVAIDs, VORs, NDBs, etc.
+        // TOOD: Check for VFR waypoints, starting with VRP_XX
+
+        // const rpRegex = /^([A-Z]+)$/;
+        // const rpMatch = part.match(rpRegex);
+        // if (rpMatch) {
+        //   const airport = await this.aerodromeService.get(part);
+        //   waypoints.push(rp);
+        //   continue;
+        // }
 
         throw new Error(`Unrecognized waypoint format: ${part}`);
       } catch (error) {
@@ -642,26 +645,6 @@ class FlightPlanner {
     }
 
     return waypoints;
-  }
-
-  /**
-   * Converts a route trip to a string representation.
-   * 
-   * @param routeTrip - The route trip to convert
-   * @returns A string representation of the route trip
-   */
-  static toRouteString(routeTrip: RouteTrip): string {
-    return FlightPlanner.getRouteWaypoints(routeTrip).map(waypoint => {
-      if (FlightPlanner.isAerodrome(waypoint)) {
-        return waypoint.ICAO;
-      } else if (FlightPlanner.isReportingPoint(waypoint)) {
-        return `RP(${waypoint.name})`;
-      } else if (FlightPlanner.isWaypoint(waypoint)) {
-        const coords = waypoint.location.geometry.coordinates;
-        return `WP(${coords[1].toFixed(5)},${coords[0].toFixed(5)})`;
-      }
-      return '';
-    }).join(';');
   }
 }
 

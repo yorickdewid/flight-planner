@@ -1,5 +1,5 @@
 import suncalc from 'suncalc';
-import { Waypoint } from './waypoint.js';
+import { Waypoint } from './waypoint.types.js';
 
 /**
  * Enum representing different sun events.
@@ -121,65 +121,65 @@ export function getSunAndMoonPositions(waypoint: Waypoint, time: Date = new Date
   };
 }
 
-/**
- * Determines if a flight between two waypoints involves night flying.
- * 
- * @param from - The departure waypoint
- * @param to - The destination waypoint
- * @param departureTime - The departure time
- * @param speed - The ground speed in knots
- * @returns true if any portion of the flight occurs during night time
- */
-export function flightInvolvesNight(
-  from: Waypoint,
-  to: Waypoint,
-  departureTime: Date,
-  speed: number
-): boolean {
-  const distance = from.distance(to);
-  const flightTimeHours = distance / speed;
-  const flightTimeMs = flightTimeHours * 60 * 60 * 1000;
-  const arrivalTime = new Date(departureTime.getTime() + flightTimeMs);
+// /**
+//  * Determines if a flight between two waypoints involves night flying.
+//  * 
+//  * @param from - The departure waypoint
+//  * @param to - The destination waypoint
+//  * @param departureTime - The departure time
+//  * @param speed - The ground speed in knots
+//  * @returns true if any portion of the flight occurs during night time
+//  */
+// export function flightInvolvesNight(
+//   from: Waypoint,
+//   to: Waypoint,
+//   departureTime: Date,
+//   speed: number
+// ): boolean {
+//   const distance = from.distance(to);
+//   const flightTimeHours = distance / speed;
+//   const flightTimeMs = flightTimeHours * 60 * 60 * 1000;
+//   const arrivalTime = new Date(departureTime.getTime() + flightTimeMs);
 
-  // Check departure point at departure time
-  const departureNight = isNight(from, departureTime);
+//   // Check departure point at departure time
+//   const departureNight = isNight(from, departureTime);
 
-  // Check arrival point at arrival time
-  const arrivalNight = isNight(to, arrivalTime);
+//   // Check arrival point at arrival time
+//   const arrivalNight = isNight(to, arrivalTime);
 
-  // If either departure or arrival is at night, the flight involves night time
-  if (departureNight || arrivalNight) {
-    return true;
-  }
+//   // If either departure or arrival is at night, the flight involves night time
+//   if (departureNight || arrivalNight) {
+//     return true;
+//   }
 
-  // If the flight spans a long period, we should check points in between
-  if (flightTimeHours > 1) {
-    // Check midpoint at mid-flight time
-    const midTime = new Date(departureTime.getTime() + flightTimeMs / 2);
+//   // If the flight spans a long period, we should check points in between
+//   if (flightTimeHours > 1) {
+//     // Check midpoint at mid-flight time
+//     const midTime = new Date(departureTime.getTime() + flightTimeMs / 2);
 
-    // Create a midpoint waypoint (very simplified - should be improved for longer routes)
-    const fromLon = from.location.geometry.coordinates[0];
-    const fromLat = from.location.geometry.coordinates[1];
-    const toLon = to.location.geometry.coordinates[0];
-    const toLat = to.location.geometry.coordinates[1];
+//     // Create a midpoint waypoint (very simplified - should be improved for longer routes)
+//     const fromLon = from.location.geometry.coordinates[0];
+//     const fromLat = from.location.geometry.coordinates[1];
+//     const toLon = to.location.geometry.coordinates[0];
+//     const toLat = to.location.geometry.coordinates[1];
 
-    const midLon = (fromLon + toLon) / 2;
-    const midLat = (fromLat + toLat) / 2;
+//     const midLon = (fromLon + toLon) / 2;
+//     const midLat = (fromLat + toLat) / 2;
 
-    const midPoint = new Waypoint('MidPoint', {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [midLon, midLat]
-      },
-      properties: {}
-    });
+//     const midPoint = new Waypoint('MidPoint', {
+//       type: 'Feature',
+//       geometry: {
+//         type: 'Point',
+//         coordinates: [midLon, midLat]
+//       },
+//       properties: {}
+//     });
 
-    return isNight(midPoint, midTime);
-  }
+//     return isNight(midPoint, midTime);
+//   }
 
-  return false;
-}
+//   return false;
+// }
 
 /**
  * Extends a RouteTrip with sun events at departure and destination.

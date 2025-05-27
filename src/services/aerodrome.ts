@@ -1,5 +1,5 @@
 import { ICAO } from "../index.js";
-import { Aerodrome } from "../waypoint.js";
+import { Aerodrome } from "../waypoint.types.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import RepositoryBase from "../repository.js";
 
@@ -88,8 +88,10 @@ class AerodromeService {
     }
 
     for (const aerodrome of aerodromeArray) {
-      this.aerodromes.set(aerodrome.ICAO, aerodrome);
-      this.updateAccessOrder(aerodrome.ICAO);
+      if (aerodrome.ICAO) {
+        this.aerodromes.set(aerodrome.ICAO, aerodrome);
+        this.updateAccessOrder(aerodrome.ICAO);
+      }
     }
 
     this.enforceCacheLimit();
@@ -157,7 +159,7 @@ class AerodromeService {
     if (!this.aerodromes.size) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
-    const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO)));
+    const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
     if (aerodromeCandidates.length === 0) {
       return undefined;
     }
