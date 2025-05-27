@@ -126,16 +126,6 @@ export const normalizeIATA = (iata: string): string => {
 }
 
 /**
- * Normalizes the given track angle to a value between 0 and 360 degrees.
- * 
- * @param track - The track angle to normalize
- * @returns The normalized track angle
- */
-export const normalizeTrack = (track: number): number => {
-  return ((track % 360) + 360) % 360;
-}
-
-/**
  * Capitalizes the first letter of each word in a string
  * 
  * @param text - The input text to capitalize

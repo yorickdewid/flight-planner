@@ -2,9 +2,9 @@ import { AerodromeService, WeatherService } from './index.js';
 import AircraftService from './services/aircraft.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { waypointDistance, waypointHeading } from './waypoint.js';
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO, normalizeTrack } from './utils.js';
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO } from './utils.js';
 import { MetarStation, Wind } from './metar.js';
-import { point } from '@turf/turf';
+import { bearingToAzimuth, point } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
 
 /**
@@ -351,8 +351,8 @@ class FlightPlanner {
 
       const course = {
         distance: waypointDistance(startSegment.waypoint, endSegment.waypoint),
-        track: normalizeTrack(trueTrack),
-        magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
+        track: bearingToAzimuth(trueTrack),
+        magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
       } as CourseVector;
 
       // TODO: 
@@ -402,8 +402,8 @@ class FlightPlanner {
 
       const course = {
         distance: waypointDistance(alternateStartSegment.waypoint, alternateEndSegment.waypoint),
-        track: normalizeTrack(trueTrack),
-        magneticTrack: normalizeTrack(trueTrack - magneticDeclination),
+        track: bearingToAzimuth(trueTrack),
+        magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
       } as CourseVector;
 
       const wind = alternateStartSegment.waypoint.metarStation?.metar.wind;
@@ -478,8 +478,8 @@ class FlightPlanner {
 
     // Calculate wind correction angle and magnetic heading
     const wca = calculateWindCorrectionAngle(wind, course.track, trueAirspeed);
-    const trueHeading = normalizeTrack(course.track + wca);
-    const magneticHeading = normalizeTrack(course.magneticTrack + wca);
+    const trueHeading = bearingToAzimuth(course.track + wca);
+    const magneticHeading = bearingToAzimuth(course.magneticTrack + wca);
 
     // Groundspeed calculation uses true heading.
     const groundSpeed = calculateGroundspeed(wind, trueAirspeed, trueHeading);
@@ -541,38 +541,6 @@ class FlightPlanner {
   static getArrivalWaypoint(routeTrip: RouteTrip): WaypointType {
     return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
   }
-
-  // /**
-  //  * Tests if a given waypoint is an Aerodrome.
-  //  * 
-  //  * @param waypoint - The waypoint to test
-  //  * @returns True if the waypoint is an Aerodrome, false otherwise
-  //  */
-  // static isAerodrome(waypoint: WaypointType): waypoint is Aerodrome {
-  //   return waypoint instanceof Aerodrome;
-  // }
-
-  // /**
-  //  * Tests if a given waypoint is a ReportingPoint.
-  //  * 
-  //  * @param waypoint - The waypoint to test
-  //  * @returns True if the waypoint is a ReportingPoint, false otherwise
-  //  */
-  // static isReportingPoint(waypoint: WaypointType): waypoint is VisualReportingPoint {
-  //   return waypoint instanceof VisualReportingPoint;
-  // }
-
-  // /**
-  //  * Tests if a given waypoint is a basic Waypoint.
-  //  * 
-  //  * @param waypoint - The waypoint to test
-  //  * @returns True if the waypoint is a basic Waypoint, false otherwise
-  //  */
-  // static isWaypoint(waypoint: WaypointType): waypoint is Waypoint {
-  //   return waypoint instanceof Waypoint
-  //     && !(waypoint instanceof Aerodrome)
-  //     && !(waypoint instanceof VisualReportingPoint);
-  // }
 
   /**
    * Parses a route string and returns an array of Aerodrome or Waypoint objects.
