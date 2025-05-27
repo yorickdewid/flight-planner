@@ -1,5 +1,7 @@
 import { degreesToRadians, radiansToDegrees } from '@turf/turf';
 import { Cloud, Wind } from "./metar.js";
+import { ISAStandardPressure, ISAStandardTemperature } from './index.js';
+import convert from 'convert-units';
 
 /**
  * Represents a wind vector with angle and decomposed components.
@@ -37,6 +39,72 @@ export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
     headwind: headwind,
     crosswind: crosswind,
   };
+}
+
+// export function calculateTrueAirspeed(altitude: number, speed: number, qnh: number): number {
+//   const pressureAltitude = altitude - ((qnh - ISAStandardPressure) * 27.3);
+//   const staticPressure = ISAStandardPressure - (1 - 6.87535 * 10 ^ -6 * pressureAltitude);
+//   const outsideAirTemperature = (ISAStandardTemperature - (1.98 * (altitude / 1000))); // TODO: Altitude may need to be pressure altitude
+//   const airDensity = calculateAirDensity(outsideAirTemperature, staticPressure);
+
+//   const trueAirspeed = speed * Math.sqrt(1.225 / airDensity);
+//   return trueAirspeed;
+// }
+
+// --- Constants (ideally in a separate file) ---
+const ISA_STANDARD_PRESSURE_HPA = 1013.25;
+const ISA_STANDARD_TEMPERATURE_CELSIUS = 15.0;
+const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
+const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
+const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
+const FT_PER_HPA_APPROX = 27.3;
+
+function convertPressureAltitudeToStaticPressureHpa(pressureAltitudeFt: number): number {
+  // Standard formula for pressure from ICAO Standard Atmosphere
+  const tempRatio = 1 - (0.0065 * (pressureAltitudeFt * 0.3048)) / 288.15;
+  return ISA_STANDARD_PRESSURE_HPA * Math.pow(tempRatio, 5.25588);
+}
+
+/**
+ * Calculates air density.
+ * 
+ * @param oatCelsius Outside Air Temperature in Celsius.
+ * @param staticPressureHpa Static air pressure in hPa.
+ * @returns Air density in kg/m^3.
+ */
+function calculateAirDensity(oatCelsius: number, staticPressureHpa: number): number {
+  const T_kelvin = convert(oatCelsius).from('C').to('K');
+  const P_pascals = staticPressureHpa * 100;
+  return P_pascals / (SPECIFIC_GAS_CONSTANT_DRY_AIR * T_kelvin);
+}
+
+/**
+ * Calculates True Airspeed.
+ * 
+ * @param indicatedAltitudeFt Indicated altitude in feet.
+ * @param qnhHpa Altimeter setting in hPa.
+ * @param oatCelsius Outside Air Temperature in Celsius.
+ * @param kcas Knots Calibrated Airspeed (or KEAS if compressibility is negligible).
+ * @returns Knots True Airspeed.
+ */
+export function calculateTrueAirspeed(
+  indicatedAltitudeFt: number,
+  qnhHpa: number,
+  oatCelsius: number,
+  kcas: number // Assuming this is KCAS; for low speeds, KEAS approx KCAS
+): number {
+  const pressureDiffHpa = qnhHpa - ISA_STANDARD_PRESSURE_HPA;
+  const pressureAltitudeFt = indicatedAltitudeFt - (pressureDiffHpa * FT_PER_HPA_APPROX);
+
+  const staticPressureHpa = convertPressureAltitudeToStaticPressureHpa(pressureAltitudeFt);
+  const airDensityKgM3 = calculateAirDensity(oatCelsius, staticPressureHpa);
+
+  // For simplicity here, assuming KEAS approx = KCAS.
+  // A full solution might add a KCAS -> KEAS step.
+  const keas = kcas;
+
+  const trueAirspeed = keas * Math.sqrt(STANDARD_SEA_LEVEL_DENSITY / airDensityKgM3);
+  return trueAirspeed;
 }
 
 /**
