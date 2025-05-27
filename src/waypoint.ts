@@ -10,7 +10,7 @@ import { Aerodrome, FrequencyType, Runway, RunwayWindVector, Waypoint } from './
  * @param to The destination waypoint.
  * @returns The distance in nautical miles.
  */
-export function waypointDistance(from: Waypoint, to: Waypoint): number {
+export const waypointDistance = (from: Waypoint, to: Waypoint): number => {
   return distance(from.location, to.location, { units: 'nauticalmiles' });
 }
 
@@ -21,19 +21,8 @@ export function waypointDistance(from: Waypoint, to: Waypoint): number {
  * @param to The destination waypoint.
  * @returns The heading in degrees.
  */
-export function waypointHeading(from: Waypoint, to: Waypoint): number {
-  const bearingValue = bearing(from.location, to.location);
-  return bearingToAzimuth(bearingValue);
-}
-
-/**
- * Returns a string representation of the aerodrome (Name (ICAO)).
- * 
- * @param aerodrome The aerodrome.
- * @returns A string representation of the aerodrome.
- */
-export function aerodromeToString(aerodrome: Aerodrome): string {
-  return `${aerodrome.name} (${aerodrome.ICAO})`;
+export const waypointHeading = (from: Waypoint, to: Waypoint): number => {
+  return bearingToAzimuth(bearing(from.location, to.location));
 }
 
 /**
@@ -50,19 +39,25 @@ export const validateFrequencyType = (type: number): FrequencyType => {
 }
 
 /**
- * Calculates the QFE (atmospheric pressure at aerodrome elevation) value.
+ * Calculates the QFE (atmospheric pressure at waypoint elevation) value.
  * 
- * @param aerodrome The aerodrome.
+ * @param waypoint The waypoint. For QFE calculation, this waypoint must have an 'elevation'
+ *                 and provide a QNH value (typically via an associated 'metarStation' property
+ *                 if the waypoint is an aerodrome or similar).
  * @returns The QFE value in hPa (hectopascals), rounded to 2 decimal places,
- *          or undefined if elevation or QNH data is not available.
+ *          or undefined if the waypoint's elevation or QNH data is not available.
  */
-export function calculateAerodromeQFE(aerodrome: Aerodrome): number | undefined {
-  if (!aerodrome.elevation || !aerodrome.metarStation || !aerodrome.metarStation.metar.qnh) {
+export const waypointQFE = (waypoint: Waypoint): number | undefined => {
+  const qnh = waypoint.metarStation?.metar?.qnh;
+
+  if (waypoint.elevation === undefined || waypoint.elevation === null || qnh === undefined || qnh === null) {
     return undefined;
   }
-  // Standard pressure lapse rate: 1 hPa per 27 feet (approx 30ft for simplicity often used in some contexts, but 27ft is more accurate)
+
+  // TODO: Use proper conversion for pressure lapse rate
+  // Standard pressure lapse rate: 1 hPa per 27 feet
   // QFE = QNH - (Elevation_ft / PressureLapseRate_ft_per_hPa)
-  return Math.round((aerodrome.metarStation.metar.qnh - (aerodrome.elevation / 27)) * 100) / 100;
+  return Math.round((qnh - (waypoint.elevation / 27)) * 100) / 100;
 }
 
 /**
@@ -72,8 +67,9 @@ export function calculateAerodromeQFE(aerodrome: Aerodrome): number | undefined 
  * @param wind The current wind data from METAR.
  * @returns The calculated runway wind vector.
  */
-export function calculateRunwayWindVector(runway: Runway, wind: Wind): RunwayWindVector {
+export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWindVector => {
   const windVector = calculateWindVector(wind, runway.heading);
+
   return {
     runway,
     windAngle: windVector.angle,
@@ -89,10 +85,11 @@ export function calculateRunwayWindVector(runway: Runway, wind: Wind): RunwayWin
  * @returns The wind vectors for the runways in descending order of headwind,
  *          or undefined if METAR station data or wind data is not available.
  */
-export function calculateAerodromeRunwayWinds(aerodrome: Aerodrome): RunwayWindVector[] | undefined {
+export const calculateAerodromeRunwayWinds = (aerodrome: Aerodrome): RunwayWindVector[] | undefined => {
   if (!aerodrome.metarStation || !aerodrome.metarStation.metar.wind) {
     return undefined;
   }
+
   return aerodrome.runways
     .map(runway => calculateRunwayWindVector(runway, aerodrome.metarStation!.metar.wind!))
     .sort((a, b) => b.headwind - a.headwind);
