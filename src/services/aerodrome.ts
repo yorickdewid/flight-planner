@@ -2,6 +2,7 @@ import { ICAO } from "../index.js";
 import { Aerodrome } from "../waypoint.types.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import RepositoryBase from "../repository.js";
+import { CacheService } from "./cache.js";
 
 import { point, nearestPoint } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
@@ -14,9 +15,8 @@ import { featureCollection } from '@turf/helpers';
  * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
  */
 class AerodromeService {
-  private aerodromes: Map<ICAO, Aerodrome> = new Map();
-  private accessOrder: ICAO[] = [];
-  private maxCacheSize: number;
+  private cache: CacheService<ICAO, Aerodrome>;
+  private repository: RepositoryBase<Aerodrome>;
 
   /**
    * Creates a new instance of the AerodromeService class.
@@ -25,10 +25,11 @@ class AerodromeService {
    * @param maxCacheSize - Maximum number of aerodromes to keep in the cache (default: 1000).
    */
   constructor(
-    private repository: RepositoryBase<Aerodrome>,
+    repository: RepositoryBase<Aerodrome>,
     maxCacheSize: number = 1_000
   ) {
-    this.maxCacheSize = Math.max(1, maxCacheSize);
+    this.repository = repository;
+    this.cache = new CacheService<ICAO, Aerodrome>(maxCacheSize);
   }
 
   /**
@@ -37,7 +38,7 @@ class AerodromeService {
    * @returns An array of ICAO codes.
    */
   keys(): ICAO[] {
-    return Array.from(this.aerodromes.keys());
+    return this.cache.keys();
   }
 
   /**
@@ -46,32 +47,7 @@ class AerodromeService {
    * @returns An array of Aerodrome objects.
    */
   values(): Aerodrome[] {
-    return Array.from(this.aerodromes.values());
-  }
-
-  /**
-   * Updates the access order for the LRU cache.
-   * 
-   * @param icao - The ICAO code that was accessed.
-   */
-  private updateAccessOrder(icao: ICAO): void {
-    const index = this.accessOrder.indexOf(icao);
-    if (index !== -1) {
-      this.accessOrder.splice(index, 1);
-    }
-    this.accessOrder.push(icao);
-  }
-
-  /**
-   * Enforces the cache size limit by removing least recently used items.
-   */
-  private enforceCacheLimit(): void {
-    while (this.aerodromes.size > this.maxCacheSize && this.accessOrder.length > 0) {
-      const leastUsedIcao = this.accessOrder.shift();
-      if (leastUsedIcao) {
-        this.aerodromes.delete(leastUsedIcao);
-      }
-    }
+    return this.cache.values();
   }
 
   /**
@@ -89,12 +65,9 @@ class AerodromeService {
 
     for (const aerodrome of aerodromeArray) {
       if (aerodrome.ICAO) {
-        this.aerodromes.set(aerodrome.ICAO, aerodrome);
-        this.updateAccessOrder(aerodrome.ICAO);
+        this.cache.set(aerodrome.ICAO, aerodrome);
       }
     }
-
-    this.enforceCacheLimit();
   }
 
   /**
@@ -113,10 +86,9 @@ class AerodromeService {
       const missingIcaoCodes: ICAO[] = [];
 
       for (const code of validIcaoCodes) {
-        const cachedAerodrome = this.aerodromes.get(code);
+        const cachedAerodrome = this.cache.get(code);
         if (cachedAerodrome) {
           cachedResults.push(cachedAerodrome);
-          this.updateAccessOrder(code);
         } else {
           missingIcaoCodes.push(code);
         }
@@ -130,7 +102,7 @@ class AerodromeService {
 
       return cachedResults;
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      const aerodrome = this.aerodromes.get(icao);
+      const aerodrome = this.cache.get(icao);
       if (aerodrome) {
         return [aerodrome];
       }
@@ -156,7 +128,7 @@ class AerodromeService {
     const result = await this.repository.fetchByLocation(location, radius);
     await this.addToCache(result);
 
-    if (!this.aerodromes.size) return undefined;
+    if (!this.cache.keys().length) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
@@ -168,7 +140,7 @@ class AerodromeService {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
     })));
 
-    return this.aerodromes.get(nearest.properties.icao as ICAO)
+    return this.cache.get(nearest.properties.icao as ICAO);
   }
 }
 

@@ -167,6 +167,7 @@ export const isWestbound = (track: number): boolean => {
 
 /**
  * Calculates the appropriate VFR cruising altitude based on the track and desired minimum altitude.
+ * 
  * Eastbound flights (0-179 degrees) use odd thousands + 500 feet (e.g., 3500, 5500).
  * Westbound flights (180-359 degrees) use even thousands + 500 feet (e.g., 4500, 6500).
  * The function returns the lowest VFR cruising altitude that is at or above the given minimum altitude.
