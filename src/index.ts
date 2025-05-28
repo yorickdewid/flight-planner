@@ -16,7 +16,7 @@ export type ICAO = string;
  * 
  * @constant {number}
  */
-export const ISAStandardPressure = 1013.25;
+export const ISA_STANDARD_PRESSURE_HPA = 1013.25;
 
 /**
  * Standard atmospheric pressure lapse rate in the troposphere in hectopascals per meter (hPa/m).
@@ -30,7 +30,7 @@ export const ISAStandardPressureLapseRate = 0.00012;
  * 
  * @constant {number}
  */
-export const ISAStandardTemperature = 15;
+export const ISA_STANDARD_TEMPERATURE_CELSIUS = 15;
 
 /**
  * Standard temperature lapse rate in the troposphere in degrees Celsius per meter (°C/m).
@@ -38,6 +38,14 @@ export const ISAStandardTemperature = 15;
  * @constant {number}
  */
 export const ISAStandardTemperatureLapseRate = 0.0065;
+
+// // --- Constants (ideally in a separate file) ---
+// const ISA_STANDARD_PRESSURE_HPA = 1013.25;
+// // const ISA_STANDARD_TEMPERATURE_CELSIUS = 15.0;
+// const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
+// const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
+// // const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
+// const FT_PER_HPA_APPROX = 27.3;
 
 /**
  * Enumeration representing different flight rules categories.

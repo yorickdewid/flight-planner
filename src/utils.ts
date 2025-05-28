@@ -1,6 +1,6 @@
 import { degreesToRadians, radiansToDegrees } from '@turf/turf';
 import { Cloud, Wind } from "./metar.js";
-import { ISAStandardPressure, ISAStandardTemperature } from './index.js';
+import { ISA_STANDARD_PRESSURE_HPA } from './index.js';
 import convert from 'convert-units';
 
 /**
@@ -52,11 +52,9 @@ export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
 // }
 
 // --- Constants (ideally in a separate file) ---
-const ISA_STANDARD_PRESSURE_HPA = 1013.25;
-const ISA_STANDARD_TEMPERATURE_CELSIUS = 15.0;
 const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
 const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
-const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
+// const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
 const FT_PER_HPA_APPROX = 27.3;
 
 function convertPressureAltitudeToStaticPressureHpa(pressureAltitudeFt: number): number {
