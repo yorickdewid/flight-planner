@@ -105,7 +105,8 @@ export { formatWind, formatVisibility, formatClouds } from "./format.js";
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.
  */
 export type * from "./waypoint.types.js";
-export { validateFrequencyType } from "./waypoint.js";
+export { RunwaySurface, FrequencyType } from "./waypoint.types.js";
+export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js";
 
 /**
  * Service-related exports for handling weather and aerodrome data.
