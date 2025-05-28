@@ -11,8 +11,10 @@ import { featureCollection } from '@turf/helpers';
  * AerodromeService class provides methods to manage and retrieve aerodrome data.
  * 
  * @class AerodromeService
- * @property {Map<ICAO, Aerodrome>} aerodromes - A map of ICAO codes to Aerodrome objects.
- * @property {RepositoryBase<Aerodrome>} [repository] - Optional repository for fetching aerodrome data.
+ * @property {CacheService<ICAO, Aerodrome>} cache - Cache service for storing aerodrome data.
+ * @property {RepositoryBase<Aerodrome>} repository - Repository for fetching aerodrome data.
+ * @throws Error if the repository is not set or doesn't support fetchByICAO.
+ * @throws Error if no aerodromes are available and the repository doesn't support radius search.
  */
 class AerodromeService {
   private cache: CacheService<ICAO, Aerodrome>;
@@ -24,10 +26,7 @@ class AerodromeService {
    * @param repository - An optional repository for fetching aerodrome data.
    * @param maxCacheSize - Maximum number of aerodromes to keep in the cache (default: 1000).
    */
-  constructor(
-    repository: RepositoryBase<Aerodrome>,
-    maxCacheSize: number = 1_000
-  ) {
+  constructor(repository: RepositoryBase<Aerodrome>, maxCacheSize: number = 1_000) {
     this.repository = repository;
     this.cache = new CacheService<ICAO, Aerodrome>(maxCacheSize);
   }

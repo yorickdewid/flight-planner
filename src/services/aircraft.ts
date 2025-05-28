@@ -9,6 +9,13 @@ import { CacheService } from "./cache.js";
  */
 export type AircraftFetcher = (registrations: string[]) => Promise<Aircraft[] | undefined>;
 
+/**
+ * AircraftService class provides methods to manage and retrieve aircraft data.
+ * 
+ * @class AircraftService
+ * @property {CacheService<string, Aircraft>} cache - Cache service for storing aircraft data.
+ * @property {AircraftFetcher} fetcher - Function to fetch aircraft data by registrations.
+ */
 class AircraftService {
   private cache: CacheService<string, Aircraft>;
   private fetcher: AircraftFetcher;
