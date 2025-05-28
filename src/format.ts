@@ -212,28 +212,3 @@ export function formatCloud(cloud: Cloud, units: UnitOptions = DefaultUnits): st
   }
   return cloudQuantityMap[cloud.quantity];
 }
-
-// TODO: Obsolete function, remove it
-export function formatClouds(clouds: Cloud[]): string {
-  const sortedClouds = [...clouds].sort((a, b) => {
-    if (a.height === undefined) return 1;
-    if (b.height === undefined) return -1;
-    return a.height - b.height;
-  });
-
-  const cloudQuantityMap: Record<string, string> = {
-    'SKC': 'Clear',
-    'FEW': 'Few',
-    'BKN': 'Broken',
-    'SCT': 'Scattered',
-    'OVC': 'Overcast',
-    'NSC': 'No Significant Clouds',
-  };
-
-  return sortedClouds.map(cloud => {
-    if (cloud.height) {
-      return `${cloudQuantityMap[cloud.quantity]} at ${cloud.height} ft`;
-    }
-    return cloudQuantityMap[cloud.quantity];
-  }).join(', ');
-}

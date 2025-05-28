@@ -105,7 +105,7 @@ export {
 /**
  * Formatting exports
  */
-export { formatWind, formatVisibility, formatClouds } from "./format.js";
+export { formatWind, formatVisibility, formatCloud } from "./format.js";
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.

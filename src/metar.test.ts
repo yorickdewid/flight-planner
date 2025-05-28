@@ -5,7 +5,7 @@ import {
   metarColorCode,
   metarCeiling,
 } from './metar.js';
-import { formatClouds, formatTemperature, formatVisibility, formatWind } from './format.js';
+import { formatCloud, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './index.js';
 
 describe('Metar functions', () => {
@@ -310,7 +310,7 @@ describe('Metar functions', () => {
         wind: { direction: 180, speed: 10 },
         clouds: [{ quantity: 'BKN', height: 3000 }]
       };
-      expect(formatClouds(metarData.clouds!)).toBe('Broken at 3000 ft');
+      expect(formatCloud(metarData.clouds![0])).toBe('Broken at 3000 ft');
     });
 
     it('should return formatted clouds with multiple layers', () => {
@@ -324,7 +324,8 @@ describe('Metar functions', () => {
           { quantity: 'OVC', height: 5000 }
         ]
       };
-      expect(formatClouds(metarData.clouds!)).toBe('Broken at 3000 ft, Overcast at 5000 ft');
+      expect(formatCloud(metarData.clouds![0])).toBe('Broken at 3000 ft');
+      expect(formatCloud(metarData.clouds![1])).toBe('Overcast at 5000 ft');
     });
 
     it('should return formatted clouds with different quantities', () => {
@@ -339,7 +340,9 @@ describe('Metar functions', () => {
           { quantity: 'BKN', height: 3000 }
         ]
       };
-      expect(formatClouds(metarData.clouds!)).toBe('Few at 1000 ft, Scattered at 2000 ft, Broken at 3000 ft');
+      expect(formatCloud(metarData.clouds![0])).toBe('Few at 1000 ft');
+      expect(formatCloud(metarData.clouds![1])).toBe('Scattered at 2000 ft');
+      expect(formatCloud(metarData.clouds![2])).toBe('Broken at 3000 ft');
     });
   });
 });
