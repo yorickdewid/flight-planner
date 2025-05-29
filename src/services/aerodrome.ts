@@ -1,34 +1,68 @@
 import { ICAO } from "../index.js";
 import { Aerodrome } from "../waypoint.types.js";
 import { isICAO, normalizeICAO } from "../utils.js";
-import RepositoryBase from "../repository.js";
 import { CacheService } from "./cache.js";
-
-import { point, nearestPoint } from "@turf/turf";
+import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
+
+/**
+ * Options for configuring the AerodromeService.
+ */
+interface AerodromeServiceOptions {
+  /**
+   * The maximum number of aerodromes to store in the cache.
+   * @default 1000
+   */
+  maxCacheSize?: number
+  /**
+   * A function to fetch aerodromes by their ICAO codes.
+   * @param icao - An array of ICAO codes.
+   * @returns A promise that resolves to an array of Aerodrome objects.
+   */
+  fetchByICAO(icao: readonly ICAO[]): Promise<Aerodrome[]>;
+  /**
+   * An optional function to fetch aerodromes within a bounding box.
+   * @param bbox - A GeoJSON BBox object.
+   * @returns A promise that resolves to an array of Aerodrome objects.
+   */
+  fetchByBbox?(bbox: GeoJSON.BBox): Promise<Aerodrome[]>;
+  /**
+   * An optional function to fetch aerodromes within a radius of a location.
+   * @param location - A GeoJSON Position object representing the center of the search.
+   * @param distance - The radius in kilometers.
+   * @returns A promise that resolves to an array of Aerodrome objects.
+   */
+  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<Aerodrome[]>;
+  /**
+   * A function to fetch aerodromes by location, optionally within a specified radius.
+   * @param location - A GeoJSON Position object.
+   * @param radius - An optional radius in kilometers.
+   * @returns A promise that resolves to an array of Aerodrome objects.
+   */
+  fetchByLocation(location: GeoJSON.Position, radius?: number): Promise<Aerodrome[]>;
+}
 
 /**
  * AerodromeService class provides methods to manage and retrieve aerodrome data.
  * 
  * @class AerodromeService
  * @property {CacheService<ICAO, Aerodrome>} cache - Cache service for storing aerodrome data.
- * @property {RepositoryBase<Aerodrome>} repository - Repository for fetching aerodrome data.
  * @throws Error if the repository is not set or doesn't support fetchByICAO.
  * @throws Error if no aerodromes are available and the repository doesn't support radius search.
  */
 class AerodromeService {
   private cache: CacheService<ICAO, Aerodrome>;
-  private repository: RepositoryBase<Aerodrome>;
+  private options: AerodromeServiceOptions;
 
   /**
    * Creates a new instance of the AerodromeService class.
-   * 
-   * @param repository - An optional repository for fetching aerodrome data.
-   * @param maxCacheSize - Maximum number of aerodromes to keep in the cache (default: 1000).
+   *
+   * @param options - Options for the AerodromeService, including maxCacheSize and repository methods.
    */
-  constructor(repository: RepositoryBase<Aerodrome>, maxCacheSize: number = 1_000) {
-    this.repository = repository;
+  constructor(options: AerodromeServiceOptions) {
+    const { maxCacheSize = 1000 } = options;
     this.cache = new CacheService<ICAO, Aerodrome>(maxCacheSize);
+    this.options = options;
   }
 
   /**
@@ -94,7 +128,7 @@ class AerodromeService {
       }
 
       if (missingIcaoCodes.length > 0) {
-        const fetchedResults = await this.repository.fetchByICAO(missingIcaoCodes);
+        const fetchedResults = await this.options.fetchByICAO(missingIcaoCodes);
         await this.addToCache(fetchedResults);
         return [...cachedResults, ...fetchedResults];
       }
@@ -106,7 +140,7 @@ class AerodromeService {
         return [aerodrome];
       }
 
-      const result = await this.repository.fetchByICAO([icao]);
+      const result = await this.options.fetchByICAO([icao]);
       await this.addToCache(result);
       return result;
     }
@@ -124,7 +158,7 @@ class AerodromeService {
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    const result = await this.repository.fetchByLocation(location, radius);
+    const result = await this.options.fetchByLocation(location, radius);
     await this.addToCache(result);
 
     if (!this.cache.keys().length) return undefined;
@@ -140,6 +174,40 @@ class AerodromeService {
     })));
 
     return this.cache.get(nearest.properties.icao as ICAO);
+  }
+
+  /**
+   * Fetches data by geographic location within specified radius.
+   * 
+   * @param location - The location coordinates [longitude, latitude].
+   * @param radius - The radius in kilometers (default: 100, max: 1000).
+   * @returns A promise that resolves to an array of data.
+   */
+  async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
+    if (!Array.isArray(location) || location.length < 2 ||
+      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
+      throw new Error('Invalid location format. Expected [longitude, latitude].');
+    }
+
+    const radiusRange = Math.min(1000, Math.max(1, radius));
+    const resultList: Aerodrome[] = [];
+
+    if (this.options.fetchByRadius) {
+      const result = await this.options.fetchByRadius(location, radiusRange);
+      resultList.push(...result);
+    } else if (this.options.fetchByBbox) {
+      const locationPoint = point(location);
+      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
+      if (buffered) {
+        const searchBbox = bbox(buffered) as GeoJSON.BBox;
+        const result = await this.options.fetchByBbox(searchBbox);
+        resultList.push(...result);
+      }
+    } else {
+      throw new Error('This service does not implement fetchByRadius or fetchByBbox. At least one of these methods must be implemented to use fetchByLocation.');
+    }
+
+    return resultList;
   }
 }
 
