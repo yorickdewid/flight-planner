@@ -23,7 +23,7 @@ export const ISA_STANDARD_PRESSURE_HPA = 1013.25;
  * 
  * @constant {number}
  */
-export const ISAStandardPressureLapseRate = 0.00012;
+export const ISA_STANDARD_PRESSURE_LAPSE_RATE = 0.00012;
 
 /**
  * Standard atmospheric temperature at sea level in degrees Celsius (°C).
@@ -37,11 +37,9 @@ export const ISA_STANDARD_TEMPERATURE_CELSIUS = 15;
  * 
  * @constant {number}
  */
-export const ISAStandardTemperatureLapseRate = 0.0065;
+export const ISA_STANDARD_TEMPERATURE_LAPSE_RATE = 0.0065;
 
 // // --- Constants (ideally in a separate file) ---
-// const ISA_STANDARD_PRESSURE_HPA = 1013.25;
-// // const ISA_STANDARD_TEMPERATURE_CELSIUS = 15.0;
 // const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
 // const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
 // // const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
@@ -107,7 +105,7 @@ export {
 /**
  * Formatting exports
  */
-export { formatWind, formatVisibility, formatClouds } from "./format.js";
+export { formatWind, formatVisibility, formatCloud } from "./format.js";
 
 /**
  * Airport and navigation-related exports including waypoints, reporting points, and airport information.

@@ -24,7 +24,7 @@ export interface WindVector {
  * @param trueTrack - The current true track in degrees.
  * @returns An object containing the wind angle, headwind, and crosswind components.
  */
-export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
+export const calculateWindVector = (wind: Wind, trueTrack: number): WindVector => {
   const windAngle = wind.direction - trueTrack;
   const windAngleRad = degreesToRadians(windAngle);
 
@@ -47,7 +47,7 @@ const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
 // const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
 const FT_PER_HPA_APPROX = 27.3;
 
-function convertPressureAltitudeToStaticPressureHpa(pressureAltitudeFt: number): number {
+const convertPressureAltitudeToStaticPressureHpa = (pressureAltitudeFt: number): number => {
   // Standard formula for pressure from ICAO Standard Atmosphere
   const tempRatio = 1 - (0.0065 * (pressureAltitudeFt * 0.3048)) / 288.15;
   return ISA_STANDARD_PRESSURE_HPA * Math.pow(tempRatio, 5.25588);
@@ -60,7 +60,7 @@ function convertPressureAltitudeToStaticPressureHpa(pressureAltitudeFt: number):
  * @param staticPressureHpa Static air pressure in hPa.
  * @returns Air density in kg/m^3.
  */
-function calculateAirDensity(oatCelsius: number, staticPressureHpa: number): number {
+const calculateAirDensity = (oatCelsius: number, staticPressureHpa: number): number => {
   const T_kelvin = convert(oatCelsius).from('C').to('K');
   const P_pascals = staticPressureHpa * 100;
   return P_pascals / (SPECIFIC_GAS_CONSTANT_DRY_AIR * T_kelvin);
@@ -75,12 +75,12 @@ function calculateAirDensity(oatCelsius: number, staticPressureHpa: number): num
  * @param kcas Knots Calibrated Airspeed (or KEAS if compressibility is negligible).
  * @returns Knots True Airspeed.
  */
-export function calculateTrueAirspeed(
+export const calculateTrueAirspeed = (
   indicatedAltitudeFt: number,
   qnhHpa: number,
   oatCelsius: number,
   kcas: number // Assuming this is KCAS; for low speeds, KEAS approx KCAS
-): number {
+): number => {
   const pressureDiffHpa = qnhHpa - ISA_STANDARD_PRESSURE_HPA;
   const pressureAltitudeFt = indicatedAltitudeFt - (pressureDiffHpa * FT_PER_HPA_APPROX);
 
@@ -103,7 +103,7 @@ export function calculateTrueAirspeed(
  * @param airSpeed - The airspeed in knots.
  * @returns The wind correction angle in degrees.
  */
-export function calculateWindCorrectionAngle(wind: Wind, trueTrack: number, airSpeed: number): number {
+export const calculateWindCorrectionAngle = (wind: Wind, trueTrack: number, airSpeed: number): number => {
   const windVector = calculateWindVector(wind, trueTrack);
   const wcaInRadians = Math.asin(windVector.crosswind / airSpeed);
   const wca = radiansToDegrees(wcaInRadians);
@@ -119,7 +119,7 @@ export function calculateWindCorrectionAngle(wind: Wind, trueTrack: number, airS
  * @param heading - The heading in degrees.
  * @returns The groundspeed in knots.
  */
-export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: number): number {
+export const calculateGroundspeed = (wind: Wind, airSpeed: number, heading: number): number => {
   const windVector = calculateWindVector(wind, heading);
 
   const groundspeedSquared = Math.pow(airSpeed, 2) + Math.pow(wind.speed, 2) - 2 * airSpeed * windVector.headwind;
@@ -132,7 +132,7 @@ export function calculateGroundspeed(wind: Wind, airSpeed: number, heading: numb
  * @param clouds - The array of clouds to sort
  * @returns The sorted array of clouds
  */
-export function sortClouds(clouds: Cloud[]): Cloud[] {
+export const sortClouds = (clouds: Cloud[]): Cloud[] => {
   if (!clouds || clouds.length === 0) return [];
   return clouds.sort((a, b) => {
     if (a.height === undefined) return 1;

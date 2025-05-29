@@ -18,9 +18,7 @@ class WeatherService {
    * @param repository - An optional repository for fetching METAR data.
    * @returns An instance of the WeatherService class.
    */
-  constructor(
-    private repository: RepositoryBase<MetarStation>,
-  ) { }
+  constructor(private repository: RepositoryBase<MetarStation>) { }
 
   /**
    * Finds METAR station(s) by ICAO code(s).

@@ -1,4 +1,5 @@
 import { Aircraft, aircraftNormalizeRegistration, isAircraftRegistration } from "../aircraft.js";
+import { CacheService } from "./cache.js";
 
 /**
  * Defines the signature for a function that fetches aircraft data.
@@ -8,10 +9,15 @@ import { Aircraft, aircraftNormalizeRegistration, isAircraftRegistration } from 
  */
 export type AircraftFetcher = (registrations: string[]) => Promise<Aircraft[] | undefined>;
 
+/**
+ * AircraftService class provides methods to manage and retrieve aircraft data.
+ * 
+ * @class AircraftService
+ * @property {CacheService<string, Aircraft>} cache - Cache service for storing aircraft data.
+ * @property {AircraftFetcher} fetcher - Function to fetch aircraft data by registrations.
+ */
 class AircraftService {
-  private aircrafts: Map<string, Aircraft> = new Map();
-  private accessOrder: string[] = [];
-  private maxCacheSize: number;
+  private cache: CacheService<string, Aircraft>;
   private fetcher: AircraftFetcher;
 
   /**
@@ -22,7 +28,7 @@ class AircraftService {
    */
   constructor(fetcher: AircraftFetcher, maxCacheSize: number = 1_000) {
     this.fetcher = fetcher;
-    this.maxCacheSize = Math.max(1, maxCacheSize);
+    this.cache = new CacheService<string, Aircraft>(maxCacheSize);
   }
 
   /**
@@ -31,7 +37,7 @@ class AircraftService {
    * @returns An array of aircraft registration strings.
    */
   keys(): string[] {
-    return Array.from(this.aircrafts.keys());
+    return this.cache.keys();
   }
 
   /**
@@ -40,32 +46,7 @@ class AircraftService {
    * @returns An array of Aircraft objects.
    */
   values(): Aircraft[] {
-    return Array.from(this.aircrafts.values());
-  }
-
-  /**
-   * Updates the access order for the LRU cache.
-   * 
-   * @param registration - The registration that was accessed.
-   */
-  private updateAccessOrder(registration: string): void {
-    const index = this.accessOrder.indexOf(registration);
-    if (index !== -1) {
-      this.accessOrder.splice(index, 1);
-    }
-    this.accessOrder.push(registration);
-  }
-
-  /**
-   * Enforces the cache size limit by removing least recently used items.
-   */
-  private enforceCacheLimit(): void {
-    while (this.aircrafts.size > this.maxCacheSize && this.accessOrder.length > 0) {
-      const leastUsedRegistration = this.accessOrder.shift();
-      if (leastUsedRegistration) {
-        this.aircrafts.delete(leastUsedRegistration);
-      }
-    }
+    return this.cache.values();
   }
 
   /**
@@ -82,11 +63,8 @@ class AircraftService {
     }
 
     for (const aircraft of aircraftArray) {
-      this.aircrafts.set(aircraft.registration, aircraft);
-      this.updateAccessOrder(aircraft.registration);
+      this.cache.set(aircraft.registration, aircraft);
     }
-
-    this.enforceCacheLimit();
   }
 
   /**
@@ -100,16 +78,19 @@ class AircraftService {
       throw new Error(`Invalid aircraft registration: ${registration}`);
     }
 
-    const aircraft = this.aircrafts.get(aircraftNormalizeRegistration(registration));
+    const normalizedRegistration = aircraftNormalizeRegistration(registration);
+    const aircraft = this.cache.get(normalizedRegistration);
     if (aircraft) {
-      this.updateAccessOrder(registration);
       return aircraft;
     }
 
-    const results = await this.fetcher([aircraftNormalizeRegistration(registration)]);
+    const results = await this.fetcher([normalizedRegistration]);
     if (results && results.length > 0) {
       await this.addToCache(results);
-      return results[0];
+      // The first result should be the one we asked for, but CacheService might have evicted it
+      // if the cache is very small and the fetcher returned many items.
+      // Re-get it from cache to ensure LRU order is correct.
+      return this.cache.get(results[0].registration);
     }
     return undefined;
   }
