@@ -1,7 +1,7 @@
 import { calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
-import { Aerodrome, FrequencyType, Runway, RunwayWindVector, Waypoint } from './waypoint.types.js';
+import { FrequencyType, Runway, RunwayWindVector, Waypoint } from './waypoint.types.js';
 
 /**
  * Calculates the distance from one waypoint to another.
@@ -76,21 +76,4 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
     headwind: Math.round(windVector.headwind),
     crosswind: Math.round(windVector.crosswind),
   };
-}
-
-/**
- * Calculates the wind vectors for all runways of the aerodrome.
- * 
- * @param aerodrome The aerodrome.
- * @returns The wind vectors for the runways in descending order of headwind,
- *          or undefined if METAR station data or wind data is not available.
- */
-export const calculateAerodromeRunwayWinds = (aerodrome: Aerodrome): RunwayWindVector[] | undefined => {
-  if (!aerodrome.metarStation || !aerodrome.metarStation.metar.wind) {
-    return undefined;
-  }
-
-  return aerodrome.runways
-    .map(runway => calculateRunwayWindVector(runway, aerodrome.metarStation!.metar.wind!))
-    .sort((a, b) => b.headwind - a.headwind);
 }
