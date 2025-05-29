@@ -151,7 +151,7 @@ interface RouteSegment {
  * @returns {boolean} True if the track is eastbound, false otherwise.
  */
 export const isEastbound = (track: number): boolean => {
-  const normalizedTrack = ((track % 360) + 360) % 360;
+  const normalizedTrack = bearingToAzimuth(track);
   return normalizedTrack >= 0 && normalizedTrack <= 179;
 }
 
