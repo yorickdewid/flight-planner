@@ -206,6 +206,8 @@ export const flightLevel = (altitude: number): number => {
   return Math.floor(altitude / 1000);
 }
 
+// TODO: This is not a class, but a utility function
+// - Have the services be part of a planner service that can query all necessary data
 /**
  * FlightPlanner class to handle flight route planning operations
  */

@@ -1,4 +1,3 @@
-import RepositoryBase from "./repository.js";
 import AerodromeService from "./services/aerodrome.js";
 import WeatherService from "./services/weather.js";
 import { UnitOptions } from "./units.js";
@@ -110,7 +109,7 @@ export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js"
 /**
  * Service-related exports for handling weather and aerodrome data.
  */
-export { RepositoryBase, AerodromeService, WeatherService };
+export { AerodromeService, WeatherService };
 
 /**
  * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.

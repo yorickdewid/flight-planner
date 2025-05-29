@@ -2,32 +2,41 @@ import { Aircraft, aircraftNormalizeRegistration, isAircraftRegistration } from 
 import { CacheService } from "./cache.js";
 
 /**
- * Defines the signature for a function that fetches aircraft data.
- * 
- * @param registrations - An array of aircraft registrations to fetch.
- * @returns A promise that resolves to an array of Aircraft objects or undefined if not found.
+ * Options for configuring the AircraftService.
  */
-export type AircraftFetcher = (registrations: string[]) => Promise<Aircraft[] | undefined>;
+export interface AircraftServiceOptions {
+  /**
+   * The maximum number of aircraft to store in the cache.
+   * 
+   * @default 1000
+   */
+  maxCacheSize?: number
+
+  /**
+   * A function to fetch aircraft by their registrations.
+   * 
+   * @param registration - An array of aircraft registrations.
+   * @returns A promise that resolves to an array of Aircraft objects.
+   */
+  fetchByRegistration(registration: readonly string[]): Promise<Aircraft[]>;
+}
 
 /**
  * AircraftService class provides methods to manage and retrieve aircraft data.
  * 
  * @class AircraftService
  * @property {CacheService<string, Aircraft>} cache - Cache service for storing aircraft data.
- * @property {AircraftFetcher} fetcher - Function to fetch aircraft data by registrations.
  */
 class AircraftService {
   private cache: CacheService<string, Aircraft>;
-  private fetcher: AircraftFetcher;
 
   /**
    * Creates a new instance of the AircraftService class.
    * 
-   * @param fetcher - A function to fetch aircraft data by registrations.
-   * @param maxCacheSize - Maximum number of aircraft to keep in the cache (default: 1000).
+   * @param options - Options for the AircraftService, including maxCacheSize and fetchByRegistration method.
    */
-  constructor(fetcher: AircraftFetcher, maxCacheSize: number = 1_000) {
-    this.fetcher = fetcher;
+  constructor(private options: AircraftServiceOptions) {
+    const { maxCacheSize = 1000 } = options;
     this.cache = new CacheService<string, Aircraft>(maxCacheSize);
   }
 
@@ -50,7 +59,7 @@ class AircraftService {
   }
 
   /**
-   * Adds aircraft to the service.
+   * Adds aircraft to the cache.
    * 
    * @param aircraftsToAdd - An array of Aircraft objects or a single Aircraft object to add.
    */
@@ -84,7 +93,7 @@ class AircraftService {
       return aircraft;
     }
 
-    const results = await this.fetcher([normalizedRegistration]);
+    const results = await this.options.fetchByRegistration([normalizedRegistration]);
     if (results && results.length > 0) {
       await this.addToCache(results);
       // The first result should be the one we asked for, but CacheService might have evicted it

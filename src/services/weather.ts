@@ -1,9 +1,37 @@
 import { ICAO, MetarStation } from "../index.js";
 import { isICAO, normalizeICAO } from "../utils.js";
-import RepositoryBase from "../repository.js";
-
-import { point, nearestPoint } from "@turf/turf";
+import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
+
+/**
+ * Options for configuring the WeatherService.
+ */
+export interface WeatherServiceOptions {
+  /**
+   * Fetches METAR stations by ICAO codes.
+   * 
+   * @param icao - An array of ICAO codes.
+   * @returns A promise that resolves to an array of METAR stations.
+   */
+  fetchByICAO(icao: readonly ICAO[]): Promise<MetarStation[]>;
+
+  /**
+   * Fetches METAR stations by bounding box.
+   * 
+   * @param bbox - A GeoJSON bounding box.
+   * @returns A promise that resolves to an array of METAR stations.
+   */
+  fetchByBbox?(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
+
+  /**
+   * Fetches METAR stations by radius from a location.
+   * 
+   * @param location - A GeoJSON position (longitude, latitude).
+   * @param distance - The radius in kilometers.
+   * @returns A promise that resolves to an array of METAR stations.
+   */
+  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<MetarStation[]>;
+}
 
 /**
  * WeatherService class provides methods to manage and retrieve METAR station data.
@@ -12,13 +40,7 @@ import { featureCollection } from '@turf/helpers';
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
 class WeatherService {
-  /**
-   * Creates a new instance of the WeatherService class.
-   *
-   * @param repository - An optional repository for fetching METAR data.
-   * @returns An instance of the WeatherService class.
-   */
-  constructor(private repository: RepositoryBase<MetarStation>) { }
+  constructor(private options: WeatherServiceOptions) { }
 
   /**
    * Finds METAR station(s) by ICAO code(s).
@@ -32,10 +54,10 @@ class WeatherService {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
 
-      const result = await this.repository.fetchByICAO(validIcaoCodes);
+      const result = await this.options.fetchByICAO(validIcaoCodes);
       return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      const result = await this.repository.fetchByICAO([icao]);
+      const result = await this.options.fetchByICAO([icao]);
       return result.length > 0 ? result : undefined;
     }
 
@@ -54,7 +76,7 @@ class WeatherService {
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<MetarStation | undefined> {
     const metarStations: Map<ICAO, MetarStation> = new Map();
 
-    const result = await this.repository.fetchByLocation(location, radius);
+    const result = await this.getByLocation(location, radius);
     result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
 
     if (!metarStations.size) return undefined;
@@ -71,6 +93,40 @@ class WeatherService {
       return undefined;
     }
     return metarStations.get(normalizeICAO(stationId));
+  }
+
+  /**
+   * Fetches data by geographic location within specified radius.
+   * 
+   * @param location - The location coordinates [longitude, latitude].
+   * @param radius - The radius in kilometers (default: 100, max: 1000).
+   * @returns A promise that resolves to an array of data.
+   */
+  async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<MetarStation[]> {
+    if (!Array.isArray(location) || location.length < 2 ||
+      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
+      throw new Error('Invalid location format. Expected [longitude, latitude].');
+    }
+
+    const radiusRange = Math.min(1000, Math.max(1, radius));
+    const resultList: MetarStation[] = [];
+
+    if (this.options.fetchByRadius) {
+      const result = await this.options.fetchByRadius(location, radiusRange);
+      resultList.push(...result);
+    } else if (this.options.fetchByBbox) {
+      const locationPoint = point(location);
+      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
+      if (buffered) {
+        const searchBbox = bbox(buffered) as GeoJSON.BBox;
+        const result = await this.options.fetchByBbox(searchBbox);
+        resultList.push(...result);
+      }
+    } else {
+      throw new Error('This service does not implement fetchByRadius or fetchByBbox. At least one of these methods must be implemented to use fetchByLocation.');
+    }
+
+    return resultList;
   }
 }
 
