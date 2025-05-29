@@ -4,9 +4,9 @@ import { Feature, Point, GeoJsonProperties } from 'geojson';
 export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 
 /**
- * Enum representing the type of waypoint.
+ * Enum representing the variant of waypoint.
  */
-export enum WaypointType {
+export enum WaypointVariant {
   Waypoint,
   ReportingPoint,
   Aerodrome,
@@ -26,7 +26,7 @@ export enum WaypointType {
  * @property {number} [elevation] - The elevation of the waypoint in feet.
  * @property {number} [declination] - The magnetic declination at the waypoint in degrees.
  * @property {MetarStation} [metarStation] - Optional METAR station associated with the waypoint, providing weather information.
- * @property {WaypointType} waypointType - The type of waypoint.
+ * @property {WaypointVariant} waypointVariant - The variant of the waypoint, indicating its type (e.g., Waypoint, ReportingPoint, Aerodrome).
  */
 export interface Waypoint {
   readonly ICAO?: ICAO;
@@ -36,7 +36,7 @@ export interface Waypoint {
   readonly elevation?: number;
   readonly declination?: number;
   metarStation?: MetarStation;
-  readonly waypointType: WaypointType;
+  readonly waypointVariant: WaypointVariant;
 }
 
 /**
@@ -47,11 +47,11 @@ export interface Waypoint {
  * @interface ReportingPoint
  * @extends Waypoint
  * @property {boolean} compulsory - Indicates whether the reporting point is compulsory for pilots to report.
- * @property {WaypointType.ReportingPoint} waypointType - The type of waypoint, fixed to ReportingPoint.
+ * @property {WaypointVariant.ReportingPoint} waypointVariant - The variant of the waypoint, fixed to ReportingPoint.
  */
 export interface ReportingPoint extends Waypoint {
   readonly compulsory: boolean;
-  readonly waypointType: WaypointType.ReportingPoint;
+  readonly waypointVariant: WaypointVariant.ReportingPoint;
 }
 
 /**
@@ -193,11 +193,15 @@ export interface RunwayWindVector {
 
 /**
  * Represents an aerodrome (airport) in the flight planning system.
- * @property {WaypointType.Aerodrome} waypointType - The type of waypoint, fixed to Aerodrome.
+ * 
+ * @property {Runway[]} runways - An array of runways available at the aerodrome.
+ * @property {Frequency[]} [frequencies] - Optional array of radio frequencies used at the aerodrome.
+ * @property {boolean} [ppr] - Indicates if prior permission is required (PPR) to use the aerodrome.
+ * @property {WaypointVariant.Aerodrome} waypointVariant - The variant of the waypoint, fixed to Aerodrome.
  */
 export interface Aerodrome extends Waypoint {
   readonly runways: Runway[];
   readonly frequencies?: Frequency[];
   readonly ppr?: boolean;
-  readonly waypointType: WaypointType.Aerodrome;
+  readonly waypointVariant: WaypointVariant.Aerodrome;
 }
