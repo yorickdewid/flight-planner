@@ -41,16 +41,6 @@ export function calculateWindVector(wind: Wind, trueTrack: number): WindVector {
   };
 }
 
-// export function calculateTrueAirspeed(altitude: number, speed: number, qnh: number): number {
-//   const pressureAltitude = altitude - ((qnh - ISAStandardPressure) * 27.3);
-//   const staticPressure = ISAStandardPressure - (1 - 6.87535 * 10 ^ -6 * pressureAltitude);
-//   const outsideAirTemperature = (ISAStandardTemperature - (1.98 * (altitude / 1000))); // TODO: Altitude may need to be pressure altitude
-//   const airDensity = calculateAirDensity(outsideAirTemperature, staticPressure);
-
-//   const trueAirspeed = speed * Math.sqrt(1.225 / airDensity);
-//   return trueAirspeed;
-// }
-
 // --- Constants (ideally in a separate file) ---
 const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
 const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
