@@ -14,7 +14,8 @@
 import { Aircraft } from './aircraft.js';
 import { RouteTrip, RouteOptions } from './planner.js';
 import { FlightPlanner, FlightRules } from './index.js';
-import { metarFlightRule, metarCeiling, Metar } from './metar.js';
+import { Metar } from './metar.types.js';
+import { metarFlightRule, metarCeiling } from './metar.js';
 
 /**
  * Defines the severity level of an advisory.

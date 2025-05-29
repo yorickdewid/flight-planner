@@ -1,5 +1,5 @@
 import { calculateWindVector } from './utils.js';
-import { Wind } from './metar.js';
+import { Wind } from './metar.types.js';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
 import { Aerodrome, FrequencyType, Runway, RunwayWindVector, Waypoint } from './waypoint.types.js';
 

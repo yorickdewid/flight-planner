@@ -1,5 +1,5 @@
 import { degreesToRadians, radiansToDegrees } from '@turf/turf';
-import { Cloud, Wind } from "./metar.js";
+import { Cloud, Wind } from './metar.types.js';
 import { ISA_STANDARD_PRESSURE_HPA } from './index.js';
 import convert from 'convert-units';
 

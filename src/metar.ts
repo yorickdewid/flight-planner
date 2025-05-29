@@ -1,51 +1,8 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
-import { FlightRules, ICAO } from './index.js';
+import { FlightRules } from './index.js';
 import convert from 'convert-units';
-
-/**
- * Represents a METAR (Meteorological Aerodrome Report) station.
- *
- * @interface MetarStation
- * @property {ICAO} station - The ICAO identifier for the METAR station.
- * @property {Metar} metar - The METAR data associated with the station.
- * @property {GeoJSON.Position} coords - The geographical coordinates of the station.
- */
-export interface MetarStation {
-  station: ICAO;
-  metar: Metar;
-  coords: GeoJSON.Position;
-}
-
-/**
- * Represents cloud information.
- * 
- * @interface Cloud
- * @property {'SKC' | 'FEW' | 'BKN' | 'SCT' | 'OVC' | 'NSC'} quantity - The cloud coverage quantity.
- * @property {number} [height] - The height of the cloud layer in feet (optional).
- */
-export interface Cloud {
-  quantity: 'SKC' | 'FEW' | 'BKN' | 'SCT' | 'OVC' | 'NSC';
-  height?: number; // Height in feet
-}
-
-/**
- * Represents wind conditions.
- * 
- * @interface Wind
- * @property {number} direction - The direction of the wind in degrees (0-359).
- * @property {number} [directionMin] - The minimum wind direction in degrees (optional).
- * @property {number} [directionMax] - The maximum wind direction in degrees (optional).
- * @property {number} speed - The speed of the wind in knots.
- * @property {number} [gust] - The gust speed in knots (optional).
- */
-export interface Wind {
-  direction: number;
-  directionMin?: number;
-  directionMax?: number;
-  speed: number;
-  gust?: number;
-}
+import { Metar, Cloud, Wind, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
 
 /**
  * Creates a Metar object from a raw METAR string.
@@ -106,40 +63,6 @@ export const createMetarFromString = (raw: string): Metar => {
       height: cloud.height,
     })) as Cloud[],
   }
-}
-
-/**
- * Interface representing METAR (Meteorological Terminal Aviation Routine Weather Report) data.
- *
- * Contains parsed weather data from a METAR report, including station identification,
- * observation time, flight rules category, and various weather parameters.
- *
- * @interface Metar
- * @property {string} station - The ICAO code of the reporting station
- * @property {Date} observationTime - The date and time when the observation was made
- * @property {string} raw - The raw METAR text string
- * @property {number} [windDirection] - Wind direction in degrees
- * @property {number} [windDirectionMin] - Minimum wind direction in degrees (for variable wind direction)
- * @property {number} [windDirectionMax] - Maximum wind direction in degrees (for variable wind direction)
- * @property {number} [windSpeed] - Wind speed in the units used in the METAR (typically knots)
- * @property {number} [windGust] - Wind gust speed in the same units as windSpeed
- * @property {number} [temperature] - Temperature in degrees Celsius
- * @property {number} [dewpoint] - Dewpoint temperature in degrees Celsius
- * @property {number} [visibility] - Visibility in statute miles or meters (depends on country)
- * @property {number} [qnh] - Barometric pressure (QNH) in hPa or inHg (depends on country)
- * @property {Cloud[]} [clouds] - Array of cloud layers, each with a quantity and optional height
- */
-export interface Metar {
-  station: string;
-  observationTime: Date;
-  raw: string;
-  wind: Wind;
-  temperature?: number;
-  dewpoint?: number;
-  visibility?: number;
-  qnh?: number;
-  clouds?: Cloud[];
-  // TODO: Add weather phenomena (e.g., rain, snow, fog)
 }
 
 /**
@@ -220,8 +143,6 @@ export const isMetarExpired = (metar: Metar, options: { customMinutes?: number; 
   return now > expirationTime;
 }
 
-export type MetarFlightRuleColor = 'green' | 'blue' | 'red' | 'purple' | 'black';
-
 /**
  * Gets the color associated with the flight rule category of a METAR.
  * 
@@ -242,16 +163,6 @@ export const metarFlightRuleColor = (metarData: Metar): MetarFlightRuleColor => 
     default:
       return 'black';
   }
-}
-
-export type MetarColorCode = 'green' | 'blue' | 'yellow' | 'amber' | 'red';
-
-interface ColorCondition {
-  color: MetarColorCode;
-  visibilityLessThan?: number;
-  ceilingLessThan?: number;
-  windSpeedGreaterThan?: number;
-  gustSpeedGreaterThan?: number;
 }
 
 const colorConditions: ColorCondition[] = [

@@ -1,5 +1,5 @@
 import { DefaultUnits } from "./index.js";
-import { Cloud, Wind } from "./metar.js";
+import { Cloud, Wind } from "./metar.types.js";
 import {
   convertAltitude,
   convertDistance,

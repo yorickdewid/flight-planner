@@ -3,7 +3,7 @@ import AircraftService from './services/aircraft.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO } from './utils.js';
-import { MetarStation, Wind } from './metar.js';
+import { MetarStation, Wind } from './metar.types.js';
 import { bearingToAzimuth, point } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
 

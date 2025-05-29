@@ -92,15 +92,8 @@ export { normalizeICAO, isICAO, isIATA, normalizeIATA } from "./utils.js";
 /**
  * Weather-related exports including flight rules, METAR data, and formatting functions.
  */
-export type { MetarStation, Metar } from "./metar.js";
-export {
-  createMetarFromString,
-  metarFlightRule,
-  metarCeiling,
-  isMetarExpired,
-  metarFlightRuleColor,
-  metarColorCode,
-} from "./metar.js";
+export type { MetarStation, Metar } from "./metar.types.js";
+export * from "./metar.js";
 
 /**
  * Formatting exports

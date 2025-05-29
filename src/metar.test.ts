@@ -1,10 +1,10 @@
 import {
-  Metar,
   metarFlightRule,
   metarFlightRuleColor,
   metarColorCode,
   metarCeiling,
 } from './metar.js';
+import { Metar } from './metar.types.js';
 import { formatCloud, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './index.js';
 
