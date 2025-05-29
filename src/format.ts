@@ -212,3 +212,14 @@ export function formatCloud(cloud: Cloud, units: UnitOptions = DefaultUnits): st
   }
   return cloudQuantityMap[cloud.quantity];
 }
+
+/**
+ * Formats frequency to a string in MHz.
+ * 
+ * @param {number} frequency - The frequency value in MHz.
+ * @returns {string} The formatted frequency string.
+ */
+export const formatFrequency = (frequency: number): string => {
+  const formattedFrequency = frequency.toFixed(3);
+  return `${formattedFrequency} MHz`;
+}
