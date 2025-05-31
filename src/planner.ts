@@ -48,16 +48,14 @@ export interface AircraftPerformance {
 
 /**
  * Represents a segment of a flight route between two waypoints.
- * 
+ *
  * @interface RouteLeg
- * @property {RouteSegment} start - The starting waypoint of the leg
- * @property {RouteSegment} end - The ending waypoint of the leg
- * @property {number} distance - The distance of the leg in nautical miles
- * @property {number} trueTrack - The true track heading in degrees
- * @property {number | undefined} windDirection - The wind direction in degrees, if available
- * @property {number | undefined} windSpeed - The wind speed in knots, if available
- * @property {Date | undefined} arrivalDate - The estimated arrival date and time at the end waypoint
- * @property {AircraftPerformance} [performance] - Optional performance calculations for this leg
+ * @property {RouteSegment} start - The starting waypoint of the leg.
+ * @property {RouteSegment} end - The ending waypoint of the leg.
+ * @property {CourseVector} course - The course vector of the leg, containing distance and track information.
+ * @property {Wind} [wind] - Optional wind conditions for this leg.
+ * @property {Date | undefined} arrivalDate - The estimated arrival date and time at the end waypoint.
+ * @property {AircraftPerformance} [performance] - Optional performance calculations for this leg.
  */
 export interface RouteLeg {
   start: RouteSegment;
@@ -129,6 +127,10 @@ export interface RouteOptions {
   landingFuel?: number;
 }
 
+/**
+ * Represents the possible types for a waypoint in a route.
+ * Can be an Aerodrome, a ReportingPoint, or a generic Waypoint.
+ */
 type WaypointType = Aerodrome | ReportingPoint | Waypoint;
 
 /**
@@ -369,6 +371,15 @@ export function flightPlan(
   };
 }
 
+/**
+ * Calculates a single leg of a flight route.
+ *
+ * @param {RouteSegment} startSegment - The starting segment of the leg.
+ * @param {RouteSegment} endSegment - The ending segment of the leg.
+ * @param {Aircraft} [aircraft] - The aircraft used for performance calculations.
+ * @param {Date} departureDate - The departure date from the start of this leg.
+ * @returns {RouteLeg} The calculated route leg.
+ */
 function calculateRouteLeg(
   startSegment: RouteSegment,
   endSegment: RouteSegment,
@@ -394,6 +405,13 @@ function calculateRouteLeg(
   };
 }
 
+/**
+ * Calculates the course vector (distance and track) between two waypoints.
+ *
+ * @param {Waypoint} startWaypoint - The starting waypoint.
+ * @param {Waypoint} endWaypoint - The ending waypoint.
+ * @returns {CourseVector} The calculated course vector.
+ */
 function calculateRouteCourse(startWaypoint: Waypoint, endWaypoint: Waypoint): CourseVector {
   const trueTrack = waypointHeading(startWaypoint, endWaypoint);
   const magneticDeclination = startWaypoint.declination
@@ -407,6 +425,14 @@ function calculateRouteCourse(startWaypoint: Waypoint, endWaypoint: Waypoint): C
   };
 }
 
+/**
+ * Calculates aircraft performance for a given course, aircraft, and wind conditions.
+ *
+ * @param {Aircraft} aircraft - The aircraft for which to calculate performance.
+ * @param {CourseVector} course - The course vector (track and distance).
+ * @param {Wind} wind - The wind conditions.
+ * @returns {AircraftPerformance | undefined} The calculated aircraft performance, or undefined if essential data is missing.
+ */
 function calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
   if (!aircraft.cruiseSpeed) return undefined;
 
