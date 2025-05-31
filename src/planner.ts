@@ -279,11 +279,17 @@ export async function createFlightPlanFromString(
   segments[0].altitude = segments[0].waypoint.elevation;
   segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
 
-  return flightPlan(segments, options.aircraft, options);
+  const alternateSegment: RouteSegment | undefined = options.alternate ? {
+    waypoint: options.alternate,
+    altitude: options.alternate.elevation
+  } : undefined;
+
+  return flightPlan(segments, alternateSegment, options.aircraft, options);
 }
 
 export function flightPlan(
   segments: RouteSegment[],
+  alternateSegment: RouteSegment | undefined,
   aircraft: Aircraft | undefined,
   options: RouteOptions = {}
 ): RouteTrip {
@@ -296,11 +302,8 @@ export function flightPlan(
   const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraft, departureDate));
 
   let routeAlternate: RouteLeg | undefined;
-  if (options.alternate) {
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], {
-      waypoint: options.alternate,
-      altitude: options.alternate.elevation
-    }, aircraft, departureDate);
+  if (alternateSegment) {
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraft, departureDate);
   }
 
   let totalDistance = 0;
