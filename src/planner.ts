@@ -1,10 +1,9 @@
-import { AerodromeService, WeatherService } from './index.js';
-import AircraftService from './services/aircraft.js';
+import { PlannerService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { waypointDistance, waypointHeading } from './waypoint.js';
-import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO } from './utils.js';
-import { MetarStation, Wind } from './metar.types.js';
-import { bearingToAzimuth, point } from '@turf/turf';
+import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
+import { Wind } from './metar.types.js';
+import { bearingToAzimuth } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
 
 /**
@@ -206,417 +205,209 @@ export const flightLevel = (altitude: number): number => {
   return Math.floor(altitude / 1000);
 }
 
-// TODO: This is not a class, but a utility function
-// - Have the services be part of a planner service that can query all necessary data
 /**
- * FlightPlanner class to handle flight route planning operations
+ * Maps a route trip to an array of unique waypoints.
+ * 
+ * This function extracts all waypoints from a route trip by taking the start and end
+ * waypoints of each leg and removing duplicates.
+ * 
+ * @param routeTrip - The route trip containing legs with start and end waypoints
+ * @returns An array of unique waypoints representing all points in the route trip
  */
-class FlightPlanner {
-  /**
-   * Creates a new FlightPlanner instance
-   * 
-   * @param weatherService - Weather service for retrieving weather data along the flight route
-   *                         Used to get wind information and other meteorological conditions
-   * @param aerodromeService - Aerodrome service for fetching airport and airfield data
-   *                           Used to look up airports by ICAO code and retrieve their information
-   * @param aircraftService - Aircraft service for managing aircraft data
-   *                          Used to fetch aircraft details and calculate performance metrics
-   */
-  constructor(
-    private weatherService: WeatherService,
-    private aerodromeService: AerodromeService,
-    private aircraftService: AircraftService,
-  ) { }
+export const routeTripWaypoints = (routeTrip: RouteTrip): WaypointType[] => {
+  const allWaypoints = routeTrip.route.flatMap(leg => [leg.start.waypoint, leg.end.waypoint]);
 
-  /**
-   * Helper method to calculate fuel consumption based on aircraft and duration
-   * 
-   * @param aircraft - The aircraft for which to calculate fuel consumption
-   * @param duration - Flight duration in minutes
-   * @returns The fuel consumption in gallons/liters or undefined if not available
-   */
-  private calculateFuelConsumption(aircraft: Aircraft, duration: number): number | undefined {
-    return aircraft.fuelConsumption && (aircraft.fuelConsumption * (duration / 60));
+  const uniqueWaypoints = new Map<string, WaypointType>();
+  for (const waypoint of allWaypoints) {
+    uniqueWaypoints.set(waypoint.name, waypoint);
   }
 
-  /**
-   * Attaches relevant weather data to waypoints by fetching METAR information
-   * First tries to get data for aerodromes by ICAO code, then finds nearest stations for other waypoints
-   * 
-   * @param waypoints - The waypoints to attach weather data to
-   * @param reassign - Whether to reassign the weather station for aerodromes
-   *                 If true, it clears the existing METAR station before fetching new data
-   * @throws Will not throw but logs errors encountered during the process
-   */
-  public async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
-    const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
-    const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
-
-    if (reassign) {
-      for (const aerodrome of aerodromes) {
-        aerodrome.metarStation = undefined;
-      }
-    }
-
-    if (icaoCodes.length > 0) {
-      const stations = await this.weatherService.get(icaoCodes);
-      if (stations?.length) {
-        const stationMap = new Map<string, MetarStation>();
-        for (const station of stations) {
-          stationMap.set(station.station, station);
-        }
-
-        for (const aerodrome of aerodromes) {
-          const station = stationMap.get(aerodrome.ICAO!);
-          if (station) {
-            aerodrome.metarStation = station;
-          }
-        }
-      }
-    }
-
-    await Promise.all(waypoints
-      .filter(waypoint => !waypoint.metarStation)
-      .map(async waypoint => {
-        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
-        if (station) {
-          waypoint.metarStation = station;
-        }
-      }));
-  }
-
-  /**
-   * Creates a flight plan from a route string, which can include ICAO codes, reporting points, and waypoints.
-   * 
-   * @param routeString - A string representing the route, e.g., "EDDF;RP(ALPHA);WP(50.05,8.57)"
-   * @param aircraftRegistration - The registration of the aircraft for which the flight plan is being created
-   * @param options - Optional configuration options for the flight route
-   * @returns A route trip object with legs, distances, durations, and fuel calculations
-   * @throws Error if no valid waypoints could be parsed from the route string
-   */
-  async createFlightPlanFromString(routeString: string, aircraftRegistration: string, options: RouteOptions = {}): Promise<RouteTrip> {
-    const waypoints = await this.parseRouteString(routeString);
-    if (!waypoints.length) {
-      throw new Error('No valid waypoints could be parsed from the route string');
-    }
-
-    const aircraft = await this.aircraftService.get(aircraftRegistration);
-    if (aircraft) {
-      options.aircraft = aircraft;
-    } else {
-      throw new Error(`Aircraft with registration ${aircraftRegistration} not found`);
-    }
-
-    return this.createFlightPlan(waypoints.map(waypoint => ({ waypoint })), options);
-  }
-
-  /**
-   * Creates a flight plan based on an array of waypoints and optional route options.
-   * 
-   * @param segments - An array of route segments, each containing a waypoint and optional altitude
-   * @param options - Optional configuration options for the flight route
-   * @returns A route trip object with legs, distances, durations, and fuel calculations
-   * @throws Error if fewer than 2 waypoints are provided
-   */
-  async createFlightPlan(segments: RouteSegment[], options: RouteOptions = {}): Promise<RouteTrip> {
-    if (segments.length < 2) {
-      throw new Error('At least departure and arrival waypoints are required');
-    }
-
-    const {
-      defaultAltitude,
-      departureDate = new Date(),
-      alternate,
-      aircraft,
-      reserveFuelDuration = 30,
-      reserveFuel,
-    } = options;
-
-    await this.attachWeatherToWaypoint(segments.map(segment => segment.waypoint));
-
-    segments[0].altitude = segments[0].waypoint.elevation;
-    segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
-
-    const legs = segments.slice(0, -1).map((startSegment, i) => {
-      const endSegment = segments[i + 1];
-
-      if (startSegment.altitude === undefined && defaultAltitude !== undefined) {
-        startSegment.altitude = defaultAltitude;
-      }
-      if (endSegment.altitude === undefined && defaultAltitude !== undefined) {
-        endSegment.altitude = defaultAltitude;
-      }
-
-      const trueTrack = waypointHeading(startSegment.waypoint, endSegment.waypoint);
-      const magneticDeclination = startSegment.waypoint.declination
-        || endSegment.waypoint.declination
-        || 0;
-
-      const course = {
-        distance: waypointDistance(startSegment.waypoint, endSegment.waypoint),
-        track: bearingToAzimuth(trueTrack),
-        magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
-      } as CourseVector;
-
-      // TODO: 
-      // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
-      const wind = startSegment.waypoint.metarStation?.metar.wind;
-
-      const performance = aircraft && wind && this.calculatePerformance(aircraft, course, wind);
-      const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
-
-      return {
-        start: startSegment,
-        end: endSegment,
-        course,
-        wind,
-        arrivalDate,
-        performance,
-      };
-    });
-
-    // TODO: Improve this logic to find the alternate aerodrome
-    // - Consider factors like runway length, instrument approaches, and services available.
-    // - This might involve more complex lookups or integration with additional data sources.
-    if (!alternate) {
-      const lastWaypoint = segments[segments.length - 1].waypoint;
-      const alternateRadius = 50;
-      const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
-      const alternate = await this.aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
-      if (alternate) {
-        options.alternate = alternate;
-      }
-    }
-
-    let routeAlternate: RouteLeg | undefined;
-    if (options.alternate) {
-      await this.attachWeatherToWaypoint(options.alternate ? [options.alternate] : []);
-
-      const alternateStartSegment = segments[segments.length - 1];
-      const alternateEndSegment = { waypoint: options.alternate } as RouteSegment;
-
-      alternateStartSegment.altitude = alternateStartSegment.waypoint.elevation;
-      alternateEndSegment.altitude = options.alternate.elevation;
-
-      const trueTrack = waypointHeading(alternateStartSegment.waypoint, alternateEndSegment.waypoint);
-      const magneticDeclination = alternateStartSegment.waypoint.declination
-        || alternateEndSegment.waypoint.declination
-        || 0;
-
-      const course = {
-        distance: waypointDistance(alternateStartSegment.waypoint, alternateEndSegment.waypoint),
-        track: bearingToAzimuth(trueTrack),
-        magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
-      } as CourseVector;
-
-      const wind = alternateStartSegment.waypoint.metarStation?.metar.wind;
-
-      const performance = aircraft && wind && this.calculatePerformance(aircraft, course, wind);
-      const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
-
-      routeAlternate = {
-        start: alternateStartSegment,
-        end: alternateEndSegment,
-        course,
-        wind,
-        arrivalDate,
-        performance,
-      };
-    }
-
-    let totalDistance = 0;
-    let totalDuration = 0;
-    let totalFuelConsumption = 0;
-
-    for (const leg of legs) {
-      totalDistance += leg.course.distance;
-      totalDuration += leg.performance?.duration || 0;
-      totalFuelConsumption += leg.performance?.fuelConsumption || 0;
-    }
-
-    const reserveFuelRequired = reserveFuel ?? (aircraft ? this.calculateFuelConsumption(aircraft, reserveFuelDuration) : 0);
-    const totalTripFuel = totalFuelConsumption
-      + (reserveFuelRequired || 0)
-      + (options.takeoffFuel || 0)
-      + (options.landingFuel || 0)
-      + (options.taxiFuel || 0);
-
-    const fuelBreakdown = {
-      trip: totalFuelConsumption,
-      reserve: reserveFuelRequired || 0,
-      takeoff: options.takeoffFuel,
-      landing: options.landingFuel,
-      taxi: options.taxiFuel,
-      alternate: routeAlternate?.performance?.fuelConsumption,
-    };
-
-    const arrivalDate = new Date(departureDate.getTime() + totalDuration * 60 * 1000);
-
-    return {
-      route: legs,
-      routeAlternate,
-      totalDistance,
-      totalDuration,
-      totalTripFuel,
-      fuelBreakdown,
-      departureDate,
-      arrivalDate,
-      generatedAt: new Date(),
-    };
-  }
-
-  /**
-   * Calculates the performance of the aircraft based on wind and course vector.
-   * 
-   * @param aircraft - The aircraft for which to calculate performance
-   * @param course - The course vector containing distance, true track, and magnetic track
-   * @param wind - The wind conditions affecting the flight
-   * @returns An object containing performance metrics or undefined if not applicable
-   */
-  private calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
-    if (!aircraft.cruiseSpeed) return undefined;
-
-    // Calculate the true airspeed
-    const trueAirspeed = aircraft.cruiseSpeed; // (cruise speed is indicated airspeed)
-
-    // Calculate wind correction angle and magnetic heading
-    const wca = calculateWindCorrectionAngle(wind, course.track, trueAirspeed);
-    const trueHeading = bearingToAzimuth(course.track + wca);
-    const magneticHeading = bearingToAzimuth(course.magneticTrack + wca);
-
-    // Groundspeed calculation uses true heading.
-    const groundSpeed = calculateGroundspeed(wind, trueAirspeed, trueHeading);
-    const duration = (course.distance / groundSpeed) * 60;
-    const fuelConsumption = this.calculateFuelConsumption(aircraft, duration);
-
-    // Calculate wind vector components
-    const windVector = calculateWindVector(wind, course.track);
-
-    return {
-      headWind: windVector.headwind,
-      crossWind: windVector.crosswind,
-      trueAirspeed,
-      windCorrectionAngle: wca,
-      trueHeading,
-      magneticHeading,
-      groundSpeed,
-      duration,
-      fuelConsumption
-    };
-  }
-
-  /**
-   * Maps a route trip to an array of unique waypoints.
-   * 
-   * This function extracts all waypoints from a route trip by taking the start and end
-   * waypoints of each leg and removing duplicates.
-   * 
-   * @param routeTrip - The route trip containing legs with start and end waypoints
-   * @returns An array of unique waypoints representing all points in the route trip
-   */
-  static getRouteWaypoints(routeTrip: RouteTrip): WaypointType[] {
-    const allWaypoints = routeTrip.route.flatMap(leg => [leg.start.waypoint, leg.end.waypoint]);
-
-    const uniqueWaypoints = new Map<string, WaypointType>();
-    for (const waypoint of allWaypoints) {
-      uniqueWaypoints.set(waypoint.name, waypoint);
-    }
-
-    return Array.from(uniqueWaypoints.values());
-  }
-
-  /**
-   * Gets the departure waypoint from a route trip.
-   * 
-   * @param routeTrip - The route trip from which to extract the departure waypoint
-   * @returns The departure waypoint, which is the first waypoint in the route
-   */
-  static getDepartureWaypoint(routeTrip: RouteTrip): WaypointType {
-    return routeTrip.route[0].start.waypoint;
-  }
-
-  /**
-   * Gets the arrival waypoint from a route trip.
-   * 
-   * @param routeTrip - The route trip from which to extract the arrival waypoint
-   * @returns The arrival waypoint, which is the last waypoint in the route
-   */
-  static getArrivalWaypoint(routeTrip: RouteTrip): WaypointType {
-    return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
-  }
-
-  /**
-   * Parses a route string and returns an array of Aerodrome or Waypoint objects.
-   * 
-   * @param routeString - The route string to parse
-   *                      Supported formats:
-   *                      - ICAO codes (e.g., "EDDF")
-   *                      - RP(name) for reporting points (e.g., "RP(ALPHA)")
-   *                      - WP(lat,lng) for waypoints (e.g., "WP(50.05,8.57)")
-   * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
-   * @throws Error if the route string contains invalid waypoint formats
-   */
-  async parseRouteString(routeString: string): Promise<WaypointType[]> {
-    if (!routeString) return [];
-
-    const waypoints: WaypointType[] = [];
-    const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
-
-    const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
-
-    const parseErrors: string[] = [];
-
-    for (const part of routeParts) {
-      try {
-        // Check for ICAO code
-        if (isICAO(part)) {
-          const airport = await this.aerodromeService.get(part);
-          if (airport?.length) {
-            waypoints.push(...airport);
-            continue;
-          } else {
-            throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
-          }
-        }
-
-        const waypointMatch = part.match(waypointRegex);
-        if (waypointMatch) {
-          const lat = parseFloat(waypointMatch[1]);
-          const lng = parseFloat(waypointMatch[2]);
-          if (isNaN(lat) || isNaN(lng)) {
-            throw new Error(`Invalid coordinates in waypoint: ${part}`);
-          }
-
-          const name = `WP-${lat.toFixed(2)},${lng.toFixed(2)}`;
-          waypoints.push({ name, location: point([lng, lat]) } as Waypoint);
-          continue;
-        }
-
-        // TODO: Check for things like NAVAIDs, VORs, NDBs, etc.
-        // TOOD: Check for VFR waypoints, starting with VRP_XX
-
-        // const rpRegex = /^([A-Z]+)$/;
-        // const rpMatch = part.match(rpRegex);
-        // if (rpMatch) {
-        //   const airport = await this.aerodromeService.get(part);
-        //   waypoints.push(rp);
-        //   continue;
-        // }
-
-        throw new Error(`Unrecognized waypoint format: ${part}`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        parseErrors.push(`Error parsing route part "${part}": ${errorMessage}`);
-        console.error(parseErrors[parseErrors.length - 1]);
-      }
-    }
-
-    if (waypoints.length === 0 && parseErrors.length > 0) {
-      throw new Error(`Failed to parse route string: ${parseErrors.join('; ')}`);
-    }
-
-    return waypoints;
-  }
+  return Array.from(uniqueWaypoints.values());
 }
 
-export default FlightPlanner;
+/**
+ * Gets the departure waypoint from a route trip.
+ * 
+ * @param routeTrip - The route trip from which to extract the departure waypoint
+ * @returns The departure waypoint, which is the first waypoint in the route
+ */
+export const routeTripDepartureWaypoint = (routeTrip: RouteTrip): WaypointType => {
+  return routeTrip.route[0].start.waypoint;
+}
+
+/**
+ * Gets the arrival waypoint from a route trip.
+ * 
+ * @param routeTrip - The route trip from which to extract the arrival waypoint
+ * @returns The arrival waypoint, which is the last waypoint in the route
+ */
+export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => {
+  return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
+}
+
+export async function createFlightPlanFromString(
+  planner: PlannerService,
+  routeString: string,
+  aircraftRegistration: string,
+  options: RouteOptions = {}
+): Promise<RouteTrip> {
+  const waypoints = await planner.parseRouteString(routeString);
+  const lastWaypoint = waypoints[waypoints.length - 1];
+
+  options.aircraft = await planner.findAircraftByRegistration(aircraftRegistration)
+
+  await planner.attachWeatherToWaypoint(waypoints);
+
+  // TODO: Improve this logic to find the alternate aerodrome
+  // - Consider factors like runway length, instrument approaches, and services available.
+  // - This might involve more complex lookups or integration with additional data sources.
+  if (!options.alternate) {
+    const alternateRadius = 50; // TODO: Move to options
+    const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
+    const alternate = await planner.findNearestAerodrome(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
+    if (alternate) {
+      await planner.attachWeatherToWaypoint([alternate]);
+      options.alternate = alternate;
+    }
+  }
+
+  const segments: RouteSegment[] = waypoints.map(waypoint => ({
+    waypoint,
+    altitude: options.defaultAltitude
+  }));
+
+  segments[0].altitude = segments[0].waypoint.elevation;
+  segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
+
+  return flightPlan(segments, options.aircraft, options);
+}
+
+export function flightPlan(
+  segments: RouteSegment[],
+  aircraft: Aircraft | undefined,
+  options: RouteOptions = {}
+): RouteTrip {
+  if (segments.length < 2) {
+    throw new Error('At least departure and arrival waypoints are required');
+  }
+
+  const { departureDate = new Date(), reserveFuelDuration = 30, reserveFuel } = options;
+
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraft, departureDate));
+
+  let routeAlternate: RouteLeg | undefined;
+  if (options.alternate) {
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], {
+      waypoint: options.alternate,
+      altitude: options.alternate.elevation
+    }, aircraft, departureDate);
+  }
+
+  let totalDistance = 0;
+  let totalDuration = 0;
+  let totalFuelConsumption = 0;
+
+  for (const leg of legs) {
+    totalDistance += leg.course.distance;
+    totalDuration += leg.performance?.duration || 0;
+    totalFuelConsumption += leg.performance?.fuelConsumption || 0;
+  }
+
+  const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
+  const totalTripFuel = totalFuelConsumption
+    + (reserveFuelRequired || 0)
+    + (options.takeoffFuel || 0)
+    + (options.landingFuel || 0)
+    + (options.taxiFuel || 0);
+
+  const fuelBreakdown = {
+    trip: totalFuelConsumption,
+    reserve: reserveFuelRequired || 0,
+    takeoff: options.takeoffFuel,
+    landing: options.landingFuel,
+    taxi: options.taxiFuel,
+    alternate: routeAlternate?.performance?.fuelConsumption,
+  };
+
+  return {
+    route: legs,
+    routeAlternate,
+    totalDistance,
+    totalDuration,
+    totalTripFuel,
+    fuelBreakdown,
+    departureDate,
+    arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
+    generatedAt: new Date(),
+  };
+}
+
+function calculateRouteLeg(
+  startSegment: RouteSegment,
+  endSegment: RouteSegment,
+  aircraft: Aircraft | undefined,
+  departureDate: Date
+): RouteLeg {
+  const course = calculateRouteCourse(startSegment.waypoint, endSegment.waypoint);
+
+  // TODO: 
+  // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
+  const wind = endSegment.waypoint.metarStation?.metar.wind;
+
+  const performance = aircraft && wind && calculatePerformance(aircraft, course, wind);
+  const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
+
+  return {
+    start: startSegment,
+    end: endSegment,
+    course,
+    wind,
+    arrivalDate,
+    performance,
+  };
+}
+
+function calculateRouteCourse(startWaypoint: Waypoint, endWaypoint: Waypoint): CourseVector {
+  const trueTrack = waypointHeading(startWaypoint, endWaypoint);
+  const magneticDeclination = startWaypoint.declination
+    || endWaypoint.declination
+    || 0;
+
+  return {
+    distance: waypointDistance(startWaypoint, endWaypoint),
+    track: bearingToAzimuth(trueTrack),
+    magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
+  };
+}
+
+function calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
+  if (!aircraft.cruiseSpeed) return undefined;
+
+  // Calculate the true airspeed
+  const trueAirspeed = aircraft.cruiseSpeed;
+
+  // Calculate wind correction angle and magnetic heading
+  const wca = calculateWindCorrectionAngle(wind, course.track, trueAirspeed);
+  const trueHeading = bearingToAzimuth(course.track + wca);
+  const magneticHeading = bearingToAzimuth(course.magneticTrack + wca);
+
+  // Groundspeed calculation uses true heading.
+  const groundSpeed = calculateGroundspeed(wind, trueAirspeed, trueHeading);
+  const duration = (course.distance / groundSpeed) * 60;
+  const fuelConsumption = aircraft.fuelConsumption && (aircraft.fuelConsumption * (duration / 60));
+
+  // Calculate wind vector components
+  const windVector = calculateWindVector(wind, course.track);
+
+  return {
+    headWind: windVector.headwind,
+    crossWind: windVector.crosswind,
+    trueAirspeed,
+    windCorrectionAngle: wca,
+    trueHeading,
+    magneticHeading,
+    groundSpeed,
+    duration,
+    fuelConsumption
+  };
+}

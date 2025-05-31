@@ -2,9 +2,14 @@ import AerodromeService from "./aerodrome.js";
 import AircraftService from "./aircraft.js";
 import WeatherService from "./weather.js";
 
-import { Aerodrome, Waypoint } from "../waypoint.types.js";
+import { Aerodrome, ReportingPoint, Waypoint } from "../waypoint.types.js";
 import { MetarStation } from "../metar.types.js";
 import { Aircraft } from "../aircraft.js";
+
+import { isICAO } from "../utils.js";
+import { point } from '@turf/turf';
+
+type WaypointType = Aerodrome | ReportingPoint | Waypoint;
 
 class PlannerService {
   /**
@@ -32,7 +37,7 @@ class PlannerService {
    *                 If true, it clears the existing METAR station before fetching new data
    * @throws Will not throw but logs errors encountered during the process
    */
-  public async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
+  async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
     const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
     const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
 
@@ -69,6 +74,80 @@ class PlannerService {
       }));
   }
 
+  // TODO: Move this to a parser utility or similar
+  /**
+   * Parses a route string and returns an array of Aerodrome or Waypoint objects.
+   * 
+   * @param routeString - The route string to parse
+   *                      Supported formats:
+   *                      - ICAO codes (e.g., "EDDF")
+   *                      - RP(name) for reporting points (e.g., "RP(ALPHA)")
+   *                      - WP(lat,lng) for waypoints (e.g., "WP(50.05,8.57)")
+   * @returns A promise that resolves to an array of Aerodrome, ReportingPoint, or Waypoint objects
+   * @throws Error if the route string contains invalid waypoint formats
+   */
+  async parseRouteString(routeString: string): Promise<WaypointType[]> {
+    if (!routeString) return [];
+
+    const waypoints: WaypointType[] = [];
+    const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
+
+    const waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
+
+    const parseErrors: string[] = [];
+
+    for (const part of routeParts) {
+      try {
+        // Check for ICAO code
+        if (isICAO(part)) {
+          const airport = await this.aerodromeService.get(part);
+          if (airport?.length) {
+            waypoints.push(...airport);
+            continue;
+          } else {
+            throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
+          }
+        }
+
+        const waypointMatch = part.match(waypointRegex);
+        if (waypointMatch) {
+          const lat = parseFloat(waypointMatch[1]);
+          const lng = parseFloat(waypointMatch[2]);
+          if (isNaN(lat) || isNaN(lng)) {
+            throw new Error(`Invalid coordinates in waypoint: ${part}`);
+          }
+
+          const name = `WP-${lat.toFixed(2)},${lng.toFixed(2)}`;
+          waypoints.push({ name, location: point([lng, lat]) } as Waypoint);
+          continue;
+        }
+
+        // TODO: Check for things like NAVAIDs, VORs, NDBs, etc.
+        // TOOD: Check for VFR waypoints, starting with VRP_XX
+
+        // const rpRegex = /^([A-Z]+)$/;
+        // const rpMatch = part.match(rpRegex);
+        // if (rpMatch) {
+        //   const airport = await this.aerodromeService.get(part);
+        //   waypoints.push(rp);
+        //   continue;
+        // }
+
+        throw new Error(`Unrecognized waypoint format: ${part}`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        parseErrors.push(`Error parsing route part "${part}": ${errorMessage}`);
+        console.error(parseErrors[parseErrors.length - 1]);
+      }
+    }
+
+    if (waypoints.length === 0 && parseErrors.length > 0) {
+      throw new Error(`Failed to parse route string: ${parseErrors.join('; ')}`);
+    }
+
+    return waypoints;
+  }
+
   /**
    * Find aircraft by its registration number.
    * 
@@ -76,7 +155,7 @@ class PlannerService {
    * @returns A promise that resolves to the Aircraft object if found, or undefined if not found.
    * @throws Error if the provided registration is invalid.
    */
-  public async findAircraftByRegistration(registration: string): Promise<Aircraft> {
+  async findAircraftByRegistration(registration: string): Promise<Aircraft> {
     if (!registration || typeof registration !== 'string') {
       throw new Error('Invalid aircraft registration provided');
     }
@@ -95,7 +174,7 @@ class PlannerService {
    * @returns A promise that resolves to an array of Aerodrome objects.
    * @throws Error if the provided ICAO code(s) are invalid or no aerodromes are found.
    */
-  public async findAerodromesByICAO(icao: string | string[]): Promise<Aerodrome[]> {
+  async findAerodromesByICAO(icao: string | string[]): Promise<Aerodrome[]> {
     if (!icao || (Array.isArray(icao) && icao.length === 0)) {
       throw new Error('Invalid ICAO code(s) provided');
     }
@@ -118,7 +197,7 @@ class PlannerService {
    * @returns A promise that resolves to an array of Aerodrome objects.
    * @throws Error if the location format is invalid or no aerodromes are found.
    */
-  public async findAerodromesByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
+  async findAerodromesByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');
@@ -140,7 +219,7 @@ class PlannerService {
    * @returns A promise that resolves to the nearest Aerodrome object, or undefined if none is found.
    * @throws Error if the location format is invalid or no aerodrome is found.
    */
-  public async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');

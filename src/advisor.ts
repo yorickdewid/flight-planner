@@ -12,8 +12,8 @@
 // - Check for wind gusts
 
 import { Aircraft } from './aircraft.js';
-import { RouteTrip, RouteOptions } from './planner.js';
-import { FlightPlanner, FlightRules } from './index.js';
+import { RouteTrip, RouteOptions, routeTripWaypoints } from './planner.js';
+import { FlightRules } from './index.js';
 import { Metar } from './metar.types.js';
 import { metarFlightRule, metarCeiling } from './metar.js';
 
@@ -139,7 +139,7 @@ function checkVfrMinimumWeatherConditions(
   routeTrip: RouteTrip,
 ): Advisory[] {
   const advisories: Advisory[] = [];
-  const waypoints = FlightPlanner.getRouteWaypoints(routeTrip);
+  const waypoints = routeTripWaypoints(routeTrip);
 
   for (const waypoint of waypoints) {
     const metarStation = waypoint.metarStation;

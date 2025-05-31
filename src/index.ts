@@ -110,6 +110,7 @@ export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js"
  * Service-related exports for handling weather and aerodrome data.
  */
 export { AerodromeService, WeatherService };
+export { default as PlannerService } from "./services/index.js";
 
 /**
  * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.
@@ -120,7 +121,7 @@ export { default as AircraftService } from "./services/aircraft.js";
  * Route planning exports including route options, legs, trips, and planning functions.
  */
 export type { RouteOptions, RouteLeg, RouteTrip, } from "./planner.js";
-export { default as FlightPlanner } from "./planner.js";
+export { createFlightPlanFromString, flightPlan } from "./planner.js";
 
 /**
  * Route plan advisory exports including validation and error checking for route trips.
