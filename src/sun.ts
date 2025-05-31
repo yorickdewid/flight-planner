@@ -1,40 +1,57 @@
-import suncalc from 'suncalc';
+import suncalc, { GetTimesResult } from 'suncalc';
 import { Waypoint } from './waypoint.types.js';
 
-/**
- * Enum representing different sun events.
- * 
- * @enum {string}
- * @readonly
- */
-export enum SunEventType {
-  Sunrise = 'sunrise',
-  Sunset = 'sunset',
-  Dawn = 'dawn',          // Morning civil twilight starts
-  Dusk = 'dusk',          // Evening civil twilight starts
-  NauticalDawn = 'nauticalDawn',
-  NauticalDusk = 'nauticalDusk',
-  NightEnd = 'nightEnd',  // Dark enough for astronomical observations
-  Night = 'night',        // Dark enough for astronomical observations
-  GoldenHourEnd = 'goldenHourEnd',
-  GoldenHour = 'goldenHour',
-  SolarNoon = 'solarNoon',
-  NaDir = 'nadir'
-}
+// /**
+//  * Enum representing different sun events.
+//  * 
+//  * @enum {string}
+//  * @readonly
+//  */
+// export enum SunEventType {
+//   Sunrise = 'sunrise',
+//   Sunset = 'sunset',
+//   Dawn = 'dawn',          // Morning civil twilight starts
+//   Dusk = 'dusk',          // Evening civil twilight starts
+//   NauticalDawn = 'nauticalDawn',
+//   NauticalDusk = 'nauticalDusk',
+//   NightEnd = 'nightEnd',  // Dark enough for astronomical observations
+//   Night = 'night',        // Dark enough for astronomical observations
+//   GoldenHourEnd = 'goldenHourEnd',
+//   GoldenHour = 'goldenHour',
+//   SolarNoon = 'solarNoon',
+//   NaDir = 'nadir'
+// }
 
-/**
- * Interface representing a sun event.
- * 
- * @interface SunEvent
- * @property {Date} time - The time when the event occurs
- * @property {SunEventType} event - The type of sun event
- * @property {Waypoint} location - The location where the event occurs
- */
-export interface SunEvent {
-  time: Date;
-  event: SunEventType;
-  location: Waypoint;
-}
+// export interface GetTimesResult {
+//     dawn: Date;
+//     dusk: Date;
+//     goldenHour: Date;
+//     goldenHourEnd: Date;
+//     nadir: Date;
+//     nauticalDawn: Date;
+//     nauticalDusk: Date;
+//     night: Date;
+//     nightEnd: Date;
+//     solarNoon: Date;
+//     sunrise: Date;
+//     sunriseEnd: Date;
+//     sunset: Date;
+//     sunsetStart: Date;
+// }
+
+// /**
+//  * Interface representing a sun event.
+//  * 
+//  * @interface SunEvent
+//  * @property {Date} time - The time when the event occurs
+//  * @property {SunEventType} event - The type of sun event
+//  * @property {Waypoint} location - The location where the event occurs
+//  */
+// export interface SunEvent {
+//   time: Date;
+//   event: SunEventType;
+//   location: Waypoint;
+// }
 
 /**
  * Calculates sun events for a given waypoint and date.
@@ -43,28 +60,28 @@ export interface SunEvent {
  * @param date - The date for which to calculate sun events
  * @returns An object containing sun event times
  */
-export function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()): Record<SunEventType, SunEvent> {
+function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()): GetTimesResult {
   const longitude = waypoint.location.geometry.coordinates[0];
   const latitude = waypoint.location.geometry.coordinates[1];
 
-  const sunTimes = suncalc.getTimes(date, latitude, longitude);
+  return suncalc.getTimes(date, latitude, longitude);
 
-  const result: Record<string, SunEvent> = {};
-  const validSunEventTypeValues = Object.values(SunEventType);
+  // const result: Record<string, SunEvent> = {};
+  // const validSunEventTypeValues = Object.values(SunEventType);
 
-  for (const [key, value] of Object.entries(sunTimes)) {
-    if (validSunEventTypeValues.includes(key as SunEventType)) {
-      if (value instanceof Date && !isNaN(value.getTime())) {
-        result[key] = {
-          time: value,
-          event: key as SunEventType,
-          location: waypoint
-        };
-      }
-    }
-  }
+  // for (const [key, value] of Object.entries(sunTimes)) {
+  //   if (validSunEventTypeValues.includes(key as SunEventType)) {
+  //     if (value instanceof Date && !isNaN(value.getTime())) {
+  //       result[key] = {
+  //         time: value,
+  //         event: key as SunEventType,
+  //         location: waypoint
+  //       };
+  //     }
+  //   }
+  // }
 
-  return result as Record<SunEventType, SunEvent>;
+  // return result as Record<SunEventType, SunEvent>;
 }
 
 /**
@@ -76,7 +93,7 @@ export function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()):
  */
 export function isDaylight(waypoint: Waypoint, time: Date = new Date()): boolean {
   const events = calculateSunEvents(waypoint, time);
-  return time >= events.sunrise.time && time <= events.sunset.time;
+  return time >= events.sunrise && time <= events.sunset;
 }
 
 /**
@@ -89,5 +106,5 @@ export function isDaylight(waypoint: Waypoint, time: Date = new Date()): boolean
  */
 export function isNight(waypoint: Waypoint, time: Date = new Date()): boolean {
   const events = calculateSunEvents(waypoint, time);
-  return time <= events.dawn.time || time >= events.dusk.time;
+  return time <= events.dawn || time >= events.dusk;
 }
