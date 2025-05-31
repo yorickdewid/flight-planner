@@ -156,8 +156,8 @@ class PlannerService {
    * @throws Error if the provided ICAO code is invalid or no METAR station is found.
    */
   async findMetarsByICAO(icao: string | string[]): Promise<MetarStation[]> {
-    if (!icao || typeof icao !== 'string') {
-      throw new Error('Invalid ICAO code provided');
+    if (!icao || (Array.isArray(icao) && icao.length === 0)) {
+      throw new Error('Invalid ICAO code(s) provided');
     }
 
     const metar = await this.weatherService.get(icao);
