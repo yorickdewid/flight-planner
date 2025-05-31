@@ -149,6 +149,25 @@ class PlannerService {
   }
 
   /**
+   * Finds METAR stations by their ICAO code.
+   * 
+   * @param icao - The ICAO code of the METAR station to find.
+   * @returns A promise that resolves to an array of MetarStation objects if found, or throws an error if not found.
+   * @throws Error if the provided ICAO code is invalid or no METAR station is found.
+   */
+  async findMetarsByICAO(icao: string): Promise<MetarStation[]> {
+    if (!icao || typeof icao !== 'string') {
+      throw new Error('Invalid ICAO code provided');
+    }
+
+    const metar = await this.weatherService.get(icao);
+    if (!metar) {
+      throw new Error(`METAR station with ICAO code ${icao} not found`);
+    }
+    return metar;
+  }
+
+  /**
    * Find aircraft by its registration number.
    * 
    * @param registration - The registration number of the aircraft to find.
