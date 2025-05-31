@@ -16,6 +16,7 @@ import { RouteTrip, RouteOptions, routeTripWaypoints } from './planner.js';
 import { FlightRules } from './index.js';
 import { Metar } from './metar.types.js';
 import { metarFlightRule, metarCeiling } from './metar.js';
+import { isNight } from './sun.js';
 
 /**
  * Defines the severity level of an advisory.
@@ -363,6 +364,26 @@ function checkMinimumSafeAltitude(
   return advisories;
 }
 
+function checkNightFlight(
+  routeTrip: RouteTrip,
+): Advisory[] {
+  const advisories: Advisory[] = [];
+
+  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  for (const routeSegment of routeSegments) {
+    if (isNight(routeSegment.waypoint)) {
+      advisories.push({
+        code: 'INFO_NIGHT_FLIGHT',
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: routeSegment.waypoint.name,
+        },
+      });
+    }
+  }
+  return advisories;
+}
+
 /**
  * Validates a RouteTrip against various aviation regulations and best practices.
  *
@@ -392,6 +413,9 @@ export function routeTripValidate(
 
   const minSafeAltitudeAdvisories = checkMinimumSafeAltitude(routeTrip);
   allAdvisories = allAdvisories.concat(minSafeAltitudeAdvisories);
+
+  const nightFlightAdvisories = checkNightFlight(routeTrip);
+  allAdvisories = allAdvisories.concat(nightFlightAdvisories);
 
   return allAdvisories;
 }
