@@ -369,18 +369,41 @@ function checkNightFlight(
 ): Advisory[] {
   const advisories: Advisory[] = [];
 
-  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
-  for (const routeSegment of routeSegments) {
-    if (isNight(routeSegment.waypoint)) {
+  const firstLeg = routeTrip.route[0];
+  if (firstLeg && routeTrip.departureDate && isNight(firstLeg.start.waypoint, routeTrip.departureDate)) {
+    advisories.push({
+      code: 'INFO_NIGHT_DEPARTURE',
+      level: AdvisoryLevel.Info,
+      details: {
+        waypointName: firstLeg.start.waypoint.name,
+      },
+    });
+  }
+
+  for (const routeLeg of routeTrip.route) {
+    if (routeLeg.arrivalDate && isNight(routeLeg.end.waypoint, routeLeg.arrivalDate)) {
       advisories.push({
-        code: 'INFO_NIGHT_FLIGHT',
+        code: 'INFO_NIGHT_WAYPOINT',
         level: AdvisoryLevel.Info,
         details: {
-          waypointName: routeSegment.waypoint.name,
+          waypointName: routeLeg.end.waypoint.name,
         },
       });
     }
   }
+
+  if (routeTrip.routeAlternate && routeTrip.routeAlternate.end && routeTrip.routeAlternate.arrivalDate) {
+    if (isNight(routeTrip.routeAlternate.end.waypoint, routeTrip.routeAlternate.arrivalDate)) {
+      advisories.push({
+        code: 'INFO_NIGHT_ALTERNATE',
+        level: AdvisoryLevel.Info,
+        details: {
+          waypointName: routeTrip.routeAlternate.end.waypoint.name,
+        },
+      });
+    }
+  }
+
   return advisories;
 }
 
