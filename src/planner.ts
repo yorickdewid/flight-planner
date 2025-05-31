@@ -245,6 +245,18 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
   return routeTrip.route[routeTrip.route.length - 1].end.waypoint;
 }
 
+/**
+ * Creates a flight plan from a route string, aircraft registration, and optional route options.
+ * 
+ * This function parses the route string into waypoints, attaches weather data, finds an alternate aerodrome if not provided,
+ * and constructs a flight plan with segments and performance calculations.
+ *
+ * @param planner - The PlannerService instance used for parsing and finding waypoints.
+ * @param routeString - The route string to parse into waypoints.
+ * @param aircraftRegistration - The registration of the aircraft to be used in the flight plan.
+ * @param options - Optional parameters for the flight plan, including default altitude, departure date, and reserve fuel.
+ * @returns A promise that resolves to a RouteTrip object representing the flight plan.
+ */
 export async function createFlightPlanFromString(
   planner: PlannerService,
   routeString: string,
@@ -287,6 +299,18 @@ export async function createFlightPlanFromString(
   return flightPlan(segments, alternateSegment, options.aircraft, options);
 }
 
+/**
+ * Generates a flight plan based on the provided route segments, alternate segment, aircraft, and options.
+ * 
+ * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
+ * It returns a RouteTrip object containing all relevant information about the flight plan.
+ *
+ * @param segments - An array of RouteSegment objects representing the waypoints and altitudes for the flight.
+ * @param alternateSegment - An optional RouteSegment representing an alternate aerodrome for the flight.
+ * @param aircraft - The Aircraft object containing performance data for the flight.
+ * @param options - Optional parameters for the flight plan, including departure date and reserve fuel duration.
+ * @returns A RouteTrip object containing the calculated flight plan details.
+ */
 export function flightPlan(
   segments: RouteSegment[],
   alternateSegment: RouteSegment | undefined,
