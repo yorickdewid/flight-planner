@@ -50,14 +50,17 @@ export function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()):
   const sunTimes = suncalc.getTimes(date, latitude, longitude);
 
   const result: Record<string, SunEvent> = {};
+  const validSunEventTypeValues = Object.values(SunEventType);
 
   for (const [key, value] of Object.entries(sunTimes)) {
-    if (key in SunEventType) {
-      result[key] = {
-        time: value,
-        event: key as SunEventType,
-        location: waypoint
-      };
+    if (validSunEventTypeValues.includes(key as SunEventType)) {
+      if (value instanceof Date && !isNaN(value.getTime())) {
+        result[key] = {
+          time: value,
+          event: key as SunEventType,
+          location: waypoint
+        };
+      }
     }
   }
 
