@@ -238,7 +238,7 @@ class PlannerService {
    * @returns A promise that resolves to the nearest Aerodrome object, or undefined if none is found.
    * @throws Error if the location format is invalid or no aerodrome is found.
    */
-  async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');
