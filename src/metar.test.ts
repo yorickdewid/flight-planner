@@ -293,7 +293,6 @@ describe('Metar functions', () => {
   });
 
   describe('formatMetarClouds', () => {
-
     it('should return formatted clouds when present', () => {
       const metarData: Metar = {
         station: 'TEST',

@@ -23,7 +23,7 @@ export interface CourseVector {
 /**
  * Interface representing the performance characteristics of an aircraft.
  * 
- * @interface AircraftPerformance
+ * @interface RouteLegPerformance
  * @property {number} headWind - The component of wind directly opposing the aircraft's motion, measured in knots.
  * @property {number} crossWind - The component of wind perpendicular to the aircraft's motion, measured in knots.
  * @property {number} trueAirspeed - The speed of the aircraft relative to the air mass it's flying through, measured in knots.
@@ -34,7 +34,7 @@ export interface CourseVector {
  * @property {number} duration - The time duration for a segment of flight, typically measured in minutes.
  * @property {number} [fuelConsumption] - Optional property representing the fuel consumption rate, typically measured in gallons or liters per hour.
  */
-export interface AircraftPerformance {
+export interface RouteLegPerformance {
   headWind: number;
   crossWind: number;
   trueAirspeed: number;
@@ -63,7 +63,7 @@ export interface RouteLeg {
   course: CourseVector;
   wind?: Wind;
   arrivalDate?: Date;
-  performance?: AircraftPerformance;
+  performance?: RouteLegPerformance;
 }
 
 /**
@@ -504,9 +504,9 @@ function calculateRouteCourse(startWaypoint: Waypoint, endWaypoint: Waypoint): C
  * @param {Aircraft} aircraft - The aircraft for which to calculate performance.
  * @param {CourseVector} course - The course vector (track and distance).
  * @param {Wind} wind - The wind conditions.
- * @returns {AircraftPerformance | undefined} The calculated aircraft performance, or undefined if essential data is missing.
+ * @returns {RouteLegPerformance | undefined} The calculated aircraft performance, or undefined if essential data is missing.
  */
-function calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): AircraftPerformance | undefined {
+function calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): RouteLegPerformance | undefined {
   if (!aircraft.cruiseSpeed) return undefined;
 
   // Calculate the true airspeed
