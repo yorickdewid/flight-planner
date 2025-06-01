@@ -17,6 +17,7 @@ import { FlightRules } from './index.js';
 import { Metar } from './metar.types.js';
 import { metarFlightRule, metarCeiling } from './metar.js';
 import { isNight } from './sun.js';
+import { MAX_LEG_DURATION_MINUTES } from './constants.js';
 
 /**
  * Defines the severity level of an advisory.
@@ -408,6 +409,33 @@ function checkNightFlight(
 }
 
 /**
+ * Checks for excessively long flight legs.
+ *
+ * @param routeTrip The flight plan\'s route trip.
+ * @returns An array of advisories related to long legs.
+ */
+function checkLongRouteLegs(routeTrip: RouteTrip): Advisory[] {
+  const advisories: Advisory[] = [];
+
+  for (const leg of routeTrip.route) {
+    if (leg.performance && leg.performance.duration > MAX_LEG_DURATION_MINUTES) {
+      advisories.push({
+        code: 'WARN_LONG_FLIGHT_LEG',
+        level: AdvisoryLevel.Warning,
+        details: {
+          waypointNameStart: leg.start.waypoint.name,
+          waypointNameEnd: leg.end.waypoint.name,
+          durationMinutes: leg.performance.duration,
+          maxRecommendedDurationMinutes: MAX_LEG_DURATION_MINUTES,
+        },
+      });
+    }
+  }
+
+  return advisories;
+}
+
+/**
  * Validates a RouteTrip against various aviation regulations and best practices.
  *
  * @param routeTrip The flight plan's route trip.
@@ -439,6 +467,9 @@ export function routeTripValidate(
 
   const nightFlightAdvisories = checkNightFlight(routeTrip);
   allAdvisories = allAdvisories.concat(nightFlightAdvisories);
+
+  const longLegAdvisories = checkLongRouteLegs(routeTrip);
+  allAdvisories = allAdvisories.concat(longLegAdvisories);
 
   return allAdvisories;
 }

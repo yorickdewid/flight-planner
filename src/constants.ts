@@ -46,3 +46,11 @@ export const DefaultUnits: UnitOptions = {
   volume: 'l',
   angle: 'deg',
 };
+
+/**
+ * Maximum recommended duration for a single flight leg in minutes.
+ * Used by the advisor to issue a warning for potentially fatiguing legs.
+ *
+ * @constant {number}
+ */
+export const MAX_LEG_DURATION_MINUTES = 120;
