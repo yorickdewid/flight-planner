@@ -387,13 +387,13 @@ describe('Metar functions', () => {
     //   expect(metar.wind?.gust).toBeCloseTo(16.2, 1); // 30 KM/H to knots
     // });
 
-    // it('should handle CAVOK', () => {
-    //   const rawMetar = 'METAR LFPG 011100Z 27010KT CAVOK 15/08 Q1018 NOSIG';
-    //   const metar = createMetarFromString(rawMetar);
-    //   expect(metar.station).toBe('LFPG');
-    //   expect(metar.visibility).toBeUndefined();
-    //   expect(metar.clouds).toEqual([]);
-    // });
+    it('should handle CAVOK', () => {
+      const rawMetar = 'METAR LFPG 011100Z 27010KT CAVOK 15/08 Q1018 NOSIG';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.station).toBe('LFPG');
+      expect(metar.visibility).toBe(9999);
+      expect(metar.clouds).toEqual([]);
+    });
 
     it('should handle AUTO keyword', () => {
       const rawMetar = 'METAR EDDF 011050Z AUTO 23012KT 9999 FEW030 17/11 Q1009 NOSIG';
@@ -409,7 +409,7 @@ describe('Metar functions', () => {
       expect(metar.wind?.speed).toBe(3);
     });
 
-     it('should handle wind variation', () => {
+    it('should handle wind variation', () => {
       const rawMetar = 'METAR EGLL 011020Z 24015KT 200V280 9999 SCT030 BKN050 18/12 Q1012 BECMG 27020G30KT';
       const metar = createMetarFromString(rawMetar);
       expect(metar.wind?.direction).toBe(240);
