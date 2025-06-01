@@ -1,11 +1,10 @@
 import { PlannerService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
-import { waypointDistance, waypointHeading } from './waypoint.js';
+import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
 import { bearingToAzimuth, lineString, point as turfPoint, pointToLineDistance } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
-import { WaypointVariant } from './waypoint.types.js';
 
 /**
  * Represents a course vector with distance and track.
@@ -121,6 +120,7 @@ export interface RouteOptions {
   departureDate?: Date;
   aircraft?: Aircraft;
   alternate?: Aerodrome;
+  alternateRadius?: number; // Added this line
   reserveFuel?: number;
   reserveFuelDuration?: number;
   taxiFuel?: number;
@@ -260,19 +260,7 @@ export const closestWaypoint = (routeTrip: RouteTrip, location: [number, number]
     return undefined;
   }
 
-  // TODO: Create a helper function to convert location to a Waypoint
-  const currentLocationAsWaypoint: Waypoint = {
-    name: 'currentLocationPoint',
-    location: {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: location
-      },
-      properties: {}
-    },
-    waypointVariant: WaypointVariant.Waypoint,
-  };
+  const currentLocationAsWaypoint = createWaypoint(location, 'currentLocationPoint');
 
   let minDistance = Infinity;
   let closestWaypoint: WaypointType | undefined = undefined;
@@ -361,7 +349,7 @@ export async function createFlightPlanFromString(
   // - Consider factors like runway length, instrument approaches, and services available.
   // - This might involve more complex lookups or integration with additional data sources.
   if (!options.alternate) {
-    const alternateRadius = 50; // TODO: Move to options
+    const alternateRadius = options.alternateRadius ?? 50; // Use option if provided, otherwise default to 50
     const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
     const alternate = await planner.findNearestAerodrome(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
     if (alternate) {

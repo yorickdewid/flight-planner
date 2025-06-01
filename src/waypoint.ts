@@ -1,7 +1,7 @@
 import { calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
-import { FrequencyType, Runway, RunwayWindVector, Waypoint } from './waypoint.types.js';
+import { FrequencyType, Runway, RunwayWindVector, Waypoint, WaypointVariant } from './waypoint.types.js';
 
 /**
  * Calculates the distance from one waypoint to another.
@@ -58,6 +58,28 @@ export const waypointQFE = (waypoint: Waypoint): number | undefined => {
   // Standard pressure lapse rate: 1 hPa per 27 feet
   // QFE = QNH - (Elevation_ft / PressureLapseRate_ft_per_hPa)
   return Math.round((qnh - (waypoint.elevation / 27)) * 100) / 100;
+}
+
+/**
+ * Creates a Waypoint object from a longitude and latitude.
+ * 
+ * @param location - The location as a [longitude, latitude] tuple.
+ * @param name - Optional name for the waypoint.
+ * @returns A Waypoint object.
+ */
+export const createWaypoint = (location: [number, number], name: string = 'locationPoint'): Waypoint => {
+  return {
+    name,
+    location: {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: location
+      },
+      properties: {}
+    },
+    waypointVariant: WaypointVariant.Waypoint,
+  };
 }
 
 /**
