@@ -12,7 +12,7 @@ export const ISA_STANDARD_PRESSURE_HPA = 1013.25;
  * 
  * @constant {number}
  */
-export const ISA_STANDARD_PRESSURE_LAPSE_RATE = 0.00012;
+export const ISA_STANDARD_PRESSURE_LAPSE_RATE = 1 / 8;
 
 /**
  * Standard atmospheric temperature at sea level in degrees Celsius (°C).
