@@ -7,7 +7,7 @@ import {
   isMetarExpired,
 } from './metar.js';
 import { Metar, Wind } from './metar.types.js';
-import { formatCloud, formatTemperature, formatVisibility, formatWind } from './format.js';
+import { formatCloud, formatPressure, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './index.js';
 import { jest } from '@jest/globals';
 
@@ -165,40 +165,29 @@ describe('Metar functions', () => {
     });
   });
 
-  // describe('formatMetarQNH', () => {
-  // it('should return formatted QNH when present', () => {
-  //   const metarData: Metar = {
-  //     station: 'TEST',
-  //     observationTime: new Date(),
-  //     raw: 'RAW DATA',
-  //     wind: { direction: 180, speed: 10 },
-  //     qnh: { value: 1013, unit: 'hPa' }
-  //   };
-  //   expect(formatPressure(metarData.qnh?.value!)).toBe('1013 hPa');
-  // });
-
-  // it('should return formatted QNH in inches when present', () => {
-  //   const metarData: Metar = {
-  //     station: 'TEST',
-  //     observationTime: new Date(),
-  //     raw: 'RAW DATA',
-  //     wind: { direction: 180, speed: 10 },
-  //     qnh: { value: 29.92, unit: 'inHg' }
-  //   };
-  //   expect(formatMetarQNH(metarData)).toBe('29.92 inHg');
-  // });
-  // });
+  describe('formatMetarQNH', () => {
+    it('should return formatted QNH when present', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+        qnh: 1013
+      };
+      expect(formatPressure(metarData.qnh!)).toBe('1013 hPa');
+    });
+  });
 
   describe('metarCeiling', () => {
-    // it('should return "No ceiling" when no clouds are present', () => {
-    //   const metarData: Metar = {
-    //     station: 'TEST',
-    //     observationTime: new Date(),
-    //     raw: 'RAW DATA',
-    //     wind: { direction: 180, speed: 10 },
-    //   };
-    //   expect(formatMetarCeiling(metarData)).toBe('-');
-    // });
+    it('should return "undefined" when no clouds are present', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date(),
+        raw: 'RAW DATA',
+        wind: { direction: 180, speed: 10 },
+      };
+      expect(metarCeiling(metarData)).toBeUndefined();
+    });
 
     it('should return formatted ceiling when clouds are present', () => {
       const metarData: Metar = {
