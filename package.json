@@ -25,6 +25,7 @@
     "build": "tsc && npm run lint",
     "lint": "eslint src/",
     "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test:watch": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
     "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint"
   },
