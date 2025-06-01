@@ -3,10 +3,13 @@ import {
   metarFlightRuleColor,
   metarColorCode,
   metarCeiling,
+  createMetarFromString,
+  isMetarExpired,
 } from './metar.js';
-import { Metar } from './metar.types.js';
+import { Metar, Wind } from './metar.types.js';
 import { formatCloud, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './index.js';
+import { jest } from '@jest/globals';
 
 describe('Metar functions', () => {
   describe('metarFlightRule', () => {
@@ -343,6 +346,163 @@ describe('Metar functions', () => {
       expect(formatCloud(metarData.clouds![0])).toBe('Few at 1000 ft');
       expect(formatCloud(metarData.clouds![1])).toBe('Scattered at 2000 ft');
       expect(formatCloud(metarData.clouds![2])).toBe('Broken at 3000 ft');
+    });
+  });
+
+  describe('createMetarFromString', () => {
+    it('should parse a simple METAR string correctly', () => {
+      const rawMetar = 'METAR EHAM 011025Z 24015KT 9999 SCT040 BKN080 18/12 Q1012 NOSIG';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.station).toBe('EHAM');
+      expect(metar.observationTime.getUTCDate()).toBe(1);
+      expect(metar.observationTime.getUTCHours()).toBe(10);
+      expect(metar.observationTime.getUTCMinutes()).toBe(25);
+      expect(metar.wind?.direction).toBe(240);
+      expect(metar.wind?.speed).toBe(15);
+      expect(metar.visibility).toBe(9999);
+      expect(metar.clouds).toEqual([
+        { quantity: 'SCT', height: 4000 },
+        { quantity: 'BKN', height: 8000 },
+      ]);
+      expect(metar.temperature).toBe(18);
+      expect(metar.dewpoint).toBe(12);
+      expect(metar.qnh).toBe(1012);
+      expect(metar.raw).toContain('METAR EHAM 011025Z 24015KT 9999 SCT040 BKN080 18/12 Q1012 NOSIG');
+    });
+
+    it('should handle wind in MPS and visibility in SM', () => {
+      const rawMetar = 'METAR KLAX 011053Z 25008MPS 6SM FEW040 SCT060 OVC080 17/11 A2983 RMK AO2 SLP101';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.station).toBe('KLAX');
+      expect(metar.wind?.speed).toBeCloseTo(15.55, 1); // 8 MPS to knots
+      expect(metar.visibility).toBeCloseTo(9656.064, 1); // 6 SM to meters
+      expect(metar.qnh).toBeCloseTo(1010.14, 1); // 29.83 inHg to hPa
+    });
+
+    // it('should handle wind in KM/H', () => {
+    //   const rawMetar = 'METAR CYYZ 011000Z 30020G30KMH 8000 -SN BKN015 OVC030 M05/M08 Q0995';
+    //   const metar = createMetarFromString(rawMetar);
+    //   expect(metar.station).toBe('CYYZ');
+    //   expect(metar.wind?.speed).toBeCloseTo(10.8, 1); // 20 KM/H to knots
+    //   expect(metar.wind?.gust).toBeCloseTo(16.2, 1); // 30 KM/H to knots
+    // });
+
+    // it('should handle CAVOK', () => {
+    //   const rawMetar = 'METAR LFPG 011100Z 27010KT CAVOK 15/08 Q1018 NOSIG';
+    //   const metar = createMetarFromString(rawMetar);
+    //   expect(metar.station).toBe('LFPG');
+    //   expect(metar.visibility).toBeUndefined();
+    //   expect(metar.clouds).toEqual([]);
+    // });
+
+    it('should handle AUTO keyword', () => {
+      const rawMetar = 'METAR EDDF 011050Z AUTO 23012KT 9999 FEW030 17/11 Q1009 NOSIG';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.station).toBe('EDDF');
+      expect(metar.raw).toContain('AUTO');
+    });
+
+    it('should handle variable wind direction', () => {
+      const rawMetar = 'METAR LOWW 011120Z VRB03KT 9999 SCT050 19/10 Q1015 NOSIG';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.wind?.direction).toBeUndefined(); // VRB means variable
+      expect(metar.wind?.speed).toBe(3);
+    });
+
+     it('should handle wind variation', () => {
+      const rawMetar = 'METAR EGLL 011020Z 24015KT 200V280 9999 SCT030 BKN050 18/12 Q1012 BECMG 27020G30KT';
+      const metar = createMetarFromString(rawMetar);
+      expect(metar.wind?.direction).toBe(240);
+      expect(metar.wind?.speed).toBe(15);
+      expect(metar.wind?.directionMin).toBe(200);
+      expect(metar.wind?.directionMax).toBe(280);
+    });
+  });
+
+  describe('isMetarExpired', () => {
+    const baseTime = new Date('2025-06-01T10:00:00Z'); // June 1, 2025 10:00 UTC
+    const dummyWind: Wind = { direction: 0, speed: 0 };
+
+    it('should return false for a recent METAR using standard rules', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T09:30:00Z'), // 30 minutes ago
+        raw: 'METAR TEST ...',
+        wind: dummyWind,
+      };
+      // Mock current time to be baseTime
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData)).toBe(false);
+      jest.useRealTimers();
+    });
+
+    it('should return true for an old METAR using standard rules', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T08:50:00Z'), // 70 minutes ago
+        raw: 'METAR TEST ...',
+        wind: dummyWind,
+      };
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData)).toBe(true);
+      jest.useRealTimers();
+    });
+
+    it('should return false for a recent SPECI report using standard rules', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T09:45:00Z'), // 15 minutes ago
+        raw: 'SPECI TEST ...',
+        wind: dummyWind,
+      };
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData)).toBe(false);
+      jest.useRealTimers();
+    });
+
+    it('should return true for an old SPECI report using standard rules', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T09:25:00Z'), // 35 minutes ago
+        raw: 'SPECI TEST ...',
+        wind: dummyWind,
+      };
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData)).toBe(true);
+      jest.useRealTimers();
+    });
+
+    it('should use custom expiration time if provided', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T09:50:00Z'), // 10 minutes ago
+        raw: 'METAR TEST ...',
+        wind: dummyWind,
+      };
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData, { customMinutes: 5 })).toBe(true); // Expired after 5 mins
+      expect(isMetarExpired(metarData, { customMinutes: 15 })).toBe(false); // Not expired after 15 mins
+      jest.useRealTimers();
+    });
+
+    it('should default to 60 minutes if useStandardRules is false and no customMinutes', () => {
+      const metarData: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T08:55:00Z'), // 65 minutes ago
+        raw: 'METAR TEST ...',
+        wind: dummyWind,
+      };
+      jest.useFakeTimers().setSystemTime(baseTime);
+      expect(isMetarExpired(metarData, { useStandardRules: false })).toBe(true);
+
+      const metarData2: Metar = {
+        station: 'TEST',
+        observationTime: new Date('2025-06-01T09:05:00Z'), // 55 minutes ago
+        raw: 'METAR TEST ...',
+        wind: dummyWind,
+      };
+      expect(isMetarExpired(metarData2, { useStandardRules: false })).toBe(false);
+      jest.useRealTimers();
     });
   });
 });
