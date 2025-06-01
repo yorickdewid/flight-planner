@@ -1,58 +1,6 @@
 import suncalc, { GetTimesResult } from 'suncalc';
 import { Waypoint } from './waypoint.types.js';
 
-// /**
-//  * Enum representing different sun events.
-//  * 
-//  * @enum {string}
-//  * @readonly
-//  */
-// export enum SunEventType {
-//   Sunrise = 'sunrise',
-//   Sunset = 'sunset',
-//   Dawn = 'dawn',          // Morning civil twilight starts
-//   Dusk = 'dusk',          // Evening civil twilight starts
-//   NauticalDawn = 'nauticalDawn',
-//   NauticalDusk = 'nauticalDusk',
-//   NightEnd = 'nightEnd',  // Dark enough for astronomical observations
-//   Night = 'night',        // Dark enough for astronomical observations
-//   GoldenHourEnd = 'goldenHourEnd',
-//   GoldenHour = 'goldenHour',
-//   SolarNoon = 'solarNoon',
-//   NaDir = 'nadir'
-// }
-
-// export interface GetTimesResult {
-//     dawn: Date;
-//     dusk: Date;
-//     goldenHour: Date;
-//     goldenHourEnd: Date;
-//     nadir: Date;
-//     nauticalDawn: Date;
-//     nauticalDusk: Date;
-//     night: Date;
-//     nightEnd: Date;
-//     solarNoon: Date;
-//     sunrise: Date;
-//     sunriseEnd: Date;
-//     sunset: Date;
-//     sunsetStart: Date;
-// }
-
-// /**
-//  * Interface representing a sun event.
-//  * 
-//  * @interface SunEvent
-//  * @property {Date} time - The time when the event occurs
-//  * @property {SunEventType} event - The type of sun event
-//  * @property {Waypoint} location - The location where the event occurs
-//  */
-// export interface SunEvent {
-//   time: Date;
-//   event: SunEventType;
-//   location: Waypoint;
-// }
-
 /**
  * Calculates sun events for a given waypoint and date.
  * 
@@ -65,23 +13,6 @@ function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()): GetTim
   const latitude = waypoint.location.geometry.coordinates[1];
 
   return suncalc.getTimes(date, latitude, longitude);
-
-  // const result: Record<string, SunEvent> = {};
-  // const validSunEventTypeValues = Object.values(SunEventType);
-
-  // for (const [key, value] of Object.entries(sunTimes)) {
-  //   if (validSunEventTypeValues.includes(key as SunEventType)) {
-  //     if (value instanceof Date && !isNaN(value.getTime())) {
-  //       result[key] = {
-  //         time: value,
-  //         event: key as SunEventType,
-  //         location: waypoint
-  //       };
-  //     }
-  //   }
-  // }
-
-  // return result as Record<SunEventType, SunEvent>;
 }
 
 /**

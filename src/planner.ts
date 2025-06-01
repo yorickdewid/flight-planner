@@ -3,8 +3,9 @@ import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
-import { bearingToAzimuth } from '@turf/turf';
+import { bearingToAzimuth, lineString, point as turfPoint, pointToLineDistance } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
+import { WaypointVariant } from './waypoint.types.js';
 
 /**
  * Represents a course vector with distance and track.
@@ -205,6 +206,90 @@ export const calculateVFRCruisingAltitude = (track: number, altitude: number): n
  */
 export const flightLevel = (altitude: number): number => {
   return Math.floor(altitude / 1000);
+}
+
+/**
+ * Finds the closest route leg to a given location.
+ *
+ * @param routeTrip - The route trip to search within.
+ * @param location - The location to find the closest leg to, as a [longitude, latitude] tuple.
+ * @returns The closest route leg, or undefined if no route legs are found or the input is invalid.
+ */
+export const closestRouteLeg = (routeTrip: RouteTrip, location: [number, number]): RouteLeg | undefined => {
+  if (!routeTrip || !routeTrip.route || routeTrip.route.length === 0) {
+    return undefined;
+  }
+
+  const targetPointFeature = turfPoint(location);
+
+  let minDistanceToLeg = Infinity;
+  let closestLeg: RouteLeg | undefined = undefined;
+
+  for (const leg of routeTrip.route) {
+    const startWp = leg.start.waypoint;
+    const endWp = leg.end.waypoint;
+
+    if (!startWp.location?.geometry?.coordinates || !endWp.location?.geometry?.coordinates) {
+      continue;
+    }
+
+    const legLine = lineString([
+      startWp.location.geometry.coordinates,
+      endWp.location.geometry.coordinates
+    ]);
+
+    const distance = pointToLineDistance(targetPointFeature, legLine, { units: 'nauticalmiles' });
+    if (distance < minDistanceToLeg) {
+      minDistanceToLeg = distance;
+      closestLeg = leg;
+    }
+  }
+
+  return closestLeg;
+}
+
+/**
+ * Finds the closest waypoint in a route trip to a given location.
+ *
+ * @param routeTrip - The route trip to search within.
+ * @param location - The location to find the closest waypoint to, as a [longitude, latitude] tuple.
+ * @returns The closest waypoint, or undefined if no waypoints are found or the input is invalid.
+ */
+export const closestWaypoint = (routeTrip: RouteTrip, location: [number, number]): WaypointType | undefined => {
+  if (!routeTrip || !routeTrip.route || routeTrip.route.length === 0) {
+    return undefined;
+  }
+
+  // TODO: Create a helper function to convert location to a Waypoint
+  const currentLocationAsWaypoint: Waypoint = {
+    name: 'currentLocationPoint',
+    location: {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: location
+      },
+      properties: {}
+    },
+    waypointVariant: WaypointVariant.Waypoint,
+  };
+
+  let minDistance = Infinity;
+  let closestWaypoint: WaypointType | undefined = undefined;
+
+  const uniqueWaypoints = routeTripWaypoints(routeTrip);
+  for (const wp of uniqueWaypoints) {
+    if (!wp.location?.geometry?.coordinates) {
+      continue;
+    }
+    const dist = waypointDistance(currentLocationAsWaypoint, wp);
+    if (dist < minDistance) {
+      minDistance = dist;
+      closestWaypoint = wp;
+    }
+  }
+
+  return closestWaypoint;
 }
 
 /**
