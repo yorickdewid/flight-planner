@@ -59,6 +59,9 @@ class AerodromeService {
    * @param options - Options for the AerodromeService, including maxCacheSize and repository methods.
    */
   constructor(private options: AerodromeServiceOptions) {
+    if (!options.fetchByICAO) {
+      throw new Error('AerodromeService requires a fetchByICAO method in options.');
+    }
     const { maxCacheSize = 1000 } = options;
     this.cache = new CacheService<ICAO, Aerodrome>(maxCacheSize);
   }
@@ -159,7 +162,7 @@ class AerodromeService {
     const result = await this.getByLocation(location, radius);
     await this.addToCache(result);
 
-    if (!this.cache.keys().length) return undefined;
+    if (this.cache.keys().length === 0) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO

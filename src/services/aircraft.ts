@@ -36,6 +36,9 @@ class AircraftService {
    * @param options - Options for the AircraftService, including maxCacheSize and fetchByRegistration method.
    */
   constructor(private options: AircraftServiceOptions) {
+    if (!options.fetchByRegistration) {
+      throw new Error('AircraftService requires a fetchByRegistration method in options.');
+    }
     const { maxCacheSize = 1000 } = options;
     this.cache = new CacheService<string, Aircraft>(maxCacheSize);
   }
