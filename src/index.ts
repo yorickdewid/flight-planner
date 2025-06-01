@@ -1,6 +1,12 @@
 import AerodromeService from "./services/aerodrome.js";
 import WeatherService from "./services/weather.js";
-import { UnitOptions } from "./units.js";
+import { 
+  ISA_STANDARD_PRESSURE_HPA,
+  ISA_STANDARD_PRESSURE_LAPSE_RATE,
+  ISA_STANDARD_TEMPERATURE_CELSIUS,
+  ISA_STANDARD_TEMPERATURE_LAPSE_RATE,
+  DefaultUnits
+} from "./constants.js";
 
 /**
  * Represents an ICAO (International Civil Aviation Organization) identifier,
@@ -9,40 +15,6 @@ import { UnitOptions } from "./units.js";
  * @type {string}
  */
 export type ICAO = string;
-
-/**
- * Standard atmospheric pressure at sea level in hectopascals (hPa).
- * 
- * @constant {number}
- */
-export const ISA_STANDARD_PRESSURE_HPA = 1013.25;
-
-/**
- * Standard atmospheric pressure lapse rate in the troposphere in hectopascals per meter (hPa/m).
- * 
- * @constant {number}
- */
-export const ISA_STANDARD_PRESSURE_LAPSE_RATE = 0.00012;
-
-/**
- * Standard atmospheric temperature at sea level in degrees Celsius (°C).
- * 
- * @constant {number}
- */
-export const ISA_STANDARD_TEMPERATURE_CELSIUS = 15;
-
-/**
- * Standard temperature lapse rate in the troposphere in degrees Celsius per meter (°C/m).
- * 
- * @constant {number}
- */
-export const ISA_STANDARD_TEMPERATURE_LAPSE_RATE = 0.0065;
-
-// // --- Constants (ideally in a separate file) ---
-// const SPECIFIC_GAS_CONSTANT_DRY_AIR = 287.05; // J/(kg·K)
-// const STANDARD_SEA_LEVEL_DENSITY = 1.225; // kg/m^3
-// // const TEMP_LAPSE_RATE_C_PER_1000_FT = 1.98;
-// const FT_PER_HPA_APPROX = 27.3;
 
 /**
  * Enumeration representing different flight rules categories.
@@ -61,23 +33,12 @@ export enum FlightRules {
   LIFR = 'LIFR',
 }
 
-/**
- * Default unit settings used throughout the application when specific units aren't provided.
- * Uses nautical miles for distance, knots for speed, feet for altitude, Celsius for temperature,
- * hectopascals for pressure, kilograms for weight, liters for volume, and degrees for angles.
- * 
- * @constant {UnitOptions}
- */
-export const DefaultUnits: UnitOptions = {
-  speed: 'knot',
-  distance: 'mi',
-  altitude: 'ft',
-  elevation: 'ft',
-  temperature: 'C',
-  pressure: 'hPa',
-  mass: 'kg',
-  volume: 'l',
-  angle: 'deg',
+export { 
+  ISA_STANDARD_PRESSURE_HPA,
+  ISA_STANDARD_PRESSURE_LAPSE_RATE,
+  ISA_STANDARD_TEMPERATURE_CELSIUS,
+  ISA_STANDARD_TEMPERATURE_LAPSE_RATE,
+  DefaultUnits 
 };
 
 /**
