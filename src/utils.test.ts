@@ -1,5 +1,5 @@
 // import { ReportingPoint, Aerodrome } from './airport.js';
-import { isICAO, normalizeICAO, capitalizeWords, isIATA, normalizeIATA } from './utils.js';
+import { isICAO, normalizeICAO, capitalizeWords, isIATA, normalizeIATA, generateBase32HashKey } from './utils.js';
 import { describe, it, expect } from '@jest/globals';
 // import { jest } from '@jest/globals';
 // import { point } from '@turf/turf';
@@ -128,6 +128,76 @@ describe('capitalizeWords', () => {
 
   it('should handle strings with extra spaces', () => {
     expect(capitalizeWords('  hello  world  ')).toBe('  Hello  World  ');
+  });
+});
+
+describe('generateBase32HashKey', () => {
+  it('should generate consistent hash for the same input', () => {
+    const input = 'test string';
+    const hash1 = generateBase32HashKey(input);
+    const hash2 = generateBase32HashKey(input);
+    expect(hash1).toBe(hash2);
+  });
+
+  it('should generate different hashes for different inputs', () => {
+    const hash1 = generateBase32HashKey('input1');
+    const hash2 = generateBase32HashKey('input2');
+    expect(hash1).not.toBe(hash2);
+  });
+
+  it('should generate Base32 encoded strings', () => {
+    const hash = generateBase32HashKey('test');
+    // Base32 should only contain A-Z and 2-7
+    expect(hash).toMatch(/^[A-Z2-7]+$/);
+  });
+
+  it('should handle empty string', () => {
+    const hash = generateBase32HashKey('');
+    expect(typeof hash).toBe('string');
+    expect(hash.length).toBeGreaterThan(0);
+  });
+
+  it('should handle special characters and unicode', () => {
+    const hash1 = generateBase32HashKey('Hello, World! 🌍');
+    const hash2 = generateBase32HashKey('test@example.com');
+    const hash3 = generateBase32HashKey('路由字符串测试');
+
+    expect(typeof hash1).toBe('string');
+    expect(typeof hash2).toBe('string');
+    expect(typeof hash3).toBe('string');
+    expect(hash1).not.toBe(hash2);
+    expect(hash2).not.toBe(hash3);
+  });
+
+  it('should generate hashes suitable for key-value store keys', () => {
+    const inputs = [
+      'EHAM-LFPG-2024-12-25',
+      'flight-plan-123456',
+      'weather-data-cache',
+      'user-preferences-john-doe'
+    ];
+
+    const hashes = inputs.map(input => generateBase32HashKey(input));
+
+    // All hashes should be unique
+    const uniqueHashes = new Set(hashes);
+    expect(uniqueHashes.size).toBe(inputs.length);
+
+    // All hashes should be valid Base32
+    hashes.forEach(hash => {
+      expect(hash).toMatch(/^[A-Z2-7]+$/);
+      expect(hash.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('should be case sensitive', () => {
+    const hash1 = generateBase32HashKey('Test');
+    const hash2 = generateBase32HashKey('test');
+    const hash3 = generateBase32HashKey('TEST');
+
+    expect(hash1).not.toBe(hash2);
+    expect(hash2).not.toBe(hash3);
+    expect(hash1).not.toBe(hash3);
   });
 });
 

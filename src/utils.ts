@@ -2,6 +2,11 @@ import { degreesToRadians, radiansToDegrees } from '@turf/turf';
 import { Cloud, Wind } from './metar.types.js';
 import { ISA_STANDARD_PRESSURE_HPA } from './index.js';
 import convert from 'convert-units';
+import CRC32 from 'crc-32';
+import baseX from 'base-x';
+
+// Base32 alphabet (RFC 4648)
+const BASE32 = baseX('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567');
 
 /**
  * Represents a wind vector with angle and decomposed components.
@@ -192,4 +197,21 @@ export const capitalizeWords = (text: string): string => {
     .split(' ')
     .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+/**
+ * Generates a Base32 hash key from the given input.
+ * 
+ * @param input - The input to hash
+ * @returns The Base32 hash key
+ */
+export const generateBase32HashKey = (input: string): string => {
+  const hash = CRC32.str(input);
+  const hashUint8 = new Uint8Array([
+    (hash >> 24) & 0xff,
+    (hash >> 16) & 0xff,
+    (hash >> 8) & 0xff,
+    hash & 0xff,
+  ]);
+  return BASE32.encode(hashUint8);
 }
