@@ -5,9 +5,6 @@ import convert from 'convert-units';
 import CRC32 from 'crc-32';
 import baseX from 'base-x';
 
-// Base32 alphabet (RFC 4648)
-const BASE32 = baseX('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567');
-
 /**
  * Represents a wind vector with angle and decomposed components.
  * 
@@ -206,6 +203,7 @@ export const capitalizeWords = (text: string): string => {
  * @returns The Base32 hash key
  */
 export const generateBase32HashKey = (input: string): string => {
+  const BASE32 = baseX('ABCDEFGHIJKLMNOPQRSTUVWXYZ234567');
   const hash = CRC32.str(input);
   const hashUint8 = new Uint8Array([
     (hash >> 24) & 0xff,
