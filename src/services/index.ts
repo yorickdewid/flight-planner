@@ -181,10 +181,27 @@ class PlannerService {
 
     const aircraft = await this.aircraftService.get(registration);
     if (!aircraft) {
+      // TODO: Consider throwing a custom error here
       throw new Error(`Aircraft with registration ${registration} not found`);
     }
     return aircraft;
   }
+
+  // async addAircraft(aircraft: Aircraft): Promise<void> {
+  //   if (!aircraft || !aircraft.registration) {
+  //     throw new Error('Invalid aircraft data provided');
+  //   }
+
+  //   await this.aircraftService.add(aircraft);
+  // }
+
+  // async findAircraftAll(): Promise<Aircraft[]> {
+  //   const aircrafts = await this.aircraftService.getAll();
+  //   if (!aircrafts || aircrafts.length === 0) {
+  //     throw new Error('No aircraft found');
+  //   }
+  //   return aircrafts;
+  // }
 
   /**
    * Finds aerodromes by their ICAO codes.

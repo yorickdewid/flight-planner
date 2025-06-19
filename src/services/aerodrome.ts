@@ -1,7 +1,6 @@
 import { ICAO } from "../index.js";
 import { Aerodrome } from "../waypoint.types.js";
 import { isICAO, normalizeICAO } from "../utils.js";
-import { CacheService } from "./cache.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
@@ -9,13 +8,6 @@ import { featureCollection } from '@turf/helpers';
  * Options for configuring the AerodromeService.
  */
 export interface AerodromeServiceOptions {
-  /**
-   * The maximum number of aerodromes to store in the cache.
-   * 
-   * @default 1000
-   */
-  maxCacheSize?: number
-
   /**
    * A function to fetch aerodromes by their ICAO codes.
    * 
@@ -46,61 +38,18 @@ export interface AerodromeServiceOptions {
  * AerodromeService class provides methods to manage and retrieve aerodrome data.
  * 
  * @class AerodromeService
- * @property {CacheService<ICAO, Aerodrome>} cache - Cache service for storing aerodrome data.
  * @throws Error if the repository is not set or doesn't support fetchByICAO.
  * @throws Error if no aerodromes are available and the repository doesn't support radius search.
  */
 class AerodromeService {
-  private cache: CacheService<ICAO, Aerodrome>;
-
   /**
    * Creates a new instance of the AerodromeService class.
    *
-   * @param options - Options for the AerodromeService, including maxCacheSize and repository methods.
+   * @param options - Options for the AerodromeService, including repository methods.
    */
   constructor(private options: AerodromeServiceOptions) {
     if (!options.fetchByICAO) {
       throw new Error('AerodromeService requires a fetchByICAO method in options.');
-    }
-    const { maxCacheSize = 1000 } = options;
-    this.cache = new CacheService<ICAO, Aerodrome>(maxCacheSize);
-  }
-
-  /**
-   * Returns an array of ICAO codes for the aerodromes.
-   * 
-   * @returns An array of ICAO codes.
-   */
-  keys(): ICAO[] {
-    return this.cache.keys();
-  }
-
-  /**
-   * Returns an array of aerodromes.
-   * 
-   * @returns An array of Aerodrome objects.
-   */
-  values(): Aerodrome[] {
-    return this.cache.values();
-  }
-
-  /**
-   * Adds aerodromes to the service.
-   * 
-   * @param aerodromes - An array of Aerodrome objects or a single Aerodrome object to add.
-   */
-  private async addToCache(aerodromes: Aerodrome | Aerodrome[]): Promise<void> {
-    let aerodromeArray: Aerodrome[] = [];
-    if (Array.isArray(aerodromes)) {
-      aerodromeArray = aerodromes;
-    } else {
-      aerodromeArray = [aerodromes];
-    }
-
-    for (const aerodrome of aerodromeArray) {
-      if (aerodrome.ICAO) {
-        this.cache.set(aerodrome.ICAO, aerodrome);
-      }
     }
   }
 
@@ -111,42 +60,17 @@ class AerodromeService {
    * @returns A promise that resolves to an array of Aerodrome objects, or undefined if not found.
    * @throws Error if the repository is not set or doesn't support fetchByICAO.
    */
-  async get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
+  get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) return undefined;
+      if (!validIcaoCodes.length) return Promise.resolve(undefined);
 
-      const cachedResults: Aerodrome[] = [];
-      const missingIcaoCodes: ICAO[] = [];
-
-      for (const code of validIcaoCodes) {
-        const cachedAerodrome = this.cache.get(code);
-        if (cachedAerodrome) {
-          cachedResults.push(cachedAerodrome);
-        } else {
-          missingIcaoCodes.push(code);
-        }
-      }
-
-      if (missingIcaoCodes.length > 0) {
-        const fetchedResults = await this.options.fetchByICAO(missingIcaoCodes);
-        await this.addToCache(fetchedResults);
-        return [...cachedResults, ...fetchedResults];
-      }
-
-      return cachedResults;
+      return this.options.fetchByICAO(validIcaoCodes);
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      const aerodrome = this.cache.get(icao);
-      if (aerodrome) {
-        return [aerodrome];
-      }
-
-      const result = await this.options.fetchByICAO([icao]);
-      await this.addToCache(result);
-      return result;
+      return this.options.fetchByICAO([icao]);
     }
 
-    return undefined;
+    return Promise.resolve(undefined);
   }
 
   /**
@@ -159,13 +83,13 @@ class AerodromeService {
    * @throws Error if no aerodromes are available and the repository doesn't support radius search.
    */
   async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
-    const result = await this.getByLocation(location, radius);
-    await this.addToCache(result);
+    const aerodromes = await this.getByLocation(location, radius);
 
-    if (this.cache.keys().length === 0) return undefined;
+    if (aerodromes.length === 0) return undefined;
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
-    const aerodromeCandidates = this.values().filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
+    const aerodromeCandidates = aerodromes.filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
+
     if (aerodromeCandidates.length === 0) {
       return undefined;
     }
@@ -174,7 +98,7 @@ class AerodromeService {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
     })));
 
-    return this.cache.get(nearest.properties.icao as ICAO);
+    return aerodromeCandidates.find(airport => airport.ICAO === nearest.properties.icao);
   }
 
   /**
