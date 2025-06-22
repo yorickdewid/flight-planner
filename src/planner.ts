@@ -341,7 +341,7 @@ export async function createFlightPlanFromString(
   const waypoints = await planner.parseRouteString(routeString);
   const lastWaypoint = waypoints[waypoints.length - 1];
 
-  options.aircraft = await planner.findAircraftByRegistration(aircraftRegistration)
+  options.aircraft = await planner.aircraft.findByRegistration(aircraftRegistration)
 
   await planner.attachWeatherToWaypoint(waypoints);
 

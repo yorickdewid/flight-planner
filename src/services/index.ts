@@ -4,7 +4,7 @@ import WeatherService from "./weather.js";
 
 import { Aerodrome, ReportingPoint, Waypoint } from "../waypoint.types.js";
 import { MetarStation } from "../metar.types.js";
-import { Aircraft } from "../aircraft.js";
+// import { Aircraft } from "../aircraft.js";
 
 import { isICAO } from "../utils.js";
 import { point } from '@turf/turf';
@@ -33,7 +33,7 @@ class PlannerService {
    * 
    * @returns The weather service instance used for fetching METAR data and finding nearest weather stations
    */
-  get weather() {
+  get weather(): WeatherService {
     return this.weatherService;
   }
 
@@ -42,7 +42,7 @@ class PlannerService {
    * 
    * @returns The aerodrome service instance used for looking up airports by ICAO code and location-based searches
    */
-  get aerodrome() {
+  get aerodrome(): AerodromeService {
     return this.aerodromeService;
   }
 
@@ -51,7 +51,7 @@ class PlannerService {
    * 
    * @returns The aircraft service instance used for fetching aircraft details and performance calculations
    */
-  get aircraft() {
+  get aircraft(): AircraftService {
     return this.aircraftService;
   }
 
