@@ -1,10 +1,8 @@
 import AerodromeService from "./aerodrome.js";
-import AircraftService from "./aircraft.js";
 import WeatherService from "./weather.js";
 
 import { Aerodrome, ReportingPoint, Waypoint } from "../waypoint.types.js";
 import { MetarStation } from "../metar.types.js";
-// import { Aircraft } from "../aircraft.js";
 
 import { isICAO } from "../utils.js";
 import { point } from '@turf/turf';
@@ -19,41 +17,11 @@ class PlannerService {
    *                         Used to get wind information and other meteorological conditions
    * @param aerodromeService - Aerodrome service for fetching airport and airfield data
    *                           Used to look up airports by ICAO code and retrieve their information
-   * @param aircraftService - Aircraft service for managing aircraft data
-   *                          Used to fetch aircraft details and calculate performance metrics
    */
   constructor(
     private weatherService: WeatherService,
     private aerodromeService: AerodromeService,
-    private aircraftService: AircraftService,
   ) { }
-
-  /**
-   * Gets the weather service instance for retrieving meteorological data
-   * 
-   * @returns The weather service instance used for fetching METAR data and finding nearest weather stations
-   */
-  get weather(): WeatherService {
-    return this.weatherService;
-  }
-
-  /**
-   * Gets the aerodrome service instance for managing airport and airfield data
-   * 
-   * @returns The aerodrome service instance used for looking up airports by ICAO code and location-based searches
-   */
-  get aerodrome(): AerodromeService {
-    return this.aerodromeService;
-  }
-
-  /**
-   * Gets the aircraft service instance for managing aircraft data
-   * 
-   * @returns The aircraft service instance used for fetching aircraft details and performance calculations
-   */
-  get aircraft(): AircraftService {
-    return this.aircraftService;
-  }
 
   /**
    * Attaches relevant weather data to waypoints by fetching METAR information

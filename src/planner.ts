@@ -1,4 +1,4 @@
-import { PlannerService } from './index.js';
+import { AircraftService, PlannerService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
@@ -333,17 +333,18 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
  * @returns A promise that resolves to a RouteTrip object representing the flight plan.
  */
 export async function createFlightPlanFromString(
-  planner: PlannerService,
+  plannerService: PlannerService,
+  aircrafService: AircraftService,
   routeString: string,
   aircraftRegistration: string,
   options: RouteOptions = {}
 ): Promise<RouteTrip> {
-  const waypoints = await planner.parseRouteString(routeString);
+  const waypoints = await plannerService.parseRouteString(routeString);
   const lastWaypoint = waypoints[waypoints.length - 1];
 
-  options.aircraft = await planner.aircraft.findByRegistration(aircraftRegistration)
+  options.aircraft = await aircrafService.findByRegistration(aircraftRegistration)
 
-  await planner.attachWeatherToWaypoint(waypoints);
+  await plannerService.attachWeatherToWaypoint(waypoints);
 
   // TODO: Improve this logic to find the alternate aerodrome
   // - Consider factors like runway length, instrument approaches, and services available.
@@ -351,9 +352,9 @@ export async function createFlightPlanFromString(
   if (!options.alternate) {
     const alternateRadius = options.alternateRadius ?? 50; // Use option if provided, otherwise default to 50
     const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
-    const alternate = await planner.findNearestAerodrome(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
+    const alternate = await plannerService.findNearestAerodrome(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
     if (alternate) {
-      await planner.attachWeatherToWaypoint([alternate]);
+      await plannerService.attachWeatherToWaypoint([alternate]);
       options.alternate = alternate;
     }
   }
