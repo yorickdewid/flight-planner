@@ -58,7 +58,7 @@ class AircraftService {
    * @param registration - The registration of the aircraft to retrieve.
    * @returns A promise that resolves to the Aircraft object or undefined if not found.
    */
-  async findByRegistration(registration: string): Promise<Aircraft | undefined> {
+  async findByRegistration(registration: string): Promise<Aircraft> {
     if (!isAircraftRegistration(registration)) {
       throw new Error(`Invalid aircraft registration: ${registration}`);
     }
@@ -68,7 +68,8 @@ class AircraftService {
     if (results && results.length > 0) {
       return results[0];
     }
-    return undefined;
+
+    throw new Error(`Aircraft with registration ${registration} not found.`);
   }
 
   /**

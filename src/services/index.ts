@@ -194,55 +194,6 @@ class PlannerService {
     return metar;
   }
 
-  // /**
-  //  * Find aircraft by its registration number.
-  //  * 
-  //  * @param registration - The registration number of the aircraft to find.
-  //  * @returns A promise that resolves to the Aircraft object if found, or undefined if not found.
-  //  * @throws Error if the provided registration is invalid.
-  //  */
-  // async findAircraftByRegistration(registration: string): Promise<Aircraft> {
-  //   if (!registration || typeof registration !== 'string') {
-  //     throw new Error('Invalid aircraft registration provided');
-  //   }
-
-  //   const aircraft = await this.aircraftService.findByRegistration(registration);
-  //   if (!aircraft) {
-  //     // TODO: Consider throwing a custom error here
-  //     throw new Error(`Aircraft with registration ${registration} not found`);
-  //   }
-  //   return aircraft;
-  // }
-
-  // /**
-  //  * Creates a new aircraft in the service.
-  //  * 
-  //  * @param aircraft - The Aircraft object to add.
-  //  * @returns A promise that resolves when the aircraft is added.
-  //  * @throws Error if the provided aircraft data is invalid.
-  //  */
-  // async createAircraft(aircraft: Aircraft): Promise<void> {
-  //   if (!aircraft || !aircraft.registration) {
-  //     throw new Error('Invalid aircraft data provided');
-  //   }
-
-  //   await this.aircraftService.create(aircraft);
-  // }
-
-  // /**
-  //  * Finds all aircraft in the service.
-  //  * 
-  //  * @returns A promise that resolves to an array of Aircraft objects.
-  //  * @throws Error if no aircraft are found.
-  //  */
-  // async findAircraftAll(): Promise<Aircraft[]> {
-  //   const aircrafts = await this.aircraftService.findAll();
-  //   if (!aircrafts || aircrafts.length === 0) {
-  //     throw new Error('No aircraft found');
-  //   }
-  //   return aircrafts;
-  // }
-
   /**
    * Finds aerodromes by their ICAO codes.
    *
