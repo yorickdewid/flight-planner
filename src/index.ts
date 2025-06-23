@@ -71,6 +71,7 @@ export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js"
  * Service-related exports for handling weather and aerodrome data.
  */
 export { AerodromeService, WeatherService };
+export type { AerodromeRepository } from "./repositories/aerodrome.repository.js";
 export { default as PlannerService } from "./services/index.js";
 
 /**

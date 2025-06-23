@@ -1,55 +1,26 @@
 import { ICAO } from "../index.js";
 import { Aerodrome } from "../waypoint.types.js";
+import { AerodromeRepository } from "../repositories/aerodrome.repository.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
 /**
- * Options for configuring the AerodromeService.
- */
-export interface AerodromeServiceOptions {
-  /**
-   * A function to fetch aerodromes by their ICAO codes.
-   * 
-   * @param icao - An array of ICAO codes.
-   * @returns A promise that resolves to an array of Aerodrome objects.
-   */
-  fetchByICAO(icao: readonly ICAO[]): Promise<Aerodrome[]>;
-
-  /**
-   * An optional function to fetch aerodromes within a bounding box.
-   * 
-   * @param bbox - A GeoJSON BBox object.
-   * @returns A promise that resolves to an array of Aerodrome objects.
-   */
-  fetchByBbox?(bbox: GeoJSON.BBox): Promise<Aerodrome[]>;
-
-  /**
-   * An optional function to fetch aerodromes within a radius of a location.
-   * 
-   * @param location - A GeoJSON Position object representing the center of the search.
-   * @param distance - The radius in kilometers.
-   * @returns A promise that resolves to an array of Aerodrome objects.
-   */
-  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<Aerodrome[]>;
-}
-
-/**
  * AerodromeService class provides methods to manage and retrieve aerodrome data.
+ * Acts as a service layer that handles business logic and validation.
  * 
  * @class AerodromeService
- * @throws Error if the repository is not set or doesn't support fetchByICAO.
- * @throws Error if no aerodromes are available and the repository doesn't support radius search.
+ * @throws Error if the repository is not provided.
  */
 class AerodromeService {
   /**
    * Creates a new instance of the AerodromeService class.
    *
-   * @param options - Options for the AerodromeService, including repository methods.
+   * @param repository - The aerodrome repository for data operations.
    */
-  constructor(private options: AerodromeServiceOptions) {
-    if (!options.fetchByICAO) {
-      throw new Error('AerodromeService requires a fetchByICAO method in options.');
+  constructor(private repository: AerodromeRepository) {
+    if (!repository) {
+      throw new Error('AerodromeService requires a repository instance.');
     }
   }
 
@@ -58,19 +29,21 @@ class AerodromeService {
    *
    * @param icao - A single ICAO code or an array of ICAO codes to search for.
    * @returns A promise that resolves to an array of Aerodrome objects, or undefined if not found.
-   * @throws Error if the repository is not set or doesn't support fetchByICAO.
+   * @throws Error if invalid ICAO codes are provided.
    */
-  get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
+  async get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) return Promise.resolve(undefined);
+      if (!validIcaoCodes.length) return undefined;
 
-      return this.options.fetchByICAO(validIcaoCodes);
+      const result = await this.repository.findByICAO(validIcaoCodes);
+      return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      return this.options.fetchByICAO([icao]);
+      const result = await this.repository.findByICAO([icao]);
+      return result.length > 0 ? result : undefined;
     }
 
-    return Promise.resolve(undefined);
+    return undefined;
   }
 
   /**
@@ -106,7 +79,7 @@ class AerodromeService {
    * 
    * @param location - The location coordinates [longitude, latitude].
    * @param radius - The radius in kilometers (default: 100, max: 1000).
-   * @returns A promise that resolves to an array of data.
+   * @returns A promise that resolves to an array of aerodromes.
    */
   async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
     if (!Array.isArray(location) || location.length < 2 ||
@@ -115,24 +88,63 @@ class AerodromeService {
     }
 
     const radiusRange = Math.min(1000, Math.max(1, radius));
-    const resultList: Aerodrome[] = [];
 
-    if (this.options.fetchByRadius) {
-      const result = await this.options.fetchByRadius(location, radiusRange);
-      resultList.push(...result);
-    } else if (this.options.fetchByBbox) {
-      const locationPoint = point(location);
-      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
-      if (buffered) {
-        const searchBbox = bbox(buffered) as GeoJSON.BBox;
-        const result = await this.options.fetchByBbox(searchBbox);
-        resultList.push(...result);
+    try {
+      return await this.repository.findByRadius(location, radiusRange);
+    } catch (error) {
+      try {
+        const locationPoint = point(location);
+        const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
+        if (buffered) {
+          const searchBbox = bbox(buffered) as GeoJSON.BBox;
+          return await this.repository.findByBbox(searchBbox);
+        }
+        return [];
+      } catch (bboxError) {
+        throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
       }
-    } else {
-      throw new Error('This service does not implement fetchByRadius or fetchByBbox. At least one of these methods must be implemented to use fetchByLocation.');
+    }
+  }
+
+  /**
+   * Finds a single aerodrome by its ICAO code.
+   * 
+   * @param icaoCode - The ICAO code to search for.
+   * @returns A promise that resolves to the Aerodrome object or null if not found.
+   * @throws Error if the ICAO code is invalid.
+   */
+  async findOne(icaoCode: string): Promise<Aerodrome | null> {
+    if (!isICAO(icaoCode)) {
+      throw new Error(`Invalid ICAO code: ${icaoCode}`);
     }
 
-    return resultList;
+    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
+    return await this.repository.findOne(normalizedIcao);
+  }
+
+  /**
+   * Checks if an aerodrome exists.
+   * 
+   * @param icaoCode - The ICAO code of the aerodrome to check.
+   * @returns A promise that resolves to true if the aerodrome exists, false otherwise.
+   * @throws Error if the ICAO code is invalid.
+   */
+  async exists(icaoCode: string): Promise<boolean> {
+    if (!isICAO(icaoCode)) {
+      throw new Error(`Invalid ICAO code: ${icaoCode}`);
+    }
+
+    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
+    return await this.repository.exists(normalizedIcao);
+  }
+
+  /**
+   * Retrieves all aerodromes.
+   * 
+   * @returns A promise that resolves to an array of all Aerodrome objects.
+   */
+  async findAll(): Promise<Aerodrome[]> {
+    return await this.repository.findAll();
   }
 }
 
