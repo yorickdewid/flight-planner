@@ -91,7 +91,7 @@ class AerodromeService {
 
     try {
       return await this.repository.findByRadius(location, radiusRange);
-    } catch (error) {
+    } catch {
       try {
         const locationPoint = point(location);
         const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
@@ -100,7 +100,7 @@ class AerodromeService {
           return await this.repository.findByBbox(searchBbox);
         }
         return [];
-      } catch (bboxError) {
+      } catch {
         throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
       }
     }
