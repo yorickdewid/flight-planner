@@ -1,6 +1,6 @@
 import AerodromeService from "./services/aerodrome.js";
 import WeatherService from "./services/weather.js";
-import { 
+import {
   ISA_STANDARD_PRESSURE_HPA,
   ISA_STANDARD_PRESSURE_LAPSE_RATE,
   ISA_STANDARD_TEMPERATURE_CELSIUS,
@@ -33,12 +33,12 @@ export enum FlightRules {
   LIFR = 'LIFR',
 }
 
-export { 
+export {
   ISA_STANDARD_PRESSURE_HPA,
   ISA_STANDARD_PRESSURE_LAPSE_RATE,
   ISA_STANDARD_TEMPERATURE_CELSIUS,
   ISA_STANDARD_TEMPERATURE_LAPSE_RATE,
-  DefaultUnits 
+  DefaultUnits
 };
 
 /**
@@ -76,6 +76,7 @@ export { default as PlannerService } from "./services/index.js";
 /**
  * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.
  */
+export type { AircraftRepository } from "./repositories/aircraft.repository.js";
 export { default as AircraftService } from "./services/aircraft.js";
 
 /**

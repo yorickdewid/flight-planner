@@ -1,54 +1,19 @@
 import { Aircraft, aircraftNormalizeRegistration, isAircraftRegistration } from "../aircraft.js";
-
-/**
- * Options for configuring the AircraftService.
- */
-export interface AircraftServiceOptions {
-  /**
-   * A function to fetch aircraft by their registrations.
-   * 
-   * @param registration - An array of aircraft registrations.
-   * @returns A promise that resolves to an array of Aircraft objects.
-   */
-  fetchByRegistration(registration: readonly string[]): Promise<Aircraft[]>;
-
-  /**
-   * An optional function to create/add an aircraft to the service.
-   * 
-   * @param aircraft - The Aircraft object to create.
-   * @returns A promise that resolves when the aircraft is created.
-   */
-  create?(aircraft: Aircraft): Promise<void>;
-
-  /**
-   * An optional function to update an aircraft in the service.
-   * 
-   * @param aircraft - The Aircraft object to update.
-   * @returns A promise that resolves when the aircraft is updated.
-   */
-  update?(aircraft: Aircraft): Promise<void>;
-
-  /**
-   * An optional function to delete an aircraft from the service.
-   * 
-   * @param registration - The registration of the aircraft to delete.
-   * @returns A promise that resolves when the aircraft is deleted.
-   */
-  delete?(registration: string): Promise<void>;
-}
+import { AircraftRepository } from "../repositories/aircraft.repository.js";
 
 /**
  * AircraftService class provides methods to manage and retrieve aircraft data.
+ * Acts as a service layer that handles business logic and validation.
  */
 class AircraftService {
   /**
    * Creates a new instance of the AircraftService class.
    * 
-   * @param options - Options for the AircraftService, including fetchByRegistration method.
+   * @param repository - The aircraft repository for data operations.
    */
-  constructor(private options: AircraftServiceOptions) {
-    if (!options.fetchByRegistration) {
-      throw new Error('AircraftService requires a fetchByRegistration method in options.');
+  constructor(private repository: AircraftRepository) {
+    if (!repository) {
+      throw new Error('AircraftService requires a repository instance.');
     }
   }
 
@@ -56,7 +21,8 @@ class AircraftService {
    * Retrieves an aircraft by its registration.
    * 
    * @param registration - The registration of the aircraft to retrieve.
-   * @returns A promise that resolves to the Aircraft object or undefined if not found.
+   * @returns A promise that resolves to the Aircraft object.
+   * @throws Error if the registration is invalid or aircraft is not found.
    */
   async findByRegistration(registration: string): Promise<Aircraft> {
     if (!isAircraftRegistration(registration)) {
@@ -64,31 +30,33 @@ class AircraftService {
     }
 
     const normalizedRegistration = aircraftNormalizeRegistration(registration);
-    const results = await this.options.fetchByRegistration([normalizedRegistration]);
-    if (results && results.length > 0) {
-      return results[0];
+    const aircraft = await this.repository.findByRegistration(normalizedRegistration);
+
+    if (!aircraft) {
+      throw new Error(`Aircraft with registration ${registration} not found.`);
     }
 
-    throw new Error(`Aircraft with registration ${registration} not found.`);
+    return aircraft;
   }
 
   /**
    * Creates a new aircraft in the service.
    * 
    * @param aircraft - The Aircraft object to create.
-   * @returns A promise that resolves when the aircraft is created.
-   * @throws Error if the service does not support creating aircraft or if the registration is invalid.
+   * @returns A promise that resolves to the created Aircraft object.
+   * @throws Error if the registration is invalid.
    */
-  async create(aircraft: Aircraft): Promise<void> {
-    if (!this.options.create) {
-      throw new Error('AircraftService does not support creating aircraft.');
-    }
-
+  async create(aircraft: Aircraft): Promise<Aircraft> {
     if (!aircraft.registration || !isAircraftRegistration(aircraft.registration)) {
       throw new Error(`Invalid aircraft registration: ${aircraft.registration}`);
     }
 
-    await this.options.create(aircraft);
+    const normalizedAircraft = {
+      ...aircraft,
+      registration: aircraftNormalizeRegistration(aircraft.registration)
+    };
+
+    return await this.repository.create(normalizedAircraft);
   }
 
   /**
@@ -97,47 +65,59 @@ class AircraftService {
    * @returns A promise that resolves to an array of Aircraft objects.
    */
   async findAll(): Promise<Aircraft[]> {
-    const registrations = await this.options.fetchByRegistration([]);
-    return registrations;
+    return await this.repository.findAll();
   }
 
   /**
    * Updates an existing aircraft in the service.
    * 
    * @param aircraft - The Aircraft object to update.
-   * @returns A promise that resolves when the aircraft is updated.
-   * @throws Error if the service does not support updating aircraft or if the registration is invalid.
+   * @returns A promise that resolves to the updated Aircraft object.
+   * @throws Error if the registration is invalid.
    */
-  async update(aircraft: Aircraft): Promise<void> {
-    if (!this.options.update) {
-      throw new Error('AircraftService does not support updating aircraft.');
-    }
-
+  async update(aircraft: Aircraft): Promise<Aircraft> {
     if (!aircraft.registration || !isAircraftRegistration(aircraft.registration)) {
       throw new Error(`Invalid aircraft registration: ${aircraft.registration}`);
     }
 
-    await this.options.update(aircraft);
+    const normalizedAircraft = {
+      ...aircraft,
+      registration: aircraftNormalizeRegistration(aircraft.registration)
+    };
+
+    return await this.repository.update(normalizedAircraft);
   }
 
   /**
    * Deletes an aircraft from the service.
    * 
    * @param registration - The registration of the aircraft to delete.
-   * @returns A promise that resolves when the aircraft is deleted.
-   * @throws Error if the service does not support deleting aircraft or if the registration is invalid.
+   * @returns A promise that resolves to true if the aircraft was deleted, false if not found.
+   * @throws Error if the registration is invalid.
    */
-  async delete(registration: string): Promise<void> {
-    if (!this.options.delete) {
-      throw new Error('AircraftService does not support deleting aircraft.');
-    }
-
+  async delete(registration: string): Promise<boolean> {
     if (!isAircraftRegistration(registration)) {
       throw new Error(`Invalid aircraft registration: ${registration}`);
     }
 
     const normalizedRegistration = aircraftNormalizeRegistration(registration);
-    await this.options.delete(normalizedRegistration);
+    return await this.repository.delete(normalizedRegistration);
+  }
+
+  /**
+   * Checks if an aircraft exists in the service.
+   * 
+   * @param registration - The registration of the aircraft to check.
+   * @returns A promise that resolves to true if the aircraft exists, false otherwise.
+   * @throws Error if the registration is invalid.
+   */
+  async exists(registration: string): Promise<boolean> {
+    if (!isAircraftRegistration(registration)) {
+      throw new Error(`Invalid aircraft registration: ${registration}`);
+    }
+
+    const normalizedRegistration = aircraftNormalizeRegistration(registration);
+    return await this.repository.exists(normalizedRegistration);
   }
 }
 
