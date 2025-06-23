@@ -2,36 +2,7 @@ import { ICAO, MetarStation } from "../index.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
-
-/**
- * Options for configuring the WeatherService.
- */
-export interface WeatherServiceOptions {
-  /**
-   * Fetches METAR stations by ICAO codes.
-   * 
-   * @param icao - An array of ICAO codes.
-   * @returns A promise that resolves to an array of METAR stations.
-   */
-  fetchByICAO(icao: readonly ICAO[]): Promise<MetarStation[]>;
-
-  /**
-   * Fetches METAR stations by bounding box.
-   * 
-   * @param bbox - A GeoJSON bounding box.
-   * @returns A promise that resolves to an array of METAR stations.
-   */
-  fetchByBbox?(bbox: GeoJSON.BBox): Promise<MetarStation[]>;
-
-  /**
-   * Fetches METAR stations by radius from a location.
-   * 
-   * @param location - A GeoJSON position (longitude, latitude).
-   * @param distance - The radius in kilometers.
-   * @returns A promise that resolves to an array of METAR stations.
-   */
-  fetchByRadius?(location: GeoJSON.Position, distance: number): Promise<MetarStation[]>;
-}
+import { WeatherRepository } from "../repositories/weather.repository.js";
 
 /**
  * WeatherService class provides methods to manage and retrieve METAR station data.
@@ -40,7 +11,17 @@ export interface WeatherServiceOptions {
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
 class WeatherService {
-  constructor(private options: WeatherServiceOptions) { }
+  /**
+   * Creates a new instance of the WeatherService class.
+   * 
+   * @param repository - The weather repository for data operations.
+   * @throws Error if the repository is not provided.
+   */
+  constructor(private repository: WeatherRepository) {
+    if (!repository) {
+      throw new Error('WeatherService requires a repository instance.');
+    }
+  }
 
   /**
    * Finds METAR station(s) by ICAO code(s).
@@ -54,10 +35,10 @@ class WeatherService {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
 
-      const result = await this.options.fetchByICAO(validIcaoCodes);
+      const result = await this.repository.findByICAO(validIcaoCodes);
       return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      const result = await this.options.fetchByICAO([icao]);
+      const result = await this.repository.findByICAO([icao]);
       return result.length > 0 ? result : undefined;
     }
 
@@ -109,24 +90,53 @@ class WeatherService {
     }
 
     const radiusRange = Math.min(1000, Math.max(1, radius));
-    const resultList: MetarStation[] = [];
 
-    if (this.options.fetchByRadius) {
-      const result = await this.options.fetchByRadius(location, radiusRange);
-      resultList.push(...result);
-    } else if (this.options.fetchByBbox) {
+    if (this.repository.findByRadius) {
+      return await this.repository.findByRadius(location, radiusRange);
+    }
+
+    if (this.repository.findByBbox) {
       const locationPoint = point(location);
       const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
       if (buffered) {
         const searchBbox = bbox(buffered) as GeoJSON.BBox;
-        const result = await this.options.fetchByBbox(searchBbox);
-        resultList.push(...result);
+        return await this.repository.findByBbox(searchBbox);
       }
-    } else {
-      throw new Error('This service does not implement fetchByRadius or fetchByBbox. At least one of these methods must be implemented to use fetchByLocation.');
     }
 
-    return resultList;
+    throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
+  }
+
+  /**
+   * Finds a single METAR station by its ICAO code.
+   * 
+   * @param icaoCode - The ICAO code to search for.
+   * @returns A promise that resolves to the MetarStation object or null if not found.
+   * @throws Error if the ICAO code is invalid.
+   */
+  async findOne(icaoCode: string): Promise<MetarStation | null> {
+    if (!isICAO(icaoCode)) {
+      throw new Error(`Invalid ICAO code: ${icaoCode}`);
+    }
+
+    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
+    return await this.repository.findOne(normalizedIcao);
+  }
+
+  /**
+   * Checks if a METAR station exists.
+   * 
+   * @param icaoCode - The ICAO code of the METAR station to check.
+   * @returns A promise that resolves to true if the METAR station exists, false otherwise.
+   * @throws Error if the ICAO code is invalid.
+   */
+  async exists(icaoCode: string): Promise<boolean> {
+    if (!isICAO(icaoCode)) {
+      throw new Error(`Invalid ICAO code: ${icaoCode}`);
+    }
+
+    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
+    return await this.repository.exists(normalizedIcao);
   }
 }
 

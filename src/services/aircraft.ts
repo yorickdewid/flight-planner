@@ -10,6 +10,7 @@ class AircraftService {
    * Creates a new instance of the AircraftService class.
    * 
    * @param repository - The aircraft repository for data operations.
+   * @throws Error if the repository is not provided.
    */
   constructor(private repository: AircraftRepository) {
     if (!repository) {

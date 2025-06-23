@@ -17,6 +17,7 @@ class AerodromeService {
    * Creates a new instance of the AerodromeService class.
    *
    * @param repository - The aerodrome repository for data operations.
+   * @throws Error if the repository is not provided.
    */
   constructor(private repository: AerodromeRepository) {
     if (!repository) {
