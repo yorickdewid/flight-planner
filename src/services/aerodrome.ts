@@ -89,20 +89,24 @@ class AerodromeService {
 
     const radiusRange = Math.min(1000, Math.max(1, radius));
 
-    try {
-      return await this.repository.findByRadius(location, radiusRange);
-    } catch {
+    if (this.repository.findByRadius) {
       try {
-        const locationPoint = point(location);
-        const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
-        if (buffered) {
-          const searchBbox = bbox(buffered) as GeoJSON.BBox;
-          return await this.repository.findByBbox(searchBbox);
-        }
-        return [];
+        return await this.repository.findByRadius(location, radiusRange);
       } catch {
-        throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
+        // If findByRadius fails, fall back to bbox method
       }
+    }
+
+    try {
+      const locationPoint = point(location);
+      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
+      if (buffered) {
+        const searchBbox = bbox(buffered) as GeoJSON.BBox;
+        return await this.repository.findByBbox(searchBbox);
+      }
+      return [];
+    } catch {
+      throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
     }
   }
 
@@ -136,15 +140,6 @@ class AerodromeService {
 
     const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
     return await this.repository.exists(normalizedIcao);
-  }
-
-  /**
-   * Retrieves all aerodromes.
-   * 
-   * @returns A promise that resolves to an array of all Aerodrome objects.
-   */
-  async findAll(): Promise<Aerodrome[]> {
-    return await this.repository.findAll();
   }
 }
 

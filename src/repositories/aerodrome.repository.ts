@@ -23,20 +23,13 @@ export interface AerodromeRepository {
   findByBbox(bbox: GeoJSON.BBox): Promise<Aerodrome[]>;
 
   /**
-   * Finds aerodromes within a radius of a location.
+   * Finds aerodromes within a specified radius of a geographical location.
    * 
-   * @param location - A GeoJSON Position object representing the center of the search.
-   * @param distance - The radius in kilometers.
-   * @returns A promise that resolves to an array of Aerodrome objects within the radius.
+   * @param location - The geographical coordinates [longitude, latitude].
+   * @param distance - The search radius in kilometers.
+   * @returns A promise that resolves to an array of Aerodrome objects within the specified radius.
    */
-  findByRadius(location: GeoJSON.Position, distance: number): Promise<Aerodrome[]>;
-
-  /**
-   * Retrieves all aerodromes from the repository.
-   * 
-   * @returns A promise that resolves to an array of all Aerodrome objects.
-   */
-  findAll(): Promise<Aerodrome[]>;
+  findByRadius?(location: GeoJSON.Position, distance: number): Promise<Aerodrome[]>;
 
   /**
    * Finds a single aerodrome by its ICAO code.
