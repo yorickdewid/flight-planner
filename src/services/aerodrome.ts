@@ -34,13 +34,14 @@ class AerodromeService {
    */
   async get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
     if (Array.isArray(icao)) {
-      const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)) as ICAO[];
+      const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
 
       const result = await this.repository.findByICAO(validIcaoCodes);
       return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
-      const result = await this.repository.findByICAO([icao]);
+      const normalizedIcao = normalizeICAO(icao) as ICAO;
+      const result = await this.repository.findByICAO([normalizedIcao]);
       return result.length > 0 ? result : undefined;
     }
 
