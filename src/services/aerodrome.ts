@@ -90,24 +90,19 @@ class AerodromeService {
     const radiusRange = Math.min(1000, Math.max(1, radius));
 
     if (this.repository.findByRadius) {
-      try {
-        return await this.repository.findByRadius(location, radiusRange);
-      } catch {
-        // If findByRadius fails, fall back to bbox method
-      }
+      return await this.repository.findByRadius(location, radiusRange);
     }
 
-    try {
+    if (this.repository.findByBbox) {
       const locationPoint = point(location);
       const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
       if (buffered) {
         const searchBbox = bbox(buffered) as GeoJSON.BBox;
         return await this.repository.findByBbox(searchBbox);
       }
-      return [];
-    } catch {
-      throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
     }
+
+    throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
   }
 
   /**

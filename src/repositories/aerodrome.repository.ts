@@ -20,7 +20,7 @@ export interface AerodromeRepository {
    * @param bbox - A GeoJSON BBox object defining the search area.
    * @returns A promise that resolves to an array of Aerodrome objects within the bounding box.
    */
-  findByBbox(bbox: GeoJSON.BBox): Promise<Aerodrome[]>;
+  findByBbox?(bbox: GeoJSON.BBox): Promise<Aerodrome[]>;
 
   /**
    * Finds aerodromes within a specified radius of a geographical location.
