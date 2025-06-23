@@ -9,6 +9,16 @@ import {
 } from "./constants.js";
 
 /**
+ * Flight planning library for aviation applications.
+ * 
+ * @module flight-planner
+ */
+
+// =============================================================================
+// CORE TYPES AND CONSTANTS
+// =============================================================================
+
+/**
  * Represents an ICAO (International Civil Aviation Organization) identifier,
  * typically used for airports, navigation aids, or weather stations.
  * 
@@ -33,6 +43,9 @@ export enum FlightRules {
   LIFR = 'LIFR',
 }
 
+/**
+ * International Standard Atmosphere (ISA) constants and default units.
+ */
 export {
   ISA_STANDARD_PRESSURE_HPA,
   ISA_STANDARD_PRESSURE_LAPSE_RATE,
@@ -41,49 +54,70 @@ export {
   DefaultUnits
 };
 
-/**
- * Exports various utility functions and types for flight planning and weather information.
- * 
- * @module flight-planner
- */
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
 
+/**
+ * Utility functions for identifier normalization and validation.
+ */
 export { normalizeICAO, isICAO, isIATA, normalizeIATA } from "./utils.js";
 
+// =============================================================================
+// WEATHER & METAR
+// =============================================================================
+
 /**
- * Weather-related exports including flight rules, METAR data, and formatting functions.
+ * Weather-related types and data structures.
  */
 export type { MetarStation, Metar } from "./metar.types.js";
+
+/**
+ * METAR parsing and weather data functions.
+ */
 export * from "./metar.js";
 
 /**
- * Formatting exports
+ * Weather data formatting functions.
  */
 export { formatWind, formatVisibility, formatCloud } from "./format.js";
 
+// =============================================================================
+// WAYPOINTS & AERODROMES
+// =============================================================================
+
 /**
- * Airport and navigation-related exports including waypoints, reporting points, and airport information.
+ * Waypoint, airport, and navigation-related types.
  */
 export type * from "./waypoint.types.js";
 export { RunwaySurface, FrequencyType, WaypointVariant } from "./waypoint.types.js";
+
+/**
+ * Waypoint and airport utility functions.
+ */
 export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js";
 
-/**
- * Service-related exports for handling weather and aerodrome data.
- */
-export { AerodromeService, WeatherService };
-export type { AerodromeRepository } from "./repositories/aerodrome.repository.js";
-export { default as PlannerService } from "./services/index.js";
+// =============================================================================
+// AIRCRAFT
+// =============================================================================
 
 /**
- * Aircraft-related exports including aircraft types, registration normalization, and aircraft service.
+ * Aircraft-related repository interface.
  */
 export type { AircraftRepository } from "./repositories/aircraft.repository.js";
-export { default as AircraftService } from "./services/aircraft.js";
+
+// =============================================================================
+// FLIGHT PLANNING & ROUTES
+// =============================================================================
 
 /**
- * Route planning exports including route options, legs, trips, and planning functions.
+ * Route planning types and data structures.
  */
-export type { RouteOptions, RouteLeg, RouteTrip, } from "./planner.js";
+export type { RouteOptions, RouteLeg, RouteTrip } from "./planner.js";
+
+/**
+ * Route planning and flight plan functions.
+ */
 export {
   routeTripWaypoints,
   routeTripDepartureWaypoint,
@@ -93,7 +127,24 @@ export {
 } from "./planner.js";
 
 /**
- * Route plan advisory exports including validation and error checking for route trips.
+ * Route validation and advisory functions.
  */
 export type { Advisory } from "./advisor.js";
 export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
+
+// =============================================================================
+// SERVICES & REPOSITORIES
+// =============================================================================
+
+/**
+ * Core service classes for aerodrome, weather, aircraft, and planning operations.
+ */
+export { AerodromeService, WeatherService };
+export { default as AircraftService } from "./services/aircraft.js";
+export { default as PlannerService } from "./services/index.js";
+
+/**
+ * Repository interfaces for data access abstraction.
+ */
+export type { AerodromeRepository } from "./repositories/aerodrome.repository.js";
+export type { WeatherRepository } from "./repositories/weather.repository.js";
