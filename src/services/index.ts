@@ -34,7 +34,7 @@ class PlannerService {
    */
   async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
     const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
-    const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
+    // const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
 
     if (reassign) {
       for (const aerodrome of aerodromes) {
@@ -42,24 +42,24 @@ class PlannerService {
       }
     }
 
-    if (icaoCodes.length > 0) {
-      try {
-        const stations = await this.weatherService.findMany(icaoCodes);
-        if (stations?.length) {
-          const stationMap = new Map<string, MetarStation>();
-          for (const station of stations) {
-            stationMap.set(station.station, station);
-          }
+    // if (icaoCodes.length > 0) {
+    //   try {
+    //     const stations = await this.weatherService.findMany(icaoCodes);
+    //     if (stations?.length) {
+    //       const stationMap = new Map<string, MetarStation>();
+    //       for (const station of stations) {
+    //         stationMap.set(station.station, station);
+    //       }
 
-          for (const aerodrome of aerodromes) {
-            const station = stationMap.get(aerodrome.ICAO!);
-            if (station) {
-              aerodrome.metarStation = station;
-            }
-          }
-        }
-      } catch { }
-    }
+    //       for (const aerodrome of aerodromes) {
+    //         const station = stationMap.get(aerodrome.ICAO!);
+    //         if (station) {
+    //           aerodrome.metarStation = station;
+    //         }
+    //       }
+    //     }
+    //   } catch { }
+    // }
 
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
