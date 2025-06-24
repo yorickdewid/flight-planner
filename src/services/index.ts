@@ -2,7 +2,7 @@ import AerodromeService from "./aerodrome.js";
 import WeatherService from "./weather.js";
 
 import { Aerodrome, ReportingPoint, Waypoint } from "../waypoint.types.js";
-import { MetarStation } from "../metar.types.js";
+// import { MetarStation } from "../metar.types.js";
 
 import { isICAO } from "../utils.js";
 import { point } from '@turf/turf';
