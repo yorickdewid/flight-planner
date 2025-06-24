@@ -24,38 +24,43 @@ class WeatherService {
   }
 
   /**
-   * Finds METAR station(s) by ICAO code(s).
+   * Finds a single METAR station by ICAO code.
    *
-   * @param icao - A single ICAO code or an array of ICAO codes to search for.
-   * @returns A promise that resolves to:
-   *   - A single MetarStation object when a string is provided
-   *   - An array of MetarStation objects when an array is provided
-   * @throws Error if invalid ICAO codes are provided or if no stations are found.
+   * @param icao - The ICAO code to search for.
+   * @returns A promise that resolves to a MetarStation object.
+   * @throws Error if the ICAO code is invalid or if no station is found.
    */
-  async findOne(icao: string): Promise<MetarStation>;
-  async findOne(icao: string[]): Promise<MetarStation[]>;
-  async findOne(icao: string | string[]): Promise<MetarStation | MetarStation[]> {
-    if (Array.isArray(icao)) {
-      const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) {
-        throw new Error(`No valid ICAO codes provided: ${icao.join(', ')}`);
-      }
-
-      const result = await this.repository.findByICAO(validIcaoCodes);
-      if (result.length === 0) {
-        throw new Error(`No METAR stations found for ICAO codes: ${validIcaoCodes.join(', ')}`);
-      }
-      return result;
-    } else if (typeof icao === 'string' && isICAO(icao)) {
-      const normalizedIcao = normalizeICAO(icao) as ICAO;
-      const result = await this.repository.findOne(normalizedIcao);
-      if (!result) {
-        throw new Error(`METAR station not found for ICAO code: ${normalizedIcao}`);
-      }
-      return result;
-    } else {
+  async findOne(icao: string): Promise<MetarStation> {
+    if (!isICAO(icao)) {
       throw new Error(`Invalid ICAO code: ${icao}`);
     }
+
+    const normalizedIcao = normalizeICAO(icao) as ICAO;
+    const result = await this.repository.findOne(normalizedIcao);
+    if (!result) {
+      throw new Error(`METAR station not found for ICAO code: ${normalizedIcao}`);
+    }
+    return result;
+  }
+
+  /**
+   * Finds multiple METAR stations by ICAO codes.
+   *
+   * @param icaoCodes - An array of ICAO codes to search for.
+   * @returns A promise that resolves to an array of MetarStation objects.
+   * @throws Error if no valid ICAO codes are provided or if no stations are found.
+   */
+  async findMany(icaoCodes: string[]): Promise<MetarStation[]> {
+    const validIcaoCodes = icaoCodes.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
+    if (!validIcaoCodes.length) {
+      throw new Error(`No valid ICAO codes provided: ${icaoCodes.join(', ')}`);
+    }
+
+    const result = await this.repository.findByICAO(validIcaoCodes);
+    if (result.length === 0) {
+      throw new Error(`No METAR stations found for ICAO codes: ${validIcaoCodes.join(', ')}`);
+    }
+    return result;
   }
 
   /**

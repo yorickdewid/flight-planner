@@ -43,20 +43,22 @@ class PlannerService {
     }
 
     if (icaoCodes.length > 0) {
-      const stations = await this.weatherService.findOne(icaoCodes);
-      if (stations?.length) {
-        const stationMap = new Map<string, MetarStation>();
-        for (const station of stations) {
-          stationMap.set(station.station, station);
-        }
+      try {
+        const stations = await this.weatherService.findMany(icaoCodes);
+        if (stations?.length) {
+          const stationMap = new Map<string, MetarStation>();
+          for (const station of stations) {
+            stationMap.set(station.station, station);
+          }
 
-        for (const aerodrome of aerodromes) {
-          const station = stationMap.get(aerodrome.ICAO!);
-          if (station) {
-            aerodrome.metarStation = station;
+          for (const aerodrome of aerodromes) {
+            const station = stationMap.get(aerodrome.ICAO!);
+            if (station) {
+              aerodrome.metarStation = station;
+            }
           }
         }
-      }
+      } catch { }
     }
 
     await Promise.all(waypoints

@@ -26,38 +26,43 @@ class AerodromeService {
   }
 
   /**
-   * Finds aerodrome(s) by ICAO code(s).
+   * Finds a single aerodrome by ICAO code.
    *
-   * @param icao - A single ICAO code or an array of ICAO codes to search for.
-   * @returns A promise that resolves to:
-   *   - A single Aerodrome object when a string is provided
-   *   - An array of Aerodrome objects when an array is provided
-   * @throws Error if invalid ICAO codes are provided or if no aerodromes are found.
+   * @param icao - The ICAO code to search for.
+   * @returns A promise that resolves to an Aerodrome object.
+   * @throws Error if the ICAO code is invalid or if no aerodrome is found.
    */
-  async findOne(icao: string): Promise<Aerodrome>;
-  async findOne(icao: string[]): Promise<Aerodrome[]>;
-  async findOne(icao: string | string[]): Promise<Aerodrome | Aerodrome[]> {
-    if (Array.isArray(icao)) {
-      const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) {
-        throw new Error(`No valid ICAO codes provided: ${icao.join(', ')}`);
-      }
-
-      const result = await this.repository.findByICAO(validIcaoCodes);
-      if (result.length === 0) {
-        throw new Error(`No aerodromes found for ICAO codes: ${validIcaoCodes.join(', ')}`);
-      }
-      return result;
-    } else if (typeof icao === 'string' && isICAO(icao)) {
-      const normalizedIcao = normalizeICAO(icao) as ICAO;
-      const result = await this.repository.findOne(normalizedIcao);
-      if (!result) {
-        throw new Error(`Aerodrome not found for ICAO code: ${normalizedIcao}`);
-      }
-      return result;
-    } else {
+  async findOne(icao: string): Promise<Aerodrome> {
+    if (!isICAO(icao)) {
       throw new Error(`Invalid ICAO code: ${icao}`);
     }
+
+    const normalizedIcao = normalizeICAO(icao) as ICAO;
+    const result = await this.repository.findOne(normalizedIcao);
+    if (!result) {
+      throw new Error(`Aerodrome not found for ICAO code: ${normalizedIcao}`);
+    }
+    return result;
+  }
+
+  /**
+   * Finds multiple aerodromes by ICAO codes.
+   *
+   * @param icaoCodes - An array of ICAO codes to search for.
+   * @returns A promise that resolves to an array of Aerodrome objects.
+   * @throws Error if no valid ICAO codes are provided or if no aerodromes are found.
+   */
+  async findMany(icaoCodes: string[]): Promise<Aerodrome[]> {
+    const validIcaoCodes = icaoCodes.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
+    if (!validIcaoCodes.length) {
+      throw new Error(`No valid ICAO codes provided: ${icaoCodes.join(', ')}`);
+    }
+
+    const result = await this.repository.findByICAO(validIcaoCodes);
+    if (result.length === 0) {
+      throw new Error(`No aerodromes found for ICAO codes: ${validIcaoCodes.join(', ')}`);
+    }
+    return result;
   }
 
   /**
