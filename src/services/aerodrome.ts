@@ -32,21 +32,29 @@ class AerodromeService {
    * @returns A promise that resolves to:
    *   - A single Aerodrome object when a string is provided
    *   - An array of Aerodrome objects when an array is provided
-   *   - null/undefined if not found
-   * @throws Error if invalid ICAO codes are provided.
+   * @throws Error if invalid ICAO codes are provided or if no aerodromes are found.
    */
-  async findOne(icao: string): Promise<Aerodrome | null>;
-  async findOne(icao: string[]): Promise<Aerodrome[] | undefined>;
-  async findOne(icao: string | string[]): Promise<Aerodrome | Aerodrome[] | null | undefined> {
+  async findOne(icao: string): Promise<Aerodrome>;
+  async findOne(icao: string[]): Promise<Aerodrome[]>;
+  async findOne(icao: string | string[]): Promise<Aerodrome | Aerodrome[]> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) return undefined;
+      if (!validIcaoCodes.length) {
+        throw new Error(`No valid ICAO codes provided: ${icao.join(', ')}`);
+      }
 
       const result = await this.repository.findByICAO(validIcaoCodes);
-      return result.length > 0 ? result : undefined;
+      if (result.length === 0) {
+        throw new Error(`No aerodromes found for ICAO codes: ${validIcaoCodes.join(', ')}`);
+      }
+      return result;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const normalizedIcao = normalizeICAO(icao) as ICAO;
-      return await this.repository.findOne(normalizedIcao);
+      const result = await this.repository.findOne(normalizedIcao);
+      if (!result) {
+        throw new Error(`Aerodrome not found for ICAO code: ${normalizedIcao}`);
+      }
+      return result;
     } else {
       throw new Error(`Invalid ICAO code: ${icao}`);
     }
@@ -58,26 +66,32 @@ class AerodromeService {
    * @param location - The geographical location to find the nearest aerodrome to.
    * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
-   * @returns A promise that resolves to the nearest aerodrome, or undefined if not found.
-   * @throws Error if no aerodromes are available and the repository doesn't support radius search.
+   * @returns A promise that resolves to the nearest aerodrome.
+   * @throws Error if no aerodromes are found within the specified radius.
    */
-  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome | undefined> {
+  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome> {
     const aerodromes = await this.getByLocation(location, radius);
 
-    if (aerodromes.length === 0) return undefined;
+    if (aerodromes.length === 0) {
+      throw new Error(`No aerodromes found within ${radius}km of location [${location[0]}, ${location[1]}]`);
+    }
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const aerodromeCandidates = aerodromes.filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
 
     if (aerodromeCandidates.length === 0) {
-      return undefined;
+      throw new Error(`No aerodromes found within ${radius}km of location [${location[0]}, ${location[1]}] after excluding: ${exclude.join(', ')}`);
     }
 
     const nearest = nearestPoint(location, featureCollection(aerodromeCandidates.map(airport => {
       return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
     })));
 
-    return aerodromeCandidates.find(airport => airport.ICAO === nearest.properties.icao);
+    const result = aerodromeCandidates.find(airport => airport.ICAO === nearest.properties.icao);
+    if (!result) {
+      throw new Error('Failed to find nearest aerodrome');
+    }
+    return result;
   }
 
   /**

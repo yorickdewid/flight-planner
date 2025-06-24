@@ -30,21 +30,29 @@ class WeatherService {
    * @returns A promise that resolves to:
    *   - A single MetarStation object when a string is provided
    *   - An array of MetarStation objects when an array is provided
-   *   - null/undefined if not found
-   * @throws Error if invalid ICAO codes are provided.
+   * @throws Error if invalid ICAO codes are provided or if no stations are found.
    */
-  async findOne(icao: string): Promise<MetarStation | null>;
-  async findOne(icao: string[]): Promise<MetarStation[] | undefined>;
-  async findOne(icao: string | string[]): Promise<MetarStation | MetarStation[] | null | undefined> {
+  async findOne(icao: string): Promise<MetarStation>;
+  async findOne(icao: string[]): Promise<MetarStation[]>;
+  async findOne(icao: string | string[]): Promise<MetarStation | MetarStation[]> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
-      if (!validIcaoCodes.length) return undefined;
+      if (!validIcaoCodes.length) {
+        throw new Error(`No valid ICAO codes provided: ${icao.join(', ')}`);
+      }
 
       const result = await this.repository.findByICAO(validIcaoCodes);
-      return result.length > 0 ? result : undefined;
+      if (result.length === 0) {
+        throw new Error(`No METAR stations found for ICAO codes: ${validIcaoCodes.join(', ')}`);
+      }
+      return result;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const normalizedIcao = normalizeICAO(icao) as ICAO;
-      return await this.repository.findOne(normalizedIcao);
+      const result = await this.repository.findOne(normalizedIcao);
+      if (!result) {
+        throw new Error(`METAR station not found for ICAO code: ${normalizedIcao}`);
+      }
+      return result;
     } else {
       throw new Error(`Invalid ICAO code: ${icao}`);
     }
@@ -56,29 +64,36 @@ class WeatherService {
    * @param location - The geographical location to find the nearest METAR station to.
    * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
-   * @returns A promise that resolves to the nearest METAR station, or undefined if not found.
-   * @throws Error if the repository is not set or if no appropriate fetch method is available.
+   * @returns A promise that resolves to the nearest METAR station.
+   * @throws Error if no METAR stations are found within the specified radius.
    */
-  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<MetarStation | undefined> {
+  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<MetarStation> {
     const metarStations: Map<ICAO, MetarStation> = new Map();
 
     const result = await this.getByLocation(location, radius);
     result.forEach(metar => metarStations.set(normalizeICAO(metar.station), metar));
 
-    if (!metarStations.size) return undefined;
+    if (!metarStations.size) {
+      throw new Error(`No METAR stations found within ${radius}km of location [${location[0]}, ${location[1]}]`);
+    }
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
     const metarCandidates = Array.from(metarStations.values()).filter(metar => !normalizedExclude.includes(normalizeICAO(metar.station)));
     if (metarCandidates.length === 0) {
-      return undefined;
+      throw new Error(`No METAR stations found within ${radius}km of location [${location[0]}, ${location[1]}] after excluding: ${exclude.join(', ')}`);
     }
 
     const nearest = nearestPoint(location, featureCollection(metarCandidates.map(metar => point(metar.coords, { station: metar.station }))));
     const stationId = nearest.properties?.station;
     if (typeof stationId !== 'string') {
-      return undefined;
+      throw new Error('Failed to determine nearest station ID');
     }
-    return metarStations.get(normalizeICAO(stationId));
+
+    const nearestStation = metarStations.get(normalizeICAO(stationId));
+    if (!nearestStation) {
+      throw new Error('Failed to find nearest METAR station');
+    }
+    return nearestStation;
   }
 
   /**
