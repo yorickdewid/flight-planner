@@ -43,7 +43,7 @@ class PlannerService {
     }
 
     if (icaoCodes.length > 0) {
-      const stations = await this.weatherService.get(icaoCodes);
+      const stations = await this.weatherService.findOne(icaoCodes);
       if (stations?.length) {
         const stationMap = new Map<string, MetarStation>();
         for (const station of stations) {
@@ -95,9 +95,9 @@ class PlannerService {
       try {
         // Check for ICAO code
         if (isICAO(part)) {
-          const airport = await this.aerodromeService.get(part);
-          if (airport?.length) {
-            waypoints.push(...airport);
+          const airport = await this.aerodromeService.findOne(part);
+          if (airport) {
+            waypoints.push(airport)
             continue;
           } else {
             throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
@@ -154,12 +154,15 @@ class PlannerService {
     if (!icao || (Array.isArray(icao) && icao.length === 0)) {
       throw new Error('Invalid ICAO code(s) provided');
     }
+    if (typeof icao === 'string') {
+      icao = [icao];
+    }
 
-    const metar = await this.weatherService.get(icao);
-    if (!metar) {
+    const metars = await this.weatherService.findOne(icao);
+    if (!metars || metars.length === 0) {
       throw new Error(`METAR station with ICAO code ${icao} not found`);
     }
-    return metar;
+    return metars;
   }
 
   /**
@@ -177,7 +180,7 @@ class PlannerService {
       icao = [icao];
     }
 
-    const aerodromes = await this.aerodromeService.get(icao);
+    const aerodromes = await this.aerodromeService.findOne(icao);
     if (!aerodromes || aerodromes.length === 0) {
       throw new Error(`Aerodromes with ICAO code(s) ${icao.join(', ')} not found`);
     }

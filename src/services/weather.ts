@@ -26,11 +26,16 @@ class WeatherService {
   /**
    * Finds METAR station(s) by ICAO code(s).
    *
-   * @param icao - The ICAO code(s) of the METAR station(s) to find.
-   * @returns A promise that resolves to an array of METAR stations, or undefined if none found.
-   * @throws Error if the repository is not set or doesn't support fetchByICAO.
+   * @param icao - A single ICAO code or an array of ICAO codes to search for.
+   * @returns A promise that resolves to:
+   *   - A single MetarStation object when a string is provided
+   *   - An array of MetarStation objects when an array is provided
+   *   - null/undefined if not found
+   * @throws Error if invalid ICAO codes are provided.
    */
-  async get(icao: string | string[]): Promise<MetarStation[] | undefined> {
+  async findOne(icao: string): Promise<MetarStation | null>;
+  async findOne(icao: string[]): Promise<MetarStation[] | undefined>;
+  async findOne(icao: string | string[]): Promise<MetarStation | MetarStation[] | null | undefined> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
@@ -39,11 +44,10 @@ class WeatherService {
       return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const normalizedIcao = normalizeICAO(icao) as ICAO;
-      const result = await this.repository.findByICAO([normalizedIcao]);
-      return result.length > 0 ? result : undefined;
+      return await this.repository.findOne(normalizedIcao);
+    } else {
+      throw new Error(`Invalid ICAO code: ${icao}`);
     }
-
-    return undefined;
   }
 
   /**
@@ -106,22 +110,6 @@ class WeatherService {
     }
 
     throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
-  }
-
-  /**
-   * Finds a single METAR station by its ICAO code.
-   * 
-   * @param icaoCode - The ICAO code to search for.
-   * @returns A promise that resolves to the MetarStation object or null if not found.
-   * @throws Error if the ICAO code is invalid.
-   */
-  async findOne(icaoCode: string): Promise<MetarStation | null> {
-    if (!isICAO(icaoCode)) {
-      throw new Error(`Invalid ICAO code: ${icaoCode}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
-    return await this.repository.findOne(normalizedIcao);
   }
 
   /**

@@ -26,13 +26,18 @@ class AerodromeService {
   }
 
   /**
-   * Finds aerodromes by ICAO code(s).
+   * Finds aerodrome(s) by ICAO code(s).
    *
    * @param icao - A single ICAO code or an array of ICAO codes to search for.
-   * @returns A promise that resolves to an array of Aerodrome objects, or undefined if not found.
+   * @returns A promise that resolves to:
+   *   - A single Aerodrome object when a string is provided
+   *   - An array of Aerodrome objects when an array is provided
+   *   - null/undefined if not found
    * @throws Error if invalid ICAO codes are provided.
    */
-  async get(icao: string | string[]): Promise<Aerodrome[] | undefined> {
+  async findOne(icao: string): Promise<Aerodrome | null>;
+  async findOne(icao: string[]): Promise<Aerodrome[] | undefined>;
+  async findOne(icao: string | string[]): Promise<Aerodrome | Aerodrome[] | null | undefined> {
     if (Array.isArray(icao)) {
       const validIcaoCodes = icao.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
       if (!validIcaoCodes.length) return undefined;
@@ -41,11 +46,10 @@ class AerodromeService {
       return result.length > 0 ? result : undefined;
     } else if (typeof icao === 'string' && isICAO(icao)) {
       const normalizedIcao = normalizeICAO(icao) as ICAO;
-      const result = await this.repository.findByICAO([normalizedIcao]);
-      return result.length > 0 ? result : undefined;
+      return await this.repository.findOne(normalizedIcao);
+    } else {
+      throw new Error(`Invalid ICAO code: ${icao}`);
     }
-
-    return undefined;
   }
 
   /**
@@ -105,22 +109,6 @@ class AerodromeService {
     }
 
     throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
-  }
-
-  /**
-   * Finds a single aerodrome by its ICAO code.
-   * 
-   * @param icaoCode - The ICAO code to search for.
-   * @returns A promise that resolves to the Aerodrome object or null if not found.
-   * @throws Error if the ICAO code is invalid.
-   */
-  async findOne(icaoCode: string): Promise<Aerodrome | null> {
-    if (!isICAO(icaoCode)) {
-      throw new Error(`Invalid ICAO code: ${icaoCode}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
-    return await this.repository.findOne(normalizedIcao);
   }
 
   /**
