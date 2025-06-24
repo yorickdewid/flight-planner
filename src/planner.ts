@@ -1,4 +1,4 @@
-import { AircraftService, PlannerService } from './index.js';
+import { AerodromeService, AircraftService, PlannerService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
@@ -334,6 +334,7 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
  */
 export async function createFlightPlanFromString(
   plannerService: PlannerService,
+  aerodromeService: AerodromeService,
   aircrafService: AircraftService,
   routeString: string,
   aircraftRegistration: string,
@@ -352,7 +353,7 @@ export async function createFlightPlanFromString(
   if (!options.alternate) {
     const alternateRadius = options.alternateRadius ?? 50; // Use option if provided, otherwise default to 50
     const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
-    const alternate = await plannerService.findNearestAerodrome(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
+    const alternate = await aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
     if (alternate) {
       await plannerService.attachWeatherToWaypoint([alternate]);
       options.alternate = alternate;

@@ -187,48 +187,48 @@ class PlannerService {
     return aerodromes;
   }
 
-  /**
-   * Finds aerodromes within a given radius of a geographical location.
-   *
-   * @param location - The geographical coordinates [longitude, latitude].
-   * @param radius - The search radius in kilometers (defaults to 100km).
-   * @returns A promise that resolves to an array of Aerodrome objects.
-   * @throws Error if the location format is invalid or no aerodromes are found.
-   */
-  async findAerodromesByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
-    if (!Array.isArray(location) || location.length < 2 ||
-      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
-      throw new Error('Invalid location format. Expected [longitude, latitude].');
-    }
+  // /**
+  //  * Finds aerodromes within a given radius of a geographical location.
+  //  *
+  //  * @param location - The geographical coordinates [longitude, latitude].
+  //  * @param radius - The search radius in kilometers (defaults to 100km).
+  //  * @returns A promise that resolves to an array of Aerodrome objects.
+  //  * @throws Error if the location format is invalid or no aerodromes are found.
+  //  */
+  // async findAerodromesByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
+  //   if (!Array.isArray(location) || location.length < 2 ||
+  //     typeof location[0] !== 'number' || typeof location[1] !== 'number') {
+  //     throw new Error('Invalid location format. Expected [longitude, latitude].');
+  //   }
 
-    const aerodromes = await this.aerodromeService.getByLocation(location, radius);
-    if (!aerodromes || aerodromes.length === 0) {
-      throw new Error(`No aerodromes found within ${radius} km of the specified location`);
-    }
-    return aerodromes;
-  }
+  //   const aerodromes = await this.aerodromeService.getByLocation(location, radius);
+  //   if (!aerodromes || aerodromes.length === 0) {
+  //     throw new Error(`No aerodromes found within ${radius} km of the specified location`);
+  //   }
+  //   return aerodromes;
+  // }
 
-  /**
-   * Finds the nearest aerodrome to a given geographical location, optionally excluding some ICAO codes.
-   *
-   * @param location - The geographical coordinates [longitude, latitude].
-   * @param radius - The search radius in kilometers (defaults to 100km).
-   * @param exclude - An array of ICAO codes to exclude from the search.
-   * @returns A promise that resolves to the nearest Aerodrome object, or undefined if none is found.
-   * @throws Error if the location format is invalid or no aerodrome is found.
-   */
-  async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome> {
-    if (!Array.isArray(location) || location.length < 2 ||
-      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
-      throw new Error('Invalid location format. Expected [longitude, latitude].');
-    }
+  // /**
+  //  * Finds the nearest aerodrome to a given geographical location, optionally excluding some ICAO codes.
+  //  *
+  //  * @param location - The geographical coordinates [longitude, latitude].
+  //  * @param radius - The search radius in kilometers (defaults to 100km).
+  //  * @param exclude - An array of ICAO codes to exclude from the search.
+  //  * @returns A promise that resolves to the nearest Aerodrome object, or undefined if none is found.
+  //  * @throws Error if the location format is invalid or no aerodrome is found.
+  //  */
+  // async findNearestAerodrome(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<Aerodrome> {
+  //   if (!Array.isArray(location) || location.length < 2 ||
+  //     typeof location[0] !== 'number' || typeof location[1] !== 'number') {
+  //     throw new Error('Invalid location format. Expected [longitude, latitude].');
+  //   }
 
-    const aerodrome = await this.aerodromeService.nearest(location, radius, exclude);
-    if (!aerodrome) {
-      throw new Error(`No aerodrome found within ${radius} km of the specified location`);
-    }
-    return aerodrome;
-  }
+  //   const aerodrome = await this.aerodromeService.nearest(location, radius, exclude);
+  //   if (!aerodrome) {
+  //     throw new Error(`No aerodrome found within ${radius} km of the specified location`);
+  //   }
+  //   return aerodrome;
+  // }
 }
 
 export default PlannerService;
