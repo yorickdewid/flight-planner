@@ -122,6 +122,7 @@ export {
   routeTripWaypoints,
   routeTripDepartureWaypoint,
   routeTripArrivalWaypoint,
+  parseRouteString,
   createFlightPlanFromString,
   flightPlan
 } from "./planner.js";
