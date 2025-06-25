@@ -1,4 +1,4 @@
-import { AerodromeService, AircraftService, PlannerService } from './index.js';
+import { AerodromeService, AircraftService, PlannerService, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
@@ -334,6 +334,7 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
  */
 export async function createFlightPlanFromString(
   plannerService: PlannerService,
+  weatherService: WeatherService,
   aerodromeService: AerodromeService,
   aircrafService: AircraftService,
   routeString: string,
@@ -345,7 +346,7 @@ export async function createFlightPlanFromString(
 
   options.aircraft = await aircrafService.findByRegistration(aircraftRegistration)
 
-  await plannerService.attachWeatherToWaypoint(waypoints);
+  await weatherService.attachWeather(waypoints);
 
   // TODO: Improve this logic to find the alternate aerodrome
   // - Consider factors like runway length, instrument approaches, and services available.
@@ -355,7 +356,7 @@ export async function createFlightPlanFromString(
     const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
     const alternate = await aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
     if (alternate) {
-      await plannerService.attachWeatherToWaypoint([alternate]);
+      await weatherService.attachWeather([alternate]);
       options.alternate = alternate;
     }
   }
