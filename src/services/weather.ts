@@ -1,4 +1,4 @@
-import { ICAO, MetarStation } from "../index.js";
+import { ICAO, MetarStation, Waypoint } from "../index.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
@@ -146,6 +146,52 @@ class WeatherService {
 
     const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
     return await this.repository.exists(normalizedIcao);
+  }
+
+  /**
+   * Attaches weather data to waypoints based on their ICAO codes.
+   *
+   * @param waypoints - An array of waypoints to attach weather data to.
+   * @param reassign - Whether to reassign existing weather data (default: false).
+   * @returns A promise that resolves when the operation is complete.
+   */
+  async attachWeather(waypoints: Waypoint[], reassign = false): Promise<void> {
+    // const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
+    // const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
+
+    if (reassign) {
+      for (const waypoint of waypoints) {
+        waypoint.metarStation = undefined;
+      }
+    }
+
+    // if (icaoCodes.length > 0) {
+    //   try {
+    //     const stations = await this.weatherService.findMany(icaoCodes);
+    //     if (stations?.length) {
+    //       const stationMap = new Map<string, MetarStation>();
+    //       for (const station of stations) {
+    //         stationMap.set(station.station, station);
+    //       }
+
+    //       for (const aerodrome of aerodromes) {
+    //         const station = stationMap.get(aerodrome.ICAO!);
+    //         if (station) {
+    //           aerodrome.metarStation = station;
+    //         }
+    //       }
+    //     }
+    //   } catch { }
+    // }
+
+    await Promise.all(waypoints
+      .filter(waypoint => !waypoint.metarStation)
+      .map(async waypoint => {
+        const station = await this.nearest(waypoint.location.geometry.coordinates);
+        if (station) {
+          waypoint.metarStation = station;
+        }
+      }));
   }
 }
 

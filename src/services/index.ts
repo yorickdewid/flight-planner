@@ -23,54 +23,6 @@ class PlannerService {
     private aerodromeService: AerodromeService,
   ) { }
 
-  /**
-   * Attaches relevant weather data to waypoints by fetching METAR information
-   * First tries to get data for aerodromes by ICAO code, then finds nearest stations for other waypoints
-   * 
-   * @param waypoints - The waypoints to attach weather data to
-   * @param reassign - Whether to reassign the weather station for aerodromes
-   *                 If true, it clears the existing METAR station before fetching new data
-   * @throws Will not throw but logs errors encountered during the process
-   */
-  async attachWeatherToWaypoint(waypoints: Waypoint[], reassign = false): Promise<void> {
-    const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
-    // const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
-
-    if (reassign) {
-      for (const aerodrome of aerodromes) {
-        aerodrome.metarStation = undefined;
-      }
-    }
-
-    // if (icaoCodes.length > 0) {
-    //   try {
-    //     const stations = await this.weatherService.findMany(icaoCodes);
-    //     if (stations?.length) {
-    //       const stationMap = new Map<string, MetarStation>();
-    //       for (const station of stations) {
-    //         stationMap.set(station.station, station);
-    //       }
-
-    //       for (const aerodrome of aerodromes) {
-    //         const station = stationMap.get(aerodrome.ICAO!);
-    //         if (station) {
-    //           aerodrome.metarStation = station;
-    //         }
-    //       }
-    //     }
-    //   } catch { }
-    // }
-
-    await Promise.all(waypoints
-      .filter(waypoint => !waypoint.metarStation)
-      .map(async waypoint => {
-        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
-        if (station) {
-          waypoint.metarStation = station;
-        }
-      }));
-  }
-
   // TODO: Move this to a parser utility or similar
   /**
    * Parses a route string and returns an array of Aerodrome or Waypoint objects.
