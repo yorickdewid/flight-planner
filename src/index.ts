@@ -141,7 +141,6 @@ export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
  */
 export { AerodromeService, WeatherService };
 export { default as AircraftService } from "./services/aircraft.js";
-export { default as PlannerService } from "./services/index.js";
 
 /**
  * Repository interfaces for data access abstraction.
