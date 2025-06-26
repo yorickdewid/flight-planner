@@ -1,6 +1,6 @@
 {
   "name": "flight-planner",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "Plan and route VFR flights",
   "keywords": [
     "aviation",
@@ -11,11 +11,25 @@
     "flight",
     "vfr",
     "vmc",
-    "metar"
+    "metar",
+    "weather",
+    "aircraft",
+    "navigation",
+    "flight-planning",
+    "icao",
+    "waypoint"
   ],
   "type": "module",
   "author": "Yorick de Wid <ydewid@gmail.com>",
   "license": "MIT",
+  "homepage": "https://github.com/yorickdewid/flight-planner#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yorickdewid/flight-planner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yorickdewid/flight-planner/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "engines": {
@@ -23,15 +37,21 @@
   },
   "scripts": {
     "build": "tsc && npm run lint",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
     "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test:watch": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
+    "test:coverage": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
     "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint"
+    "prepublishOnly": "npm test && npm run lint",
+    "dev": "npm run build:watch"
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "README.md"
   ],
   "exports": {
     ".": {
