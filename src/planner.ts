@@ -1,4 +1,4 @@
-import { AerodromeService, AircraftService, WeatherService } from './index.js';
+import { Advisory, AerodromeService, AircraftService, routeTripValidate, WeatherService } from './index.js';
 import { Aerodrome, ReportingPoint, Waypoint } from './waypoint.types.js';
 import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js';
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector, isICAO } from './utils.js';
@@ -428,7 +428,7 @@ export async function createFlightPlanFromString(
   routeString: string,
   aircraftRegistration: string,
   options: RouteOptions = {}
-): Promise<RouteTrip> {
+): Promise<RouteTrip & { advisory?: Advisory[] }> {
   const waypoints = await parseRouteString(aerodromeService, routeString);
   const lastWaypoint = waypoints[waypoints.length - 1];
 
@@ -462,7 +462,10 @@ export async function createFlightPlanFromString(
     altitude: options.alternate.elevation
   } : undefined;
 
-  return flightPlan(segments, alternateSegment, options.aircraft, options);
+  const routeTrip = flightPlan(segments, alternateSegment, options.aircraft, options);
+  const advisory = routeTripValidate(routeTrip, options.aircraft, options);
+
+  return { ...routeTrip, advisory };
 }
 
 /**
