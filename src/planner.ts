@@ -5,6 +5,7 @@ import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector
 import { Wind } from './metar.types.js';
 import { bearingToAzimuth, lineString, point as turfPoint, pointToLineDistance } from '@turf/turf';
 import { Aircraft } from './aircraft.js';
+import { InsufficientWaypointsError } from './exceptions.js';
 
 /**
  * Represents a course vector with distance and track.
@@ -487,7 +488,7 @@ export function flightPlan(
   options: RouteOptions = {}
 ): RouteTrip {
   if (segments.length < 2) {
-    throw new Error('At least departure and arrival waypoints are required');
+    throw new InsufficientWaypointsError(segments.length);
   }
 
   const { departureDate = new Date(), reserveFuelDuration = 30, reserveFuel } = options;
