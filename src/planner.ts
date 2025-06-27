@@ -518,20 +518,20 @@ export function flightPlan(
     + (options.taxiFuel || 0);
 
   const fuelBreakdown = {
-    trip: totalFuelConsumption,
-    reserve: reserveFuelRequired || 0,
-    takeoff: options.takeoffFuel,
-    landing: options.landingFuel,
-    taxi: options.taxiFuel,
-    alternate: routeAlternate?.performance?.fuelConsumption,
+    trip: Math.round(totalFuelConsumption),
+    reserve: Math.round(reserveFuelRequired || 0),
+    takeoff: options.takeoffFuel && Math.round(options.takeoffFuel),
+    landing: options.landingFuel && Math.round(options.landingFuel),
+    taxi: options.taxiFuel && Math.round(options.taxiFuel),
+    alternate: routeAlternate?.performance?.fuelConsumption && Math.round(routeAlternate.performance.fuelConsumption)
   };
 
   return {
     route: legs,
     routeAlternate,
-    totalDistance,
-    totalDuration,
-    totalTripFuel,
+    totalDistance: Math.round(totalDistance),
+    totalDuration: Math.round(totalDuration),
+    totalTripFuel: totalTripFuel ?? Math.round(totalTripFuel),
     fuelBreakdown,
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
