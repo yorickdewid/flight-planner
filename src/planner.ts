@@ -546,6 +546,26 @@ export function flightPlan(
     alternate: routeAlternate?.performance?.fuelConsumption && Math.round(routeAlternate.performance.fuelConsumption)
   };
 
+  if (routeAlternate) {
+    routeAlternate.course.distance = Math.round(routeAlternate.course.distance);
+    routeAlternate.course.magneticTrack = Math.round(routeAlternate.course.magneticTrack);
+    routeAlternate.course.track = Math.round(routeAlternate.course.track);
+
+    if (routeAlternate.performance) {
+      routeAlternate.performance.headWind = Math.round(routeAlternate.performance.headWind);
+      routeAlternate.performance.crossWind = Math.round(routeAlternate.performance.crossWind);
+      routeAlternate.performance.trueAirspeed = Math.round(routeAlternate.performance.trueAirspeed);
+      routeAlternate.performance.windCorrectionAngle = Math.round(routeAlternate.performance.windCorrectionAngle);
+      routeAlternate.performance.trueHeading = Math.round(routeAlternate.performance.trueHeading);
+      routeAlternate.performance.magneticHeading = Math.round(routeAlternate.performance.magneticHeading);
+      routeAlternate.performance.groundSpeed = Math.round(routeAlternate.performance.groundSpeed);
+      routeAlternate.performance.duration = Math.round(routeAlternate.performance.duration);
+      if (routeAlternate.performance.fuelConsumption !== undefined) {
+        routeAlternate.performance.fuelConsumption = Math.round(routeAlternate.performance.fuelConsumption);
+      }
+    }
+  }
+
   return {
     route: legs,
     routeAlternate,
