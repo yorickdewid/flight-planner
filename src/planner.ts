@@ -510,6 +510,26 @@ export function flightPlan(
     totalFuelConsumption += leg.performance?.fuelConsumption || 0;
   }
 
+  for (const leg of legs) {
+    leg.course.distance = Math.round(leg.course.distance);
+    leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
+    leg.course.track = Math.round(leg.course.track);
+
+    if (leg.performance) {
+      leg.performance.headWind = Math.round(leg.performance.headWind);
+      leg.performance.crossWind = Math.round(leg.performance.crossWind);
+      leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
+      leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
+      leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
+      leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
+      leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
+      leg.performance.duration = Math.round(leg.performance.duration);
+      if (leg.performance.fuelConsumption !== undefined) {
+        leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
+      }
+    }
+  }
+
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
   const totalTripFuel = totalFuelConsumption
     + (reserveFuelRequired || 0)
@@ -531,7 +551,7 @@ export function flightPlan(
     routeAlternate,
     totalDistance: Math.round(totalDistance),
     totalDuration: Math.round(totalDuration),
-    totalTripFuel: totalTripFuel ?? Math.round(totalTripFuel),
+    totalTripFuel: totalTripFuel && Math.round(totalTripFuel),
     fuelBreakdown,
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
