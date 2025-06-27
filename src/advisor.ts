@@ -209,9 +209,9 @@ function checkWindLimits(
           level: AdvisoryLevel.Error,
           details: {
             waypointName: departureWaypoint.name,
-            crosswind: crossWind,
-            maxDemonstratedCrosswind: aircraft.maxDemonstratedCrosswind,
-            headwind: headWind,
+            crosswind: Math.round(crossWind),
+            maxDemonstratedCrosswind: Math.round(aircraft.maxDemonstratedCrosswind),
+            headwind: Math.round(headWind),
           },
         });
       }
@@ -224,8 +224,8 @@ function checkWindLimits(
         level: AdvisoryLevel.Info,
         details: {
           waypointName: departureWaypoint.name,
-          tailwind: -headWind,
-          crosswind: crossWind,
+          tailwind: Math.round(-headWind),
+          crosswind: Math.round(crossWind),
         },
       });
     } else if (headWind > 15) {
@@ -234,8 +234,8 @@ function checkWindLimits(
         level: AdvisoryLevel.Info,
         details: {
           waypointName: departureWaypoint.name,
-          headwind: headWind,
-          crosswind: crossWind,
+          headwind: Math.round(headWind),
+          crosswind: Math.round(crossWind),
         },
       });
     }
@@ -254,9 +254,9 @@ function checkWindLimits(
           level: AdvisoryLevel.Error,
           details: {
             waypointName: arrivalWaypoint.name,
-            crosswind: crossWind,
-            maxDemonstratedCrosswind: aircraft.maxDemonstratedCrosswind,
-            headwind: headWind,
+            crosswind: Math.round(crossWind),
+            maxDemonstratedCrosswind: Math.round(aircraft.maxDemonstratedCrosswind),
+            headwind: Math.round(headWind),
           },
         });
       }
@@ -269,8 +269,8 @@ function checkWindLimits(
         level: AdvisoryLevel.Info,
         details: {
           waypointName: arrivalWaypoint.name,
-          tailwind: -headWind,
-          crosswind: crossWind,
+          tailwind: Math.round(-headWind),
+          crosswind: Math.round(crossWind),
         },
       });
     } else if (headWind > 15) {
@@ -279,8 +279,8 @@ function checkWindLimits(
         level: AdvisoryLevel.Info,
         details: {
           waypointName: arrivalWaypoint.name,
-          headwind: headWind,
-          crosswind: crossWind,
+          headwind: Math.round(headWind),
+          crosswind: Math.round(crossWind),
         },
       });
     }
