@@ -54,6 +54,7 @@ export interface Wind {
  * @property {string} station - The ICAO code of the reporting station
  * @property {Date} observationTime - The date and time when the observation was made
  * @property {string} raw - The raw METAR text string
+ * @property {string} [tafRaw] - The raw TAF (Terminal Aerodrome Forecast) text string, if available
  * @property {Wind} wind - Wind conditions
  * @property {number} [temperature] - Temperature in degrees Celsius
  * @property {number} [dewpoint] - Dewpoint temperature in degrees Celsius
@@ -65,6 +66,7 @@ export interface Metar {
   station: string;
   observationTime: Date;
   raw: string;
+  tafRaw?: string;
   wind: Wind;
   temperature?: number;
   dewpoint?: number;
