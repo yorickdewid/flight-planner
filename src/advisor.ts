@@ -289,6 +289,50 @@ function checkWindLimits(
   return advisories;
 }
 
+function checkTemperature(
+  routeTrip: RouteTrip,
+): Advisory[] {
+  const advisories: Advisory[] = [];
+  const waypoints = routeTripWaypoints(routeTrip);
+
+  for (const waypoint of waypoints) {
+    const metarStation = waypoint.metarStation;
+    if (metarStation && metarStation.metar) {
+      const metar: Metar = metarStation.metar;
+
+      if (metar.temperature !== undefined) {
+        // Check for low temperatures
+        if (metar.temperature < -5) {
+          advisories.push({
+            code: 'WARN_LOW_TEMPERATURE',
+            level: AdvisoryLevel.Warning,
+            details: {
+              waypointName: waypoint.name,
+              station: metarStation.station,
+              temperature: metar.temperature,
+            },
+          });
+        }
+
+        // Check for high temperatures
+        if (metar.temperature > 30) {
+          advisories.push({
+            code: 'WARN_HIGH_TEMPERATURE',
+            level: AdvisoryLevel.Warning,
+            details: {
+              waypointName: waypoint.name,
+              station: metarStation.station,
+              temperature: metar.temperature,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  return advisories;
+}
+
 /**
  * Checks if the planned flight altitude exceeds the aircraft's service ceiling.
  *
@@ -458,6 +502,9 @@ export function routeTripValidate(
 
   const crosswindAdvisories = checkWindLimits(routeTrip, aircraft);
   allAdvisories = allAdvisories.concat(crosswindAdvisories);
+
+  const temperatureAdvisories = checkTemperature(routeTrip);
+  allAdvisories = allAdvisories.concat(temperatureAdvisories);
 
   const serviceCeilingAdvisories = checkServiceCeiling(routeTrip, aircraft);
   allAdvisories = allAdvisories.concat(serviceCeilingAdvisories);
