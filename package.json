@@ -84,7 +84,9 @@
     "suncalc": "^1.9.0"
   },
   "devDependencies": {
+    "@jest/globals": "^30.0.5",
     "@types/convert-units": "^2.3.12",
+    "@types/geojson": "^7946.0.16",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
     "@types/suncalc": "^1.9.2",
