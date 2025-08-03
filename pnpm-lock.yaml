@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@turf/helpers':
+        specifier: ^7.2.0
+        version: 7.2.0
       '@turf/turf':
         specifier: ^7.2.0
         version: 7.2.0
