@@ -7,7 +7,7 @@ import baseX from 'base-x';
 
 /**
  * Represents a wind vector with angle and decomposed components.
- * 
+ *
  * @interface WindVector
  * @property {number} angle - The angle of the wind in degrees.
  * @property {number} headwind - The headwind component of the wind vector.
@@ -57,7 +57,7 @@ const convertPressureAltitudeToStaticPressureHpa = (pressureAltitudeFt: number):
 
 /**
  * Calculates air density.
- * 
+ *
  * @param oatCelsius Outside Air Temperature in Celsius.
  * @param staticPressureHpa Static air pressure in hPa.
  * @returns Air density in kg/m^3.
@@ -70,7 +70,7 @@ const calculateAirDensity = (oatCelsius: number, staticPressureHpa: number): num
 
 /**
  * Calculates True Airspeed.
- * 
+ *
  * @param indicatedAltitudeFt Indicated altitude in feet.
  * @param qnhHpa Altimeter setting in hPa.
  * @param oatCelsius Outside Air Temperature in Celsius.
@@ -115,7 +115,7 @@ export const calculateWindCorrectionAngle = (wind: Wind, trueTrack: number, airS
 
 /**
  * Calculates the groundspeed for the given wind, airspeed, and heading.
- * 
+ *
  * @param wind - An object representing the wind, containing degrees and speed.
  * @param airSpeed - The airspeed in knots.
  * @param heading - The heading in degrees.
@@ -130,7 +130,7 @@ export const calculateGroundspeed = (wind: Wind, airSpeed: number, heading: numb
 
 /**
  * Sorts an array of clouds by their height in ascending order.
- * 
+ *
  * @param clouds - The array of clouds to sort
  * @returns The sorted array of clouds
  */
@@ -145,7 +145,7 @@ export const sortClouds = (clouds: Cloud[]): Cloud[] => {
 
 /**
  * Checks if the given string is a valid ICAO code.
- * 
+ *
  * @param icao - The string to check
  * @returns True if the string is a valid ICAO code, false otherwise
  */
@@ -155,7 +155,7 @@ export const isICAO = (icao: string): boolean => {
 
 /**
  * Normalizes the given ICAO code to uppercase.
- * 
+ *
  * @param icao - The ICAO code to normalize
  * @returns The normalized ICAO code
  */
@@ -175,7 +175,7 @@ export const isIATA = (iata: string): boolean => {
 
 /**
  * Normalizes the given IATA code to uppercase.
- * 
+ *
  * @param iata - The IATA code to normalize
  * @returns The normalized IATA code
  */
@@ -185,7 +185,7 @@ export const normalizeIATA = (iata: string): string => {
 
 /**
  * Capitalizes the first letter of each word in a string
- * 
+ *
  * @param text - The input text to capitalize
  * @returns The text with the first letter of each word capitalized
  */
@@ -198,7 +198,7 @@ export const capitalizeWords = (text: string): string => {
 
 /**
  * Generates a Base32 hash key from the given input.
- * 
+ *
  * @param input - The input to hash
  * @returns The Base32 hash key
  */

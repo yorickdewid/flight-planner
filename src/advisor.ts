@@ -30,7 +30,7 @@ export enum AdvisoryLevel {
 
 /**
  * Represents an advisory message related to a flight plan.
- * 
+ *
  * @interface Advisory
  * @property {string} code - A unique code identifying the advisory.
  * @property {AdvisoryLevel} level - The severity level of the advisory.
