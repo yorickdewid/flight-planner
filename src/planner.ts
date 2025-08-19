@@ -23,7 +23,7 @@ export interface CourseVector {
 
 /**
  * Interface representing the performance characteristics of an aircraft.
- * 
+ *
  * @interface RouteLegPerformance
  * @property {number} headWind - The component of wind directly opposing the aircraft's motion, measured in knots.
  * @property {number} crossWind - The component of wind perpendicular to the aircraft's motion, measured in knots.
@@ -70,7 +70,7 @@ export interface RouteLeg {
 /**
  * Represents a complete route trip with multiple legs.
  * Contains information about the route's path, distances, duration, and optionally fuel consumption and timing.
- * 
+ *
  * @interface RouteTrip
  * @property {RouteLeg[]} route - Array of route legs that make up the complete trip
  * @property {RouteLeg} [routeAlternate] - Optional alternate route leg for the trip
@@ -104,7 +104,7 @@ export interface RouteTrip {
 
 /**
  * Options for configuring a flight route.
- * 
+ *
  * @interface RouteOptions
  * @property {number} [defaultAltitude] - The default altitude for the route in feet.
  * @property {Date} [departureDate] - The scheduled departure date and time.
@@ -170,7 +170,7 @@ export const isWestbound = (track: number): boolean => {
 
 /**
  * Calculates the appropriate VFR cruising altitude based on the track and desired minimum altitude.
- * 
+ *
  * Eastbound flights (0-179 degrees) use odd thousands + 500 feet (e.g., 3500, 5500).
  * Westbound flights (180-359 degrees) use even thousands + 500 feet (e.g., 4500, 6500).
  * The function returns the lowest VFR cruising altitude that is at or above the given minimum altitude.
@@ -283,10 +283,10 @@ export const closestWaypoint = (routeTrip: RouteTrip, location: [number, number]
 
 /**
  * Maps a route trip to an array of unique waypoints.
- * 
+ *
  * This function extracts all waypoints from a route trip by taking the start and end
  * waypoints of each leg and removing duplicates.
- * 
+ *
  * @param routeTrip - The route trip containing legs with start and end waypoints
  * @returns An array of unique waypoints representing all points in the route trip
  */
@@ -303,7 +303,7 @@ export const routeTripWaypoints = (routeTrip: RouteTrip): WaypointType[] => {
 
 /**
  * Gets the departure waypoint from a route trip.
- * 
+ *
  * @param routeTrip - The route trip from which to extract the departure waypoint
  * @returns The departure waypoint, which is the first waypoint in the route
  */
@@ -313,7 +313,7 @@ export const routeTripDepartureWaypoint = (routeTrip: RouteTrip): WaypointType =
 
 /**
  * Gets the arrival waypoint from a route trip.
- * 
+ *
  * @param routeTrip - The route trip from which to extract the arrival waypoint
  * @returns The arrival waypoint, which is the last waypoint in the route
  */
@@ -323,21 +323,21 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
 
 /**
  * Parses a route string into an array of waypoints.
- * 
+ *
  * This function accepts a route string containing various waypoint formats and converts them
  * into standardized waypoint objects. It supports ICAO airport codes and coordinate-based waypoints.
- * 
+ *
  * @async
  * @function parseRouteString
  * @param {AerodromeService} aerodromeService - Service for looking up aerodrome information by ICAO codes
  * @param {string} routeString - The route string to parse, containing waypoints separated by spaces, semicolons, or newlines
  * @returns {Promise<WaypointType[]>} A promise that resolves to an array of parsed waypoints
- * 
+ *
  * @description
  * Supported waypoint formats:
  * - ICAO codes: 4-letter airport identifiers (e.g., "KJFK", "EGLL")
  * - Coordinate waypoints: WP(latitude,longitude) format (e.g., "WP(40.7128,-74.0060)")
- * 
+ *
  * The function performs the following operations:
  * 1. Splits the route string by whitespace, semicolons, and newlines
  * 2. Filters out empty parts
@@ -346,7 +346,7 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
  *    - If ICAO code: looks up aerodrome using the provided service
  *    - If coordinate waypoint: creates a waypoint with the specified coordinates
  * 5. Collects parsing errors and throws if no valid waypoints are found
- * 
+ *
  * @throws {Error} Throws an error if the route string cannot be parsed or contains no valid waypoints
  */
 export const parseRouteString = async (aerodromeService: AerodromeService, routeString: string): Promise<WaypointType[]> => {
@@ -412,7 +412,7 @@ export const parseRouteString = async (aerodromeService: AerodromeService, route
 
 /**
  * Creates a flight plan from a route string, aircraft registration, and optional route options.
- * 
+ *
  * This function parses the route string into waypoints, attaches weather data, finds an alternate aerodrome if not provided,
  * and constructs a flight plan with segments and performance calculations.
  *
@@ -471,7 +471,7 @@ export async function createFlightPlanFromString(
 
 /**
  * Generates a flight plan based on the provided route segments, alternate segment, aircraft, and options.
- * 
+ *
  * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
  * It returns a RouteTrip object containing all relevant information about the flight plan.
  *
@@ -596,7 +596,7 @@ function calculateRouteLeg(
 ): RouteLeg {
   const course = calculateRouteCourse(startSegment.waypoint, endSegment.waypoint);
 
-  // TODO: 
+  // TODO:
   // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
   const wind = endSegment.waypoint.metarStation?.metar.wind;
 

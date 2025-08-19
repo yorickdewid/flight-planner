@@ -3,7 +3,7 @@ import { ISA_STANDARD_TEMPERATURE_CELSIUS } from './index.js';
 
 /**
  * Enum defining different flight phases used in performance calculations.
- * 
+ *
  * @enum {string}
  * @readonly
  */
@@ -19,7 +19,7 @@ export enum FlightPhase {
 
 /**
  * Interface representing performance parameters for a specific flight phase.
- * 
+ *
  * @interface PhasePerformance
  * @property {number} fuelFlow - Fuel flow rate in liters or gallons per hour
  * @property {number} speed - Speed in knots (TAS for climb/cruise/descent)
@@ -35,7 +35,7 @@ export interface PhasePerformance {
 
 /**
  * Interface representing detailed aircraft performance data.
- * 
+ *
  * @interface AircraftPerformanceProfile
  * @property {Record<FlightPhase, PhasePerformance>} phasePerformance - Performance data for each flight phase
  * @property {number} reserveFuel - Standard reserve fuel in liters or gallons
@@ -53,7 +53,7 @@ export interface AircraftPerformanceProfile {
 
 /**
  * Interface representing distance segments for various flight phases.
- * 
+ *
  * @interface DistanceSegments
  * @property {number} climbDistance - Distance covered during climb in nautical miles
  * @property {number} cruiseDistance - Distance covered during cruise in nautical miles
@@ -69,7 +69,7 @@ export interface DistanceSegments {
 
 /**
  * Interface representing time segments for various flight phases.
- * 
+ *
  * @interface TimeSegments
  * @property {number} taxiTime - Time spent taxiing in minutes
  * @property {number} takeoffTime - Time spent in takeoff phase in minutes
@@ -93,7 +93,7 @@ export interface TimeSegments {
 
 /**
  * Interface representing fuel consumption for various flight phases.
- * 
+ *
  * @interface FuelSegments
  * @property {number} taxiFuel - Fuel used during taxi in liters/gallons
  * @property {number} takeoffFuel - Fuel used during takeoff in liters/gallons
@@ -125,7 +125,7 @@ export interface FuelSegments {
 
 /**
  * Interface representing a complete flight performance calculation result.
- * 
+ *
  * @interface FlightPerformance
  * @property {DistanceSegments} distance - Distance segments breakdown
  * @property {TimeSegments} time - Time segments breakdown
@@ -143,7 +143,7 @@ export interface FlightPerformance {
 
 /**
  * Calculates the standard rate of climb for an aircraft based on its type.
- * 
+ *
  * @param aircraft - The aircraft object containing type and performance data
  * @param pressureAltitude - Pressure altitude in feet
  * @param temperature - Temperature in Celsius
@@ -183,7 +183,7 @@ export function calculateRateOfClimb(
 
 /**
  * Calculates the standard rate of descent for an aircraft based on its type.
- * 
+ *
  * @param aircraft - The aircraft object containing type and performance data
  * @returns The standard rate of descent in feet per minute (returned as a negative number)
  */
@@ -208,7 +208,7 @@ export function calculateRateOfDescent(aircraft: Aircraft): number {
 
 /**
  * Creates a default performance profile for an aircraft based on its characteristics.
- * 
+ *
  * @param aircraft - The aircraft object to create a performance profile for
  * @returns A performance profile with estimated values based on aircraft type
  */
@@ -274,7 +274,7 @@ export function createDefaultPerformanceProfile(aircraft: Aircraft): AircraftPer
 
 /**
  * Calculates distance covered during climb.
- * 
+ *
  * @param aircraft - The aircraft object
  * @param cruiseAltitude - Target cruise altitude in feet
  * @param profile - Performance profile for the aircraft
@@ -297,7 +297,7 @@ export function calculateClimbDistance(
 
 /**
  * Calculates distance covered during descent.
- * 
+ *
  * @param aircraft - The aircraft object
  * @param cruiseAltitude - Starting cruise altitude in feet
  * @param profile - Performance profile for the aircraft
@@ -323,7 +323,7 @@ export function calculateDescentDistance(
 
 /**
  * Calculates detailed performance for a route segment.
- * 
+ *
  * @param distance - Total distance in nautical miles
  * @param aircraft - The aircraft being used
  * @param cruiseAltitude - Cruise altitude in feet

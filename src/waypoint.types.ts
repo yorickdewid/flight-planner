@@ -14,10 +14,10 @@ export enum WaypointVariant {
 
 /**
  * Represents a waypoint in the flight planning system.
- * 
+ *
  * A waypoint is a specified geographical location used for navigation purposes.
  * It can be associated with a METAR weather observation station.
- * 
+ *
  * @interface Waypoint
  * @property {ICAO} [ICAO] - The ICAO code of the waypoint, if available.
  * @property {string} [IATA] - The IATA code of the waypoint, if available.
@@ -41,9 +41,9 @@ export interface Waypoint {
 
 /**
  * Represents a reporting point in the flight planning system.
- * 
+ *
  * A reporting point is a specific location where pilots are required to report their position to air traffic control.
- * 
+ *
  * @interface ReportingPoint
  * @extends Waypoint
  * @property {boolean} compulsory - Indicates whether the reporting point is compulsory for pilots to report.
@@ -56,7 +56,7 @@ export interface ReportingPoint extends Waypoint {
 
 /**
  * Enum representing the main composite of a runway surface.
- * 
+ *
  * @enum {number}
  * @readonly
  */
@@ -88,7 +88,7 @@ export enum RunwaySurface {
 
 /**
  * Represents a runway at an airport.
- * 
+ *
  * @interface Runway
  * @property {string} designator - The identifier of the runway (e.g., "09L", "27R").
  * @property {number} heading - The magnetic heading of the runway in degrees.
@@ -108,7 +108,7 @@ export interface Runway {
 
 /**
  * Enum representing various types of airport radio frequencies.
- * 
+ *
  * @enum {number}
  * @readonly
  */
@@ -140,7 +140,7 @@ export enum FrequencyType {
 
 /**
  * Defines the various types of aerodromes.
- * 
+ *
  * @enum {number}
  * @readonly
  */
@@ -163,7 +163,7 @@ export enum AerodromeType {
 
 /**
  * Represents a radio frequency used at an airport.
- * 
+ *
  * @interface Frequency
  * @property {string} type - The type of frequency (e.g., TOWER, GROUND, APPROACH). TODO: Use enum instead of string.
  * @property {string} name - The name or description of the frequency.
@@ -177,7 +177,7 @@ export interface Frequency {
 
 /**
  * Represents a wind vector in relation to a specific runway.
- * 
+ *
  * @interface RunwayWindVector
  * @property {Runway} runway - The runway for which the wind vector is calculated.
  * @property {number} windAngle - The angle between the runway heading and the wind direction in degrees.
@@ -193,7 +193,7 @@ export interface RunwayWindVector {
 
 /**
  * Represents an aerodrome (airport) in the flight planning system.
- * 
+ *
  * @property {Runway[]} runways - An array of runways available at the aerodrome.
  * @property {Frequency[]} [frequencies] - Optional array of radio frequencies used at the aerodrome.
  * @property {boolean} [ppr] - Indicates if prior permission is required (PPR) to use the aerodrome.

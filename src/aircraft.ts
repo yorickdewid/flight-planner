@@ -1,11 +1,11 @@
 /**
  * Represents an aircraft with its specifications and characteristics.
- * 
+ *
  * @interface Aircraft
  * @property {string} [registration] - The registration identifier of the aircraft.
  * @property {string} [manufacturer] - The manufacturer of the aircraft.
  * @property {string} [icaoType] - The ICAO type designator of the aircraft.
- * @property {string} [hexcode] - The hex code of the aircraft, typically used for ADS-B. 
+ * @property {string} [hexcode] - The hex code of the aircraft, typically used for ADS-B.
  * @property {string} [colors] - The color scheme of the aircraft.
  * @property {number} [numberOfEngines] - The number of engines the aircraft has.
  * @property {string[]} [avionics] - Array of avionics systems (e.g., 'Garmin G1000', 'Bendix King').
@@ -52,7 +52,7 @@ export interface Aircraft {
 
 /**
  * Checks if the given string is a valid aircraft registration.
- * 
+ *
  * @param registration - The string to check
  * @returns True if the string is a valid aircraft registration, false otherwise
  */
@@ -72,7 +72,7 @@ export const aircraftNormalizeRegistration = (registration: string): string => {
 
 /**
  * Calculates the maximum payload of the aircraft based on its maximum takeoff weight and empty weight.
- * 
+ *
  * @param aircraft - The aircraft object
  * @returns The maximum payload in kilograms, or undefined if the weights are not provided
  */

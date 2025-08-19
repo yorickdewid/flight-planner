@@ -6,7 +6,7 @@ import { Metar, Cloud, Wind, MetarFlightRuleColor, MetarColorCode, ColorConditio
 
 /**
  * Creates a Metar object from a raw METAR string.
- * 
+ *
  * @param raw The raw METAR string
  * @returns A Metar object
  */
@@ -68,7 +68,7 @@ export const createMetarFromString = (raw: string): Metar => {
 /**
  * Calculates the ceiling from METAR data.
  * The ceiling is defined as the height of the lowest cloud layer that is 'BKN' (broken) or 'OVC' (overcast).
- * 
+ *
  * @param {Metar} metar - The METAR data.
  * @returns {number | undefined} The ceiling height in feet, or undefined if no ceiling exists.
  */
@@ -84,7 +84,7 @@ export const metarCeiling = (metar: Metar): number | undefined => {
 
 /**
  * Determines the flight rules category based on METAR data.
- * 
+ *
  * @param {Metar} metar - The METAR data.
  * @returns {FlightRules} The flight rules category (LIFR, IFR, MVFR, VFR).
  */
@@ -108,11 +108,11 @@ export const metarFlightRule = (metar: Metar): FlightRules => {
 
 /**
  * Checks if a METAR report has expired.
- * 
+ *
  * By default, it uses standard expiration rules: 60 minutes for regular METARs,
  * and 30 minutes for SPECI reports.
  * A custom expiration time in minutes can also be provided.
- * 
+ *
  * @param {Metar} metar - The METAR data.
  * @param {object} [options] - Options for expiration checking.
  * @param {number} [options.customMinutes] - Custom expiration time in minutes.
@@ -145,7 +145,7 @@ export const isMetarExpired = (metar: Metar, options: { customMinutes?: number; 
 
 /**
  * Gets the color associated with the flight rule category of a METAR.
- * 
+ *
  * @param {Metar} metarData - The METAR data.
  * @returns {MetarFlightRuleColor} The color string ('green', 'blue', 'red', 'purple', 'black').
  */
@@ -198,10 +198,10 @@ const colorConditions: ColorCondition[] = [
 
 /**
  * Determines the color code for a METAR based on visibility, ceiling, and wind conditions.
- * 
+ *
  * The color code represents the severity of the weather conditions, with 'green' being the mildest
  * and 'red' being the most severe.
- * 
+ *
  * @param {Metar} metarData - The METAR data to evaluate.
  * @returns {MetarColorCode} The color code representing the weather conditions.
  */

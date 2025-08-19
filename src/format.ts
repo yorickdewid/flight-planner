@@ -14,7 +14,7 @@ import {
 
 /**
  * Formats speed to a string with the specified or default units.
- * 
+ *
  * @param {number} speed - The speed value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted speed string.
@@ -25,7 +25,7 @@ export const formatSpeed = (speed: number, units: UnitOptions = DefaultUnits): s
 
 /**
  * Formats distance to a string with the specified or default units.
- * 
+ *
  * @param {number} distance - The distance value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted distance string.
@@ -46,7 +46,7 @@ export const formatAltitude = (altitude: number, units: UnitOptions = DefaultUni
 
 /**
  * Formats elevation to a string with the specified or default units.
- * 
+ *
  * @param {number} elevation - The elevation value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted elevation string.
@@ -57,7 +57,7 @@ export const formatElevation = (elevation: number, units: UnitOptions = DefaultU
 
 /**
  * Formats temperature to a string with the specified or default units.
- * 
+ *
  * @param {number} temperature - The temperature value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted temperature string.
@@ -68,7 +68,7 @@ export const formatTemperature = (temperature: number, units: UnitOptions = Defa
 
 /**
  * Formats pressure to a string with the specified or default units.
- * 
+ *
  * @param {number} pressure - The pressure value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted pressure string.
@@ -79,7 +79,7 @@ export const formatPressure = (pressure: number, units: UnitOptions = DefaultUni
 
 /**
  * Formats mass to a string with the specified or default units.
- * 
+ *
  * @param {number} mass - The mass value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted mass string.
@@ -90,7 +90,7 @@ export const formatMass = (mass: number, units: UnitOptions = DefaultUnits): str
 
 /**
  * Formats volume to a string with the specified or default units.
- * 
+ *
  * @param {number} volume - The volume value.
  * @param {UnitOptions} [units=DefaultUnits] - The target unit options.
  * @returns {string} The formatted volume string.
@@ -101,7 +101,7 @@ export const formatVolume = (volume: number, units: UnitOptions = DefaultUnits):
 
 /**
  * Formats angle to a string with the specified or default units.
- * 
+ *
  * @param {number} angle - The angle value.
  * @param {boolean} [magnetic=false] - Whether the angle is magnetic.
  * @returns {string} The formatted angle string.
@@ -113,7 +113,7 @@ export const formatAngle = (angle: number, magnetic: boolean = false): string =>
 
 /**
  * Formats date and time to a string in UTC format.
- * 
+ *
  * @param {Date} date - The date to format.
  * @returns {string} The formatted date string in UTC format.
  */
@@ -123,7 +123,7 @@ export const formatUTCTimestamp = (date: Date): string => {
 
 /**
  * Formats the time duration in a human-readable format.
- * 
+ *
  * @param totalMinutes - The total duration in minutes.
  * @returns A string representing the formatted duration, e.g., "1h 30min" or "45 min".
  */
@@ -215,7 +215,7 @@ export function formatCloud(cloud: Cloud, units: UnitOptions = DefaultUnits): st
 
 /**
  * Formats frequency to a string in MHz.
- * 
+ *
  * @param {number} frequency - The frequency value in MHz.
  * @returns {string} The formatted frequency string.
  */

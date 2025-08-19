@@ -10,7 +10,7 @@ import {
 
 /**
  * Flight planning library for aviation applications.
- * 
+ *
  * @module flight-planner
  */
 
@@ -21,14 +21,14 @@ import {
 /**
  * Represents an ICAO (International Civil Aviation Organization) identifier,
  * typically used for airports, navigation aids, or weather stations.
- * 
+ *
  * @type {string}
  */
 export type ICAO = string;
 
 /**
  * Enumeration representing different flight rules categories.
- * 
+ *
  * @enum {string}
  * @readonly
  * @property {string} VFR - Visual Flight Rules

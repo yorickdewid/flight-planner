@@ -5,7 +5,7 @@ import { FrequencyType, Runway, RunwayWindVector, Waypoint, WaypointVariant } fr
 
 /**
  * Calculates the distance from one waypoint to another.
- * 
+ *
  * @param from The starting waypoint.
  * @param to The destination waypoint.
  * @returns The distance in nautical miles.
@@ -16,7 +16,7 @@ export const waypointDistance = (from: Waypoint, to: Waypoint): number => {
 
 /**
  * Calculates the heading from one waypoint to another.
- * 
+ *
  * @param from The starting waypoint.
  * @param to The destination waypoint.
  * @returns The heading in degrees.
@@ -27,7 +27,7 @@ export const waypointHeading = (from: Waypoint, to: Waypoint): number => {
 
 /**
  * Converts a numeric frequency type to its enum value
- * 
+ *
  * @param type The numeric value of the frequency type
  * @returns The corresponding FrequencyType enum value
  */
@@ -40,7 +40,7 @@ export const validateFrequencyType = (type: number): FrequencyType => {
 
 /**
  * Calculates the QFE (atmospheric pressure at waypoint elevation) value.
- * 
+ *
  * @param waypoint The waypoint. For QFE calculation, this waypoint must have an 'elevation'
  *                 and provide a QNH value (typically via an associated 'metarStation' property
  *                 if the waypoint is an aerodrome or similar).
@@ -62,7 +62,7 @@ export const waypointQFE = (waypoint: Waypoint): number | undefined => {
 
 /**
  * Creates a Waypoint object from a longitude and latitude.
- * 
+ *
  * @param location - The location as a [longitude, latitude] tuple.
  * @param name - Optional name for the waypoint.
  * @returns A Waypoint object.
@@ -84,7 +84,7 @@ export const createWaypoint = (location: [number, number], name: string = 'locat
 
 /**
  * Calculates the wind vector for a specific runway.
- * 
+ *
  * @param runway The runway to calculate the wind vector for.
  * @param wind The current wind data from METAR.
  * @returns The calculated runway wind vector.

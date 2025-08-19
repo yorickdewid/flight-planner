@@ -4,7 +4,7 @@ import { DefaultUnits } from "./index.js";
 
 /**
  * Defines unit preferences for various measurements used in flight planning.
- * 
+ *
  * @interface UnitOptions
  * @property {UnitSpeed} [speed='kts'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
  * @property {UnitDistance} [distance='nm'] - Unit for distance measurements (nautical miles, kilometers, or miles).
@@ -31,7 +31,7 @@ export interface UnitOptions {
 
 /**
  * Converts speed from default units to the specified units.
- * 
+ *
  * @param {number} speed - The speed value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted speed.
@@ -42,7 +42,7 @@ export const convertSpeed = (speed: number, units: UnitOptions): number => {
 
 /**
  * Converts elevation from default units to the specified units.
- * 
+ *
  * @param {number} elevation - The elevation value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted elevation.
@@ -53,7 +53,7 @@ export const convertElevation = (elevation: number, units: UnitOptions): number 
 
 /**
  * Converts altitude from default units to the specified units.
- * 
+ *
  * @param {number} altitude - The altitude value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted altitude.
@@ -64,7 +64,7 @@ export const convertAltitude = (altitude: number, units: UnitOptions): number =>
 
 /**
  * Converts temperature from default units to the specified units.
- * 
+ *
  * @param {number} temperature - The temperature value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted temperature.
@@ -75,7 +75,7 @@ export const convertTemperature = (temperature: number, units: UnitOptions): num
 
 /**
  * Converts pressure from default units to the specified units.
- * 
+ *
  * @param {number} pressure - The pressure value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted pressure.
@@ -86,7 +86,7 @@ export const convertPressure = (pressure: number, units: UnitOptions): number =>
 
 /**
  * Converts distance from default units to the specified units.
- * 
+ *
  * @param {number} distance - The distance value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted distance.
@@ -97,7 +97,7 @@ export const convertDistance = (distance: number, units: UnitOptions): number =>
 
 /**
  * Converts mass from default units to the specified units.
- * 
+ *
  * @param {number} mass - The mass value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted mass.
@@ -108,7 +108,7 @@ export const convertMass = (mass: number, units: UnitOptions): number => {
 
 /**
  * Converts volume from default units to the specified units.
- * 
+ *
  * @param {number} volume - The volume value to convert.
  * @param {UnitOptions} units - The target unit options.
  * @returns {number} The converted volume.

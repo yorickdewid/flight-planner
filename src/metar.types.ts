@@ -18,7 +18,7 @@ export interface MetarStation {
 
 /**
  * Represents cloud information.
- * 
+ *
  * @interface Cloud
  * @property {'SKC' | 'FEW' | 'BKN' | 'SCT' | 'OVC' | 'NSC'} quantity - The cloud coverage quantity.
  * @property {number} [height] - The height of the cloud layer in feet (optional).
@@ -30,7 +30,7 @@ export interface Cloud {
 
 /**
  * Represents wind conditions.
- * 
+ *
  * @interface Wind
  * @property {number} direction - The direction of the wind in degrees (0-359).
  * @property {number} [directionMin] - The minimum wind direction in degrees (optional).
