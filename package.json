@@ -85,7 +85,7 @@
     "suncalc": "^1.9.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.33.0",
+    "@eslint/js": "^9.34.0",
     "@jest/globals": "^30.0.5",
     "@types/convert-units": "^2.3.12",
     "@types/geojson": "^7946.0.16",
@@ -94,7 +94,7 @@
     "@types/suncalc": "^1.9.2",
     "@typescript-eslint/eslint-plugin": "^8.40.0",
     "@typescript-eslint/parser": "^8.40.0",
-    "eslint": "^9.33.0",
+    "eslint": "^9.34.0",
     "jest": "^30.0.5",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
