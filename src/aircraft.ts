@@ -77,7 +77,7 @@ export const aircraftNormalizeRegistration = (registration: string): string => {
  * @returns The maximum payload in kilograms, or undefined if the weights are not provided
  */
 export const aircraftMaxPayload = (aircraft: Aircraft): number | undefined => {
-  if (aircraft.maxTakeoffWeight && aircraft.emptyWeight) {
+  if (aircraft.maxTakeoffWeight !== undefined && aircraft.emptyWeight !== undefined) {
     return aircraft.maxTakeoffWeight - aircraft.emptyWeight;
   }
   return undefined;
@@ -91,7 +91,7 @@ export const aircraftMaxPayload = (aircraft: Aircraft): number | undefined => {
  */
 export const aircraftRange = (aircraft: Aircraft): number | undefined => {
   const endurance = aircraftEndurance(aircraft);
-  if (endurance && aircraft.cruiseSpeed) {
+  if (endurance !== undefined && aircraft.cruiseSpeed !== undefined) {
     return endurance * aircraft.cruiseSpeed;
   }
   return undefined;
@@ -104,7 +104,7 @@ export const aircraftRange = (aircraft: Aircraft): number | undefined => {
  * @returns The endurance in hours, or undefined if the required properties are not provided or fuelConsumption is zero
  */
 export const aircraftEndurance = (aircraft: Aircraft): number | undefined => {
-  if (aircraft.fuelCapacity && aircraft.fuelConsumption && aircraft.fuelConsumption > 0) {
+  if (aircraft.fuelCapacity !== undefined && aircraft.fuelConsumption !== undefined && aircraft.fuelConsumption > 0) {
     return aircraft.fuelCapacity / aircraft.fuelConsumption;
   }
   return undefined;
