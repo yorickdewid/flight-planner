@@ -33,7 +33,7 @@ describe('Aircraft functions', () => {
 
     it('should reject invalid aircraft registrations', () => {
       expect(isAircraftRegistration('')).toBe(false);
-      // expect(isAircraftRegistration('123')).toBe(false);
+      expect(isAircraftRegistration('123')).toBe(false);
       expect(isAircraftRegistration('ABC-')).toBe(false);
       expect(isAircraftRegistration('-ABC')).toBe(false);
       expect(isAircraftRegistration('AB--CD')).toBe(false);

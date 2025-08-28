@@ -57,7 +57,7 @@ export interface Aircraft {
  * @returns True if the string is a valid aircraft registration, false otherwise
  */
 export const isAircraftRegistration = (registration: string): boolean => {
-  return /^[A-Z0-9]{1,3}-?[A-Z0-9]+$/.test(registration.toUpperCase());
+  return /^(N[1-9][0-9A-HJ-NP-Z]{0,4}|[A-Z]{1,2}-?[A-Z0-9]{1,4})$/.test(registration.toUpperCase());
 }
 
 /**
