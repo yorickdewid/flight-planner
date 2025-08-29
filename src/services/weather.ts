@@ -6,14 +6,14 @@ import { WeatherRepository } from "../repositories/weather.repository.js";
 
 /**
  * WeatherService class provides methods to manage and retrieve METAR station data.
- * 
+ *
  * @class WeatherService
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
 class WeatherService {
   /**
    * Creates a new instance of the WeatherService class.
-   * 
+   *
    * @param repository - The weather repository for data operations.
    * @throws Error if the repository is not provided.
    */
@@ -65,7 +65,7 @@ class WeatherService {
 
   /**
    * Finds the nearest METAR station to the given location.
-   * 
+   *
    * @param location - The geographical location to find the nearest METAR station to.
    * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
@@ -103,7 +103,7 @@ class WeatherService {
 
   /**
    * Fetches data by geographic location within specified radius.
-   * 
+   *
    * @param location - The location coordinates [longitude, latitude].
    * @param radius - The radius in kilometers (default: 100, max: 1000).
    * @returns A promise that resolves to an array of data.
@@ -134,7 +134,7 @@ class WeatherService {
 
   /**
    * Checks if a METAR station exists.
-   * 
+   *
    * @param icaoCode - The ICAO code of the METAR station to check.
    * @returns A promise that resolves to true if the METAR station exists, false otherwise.
    * @throws Error if the ICAO code is invalid.
@@ -149,40 +149,18 @@ class WeatherService {
   }
 
   /**
-   * Attaches weather data to waypoints based on their ICAO codes.
+   * Attaches the closest METAR station to each waypoint.
    *
    * @param waypoints - An array of waypoints to attach weather data to.
    * @param reassign - Whether to reassign existing weather data (default: false).
    * @returns A promise that resolves when the operation is complete.
    */
   async attachWeather(waypoints: Waypoint[], reassign = false): Promise<void> {
-    // const aerodromes = waypoints.filter(waypoint => waypoint.ICAO);
-    // const icaoCodes = aerodromes.map(aerodrome => aerodrome.ICAO) as string[];
-
     if (reassign) {
       for (const waypoint of waypoints) {
         waypoint.metarStation = undefined;
       }
     }
-
-    // if (icaoCodes.length > 0) {
-    //   try {
-    //     const stations = await this.weatherService.findMany(icaoCodes);
-    //     if (stations?.length) {
-    //       const stationMap = new Map<string, MetarStation>();
-    //       for (const station of stations) {
-    //         stationMap.set(station.station, station);
-    //       }
-
-    //       for (const aerodrome of aerodromes) {
-    //         const station = stationMap.get(aerodrome.ICAO!);
-    //         if (station) {
-    //           aerodrome.metarStation = station;
-    //         }
-    //       }
-    //     }
-    //   } catch { }
-    // }
 
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
