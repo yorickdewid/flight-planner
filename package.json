@@ -36,17 +36,17 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc && npm run lint",
+    "build": "tsc && pnpm run lint",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "test:watch": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
-    "test:coverage": "npm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint",
-    "dev": "npm run build:watch"
+    "test": "pnpm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
+    "test:coverage": "pnpm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
+    "prepare": "pnpm run build",
+    "prepublishOnly": "pnpm test && pnpm run lint",
+    "dev": "pnpm run build:watch"
   },
   "files": [
     "dist",
@@ -86,7 +86,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
-    "@jest/globals": "^30.0.5",
+    "@jest/globals": "^30.1.1",
     "@types/convert-units": "^2.3.12",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^30.0.0",
@@ -95,7 +95,7 @@
     "@typescript-eslint/eslint-plugin": "^8.41.0",
     "@typescript-eslint/parser": "^8.41.0",
     "eslint": "^9.34.0",
-    "jest": "^30.0.5",
+    "jest": "^30.1.1",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
