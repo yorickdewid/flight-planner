@@ -47,6 +47,20 @@ export interface Wind {
 }
 
 /**
+ * Represents weather phenomena conditions.
+ *
+ * @interface WeatherPhenomena
+ * @property {'VC' | '-' | '+' | ''} intensity - Intensity of the phenomena (vicinity, light, heavy, moderate)
+ * @property {string} phenomenon - The weather phenomenon code (e.g., 'RA', 'SN', 'FG', 'BR')
+ * @property {string} [descriptor] - Optional descriptor (e.g., 'SH' for showers, 'TS' for thunderstorm)
+ */
+export interface WeatherPhenomena {
+  intensity: 'VC' | '-' | '+' | '';
+  phenomenon: string;
+  descriptor?: string;
+}
+
+/**
  * Interface representing METAR (Meteorological Terminal Aviation Routine Weather Report) data.
  *
  * Contains parsed weather data from a METAR report, including station identification,
@@ -62,6 +76,8 @@ export interface Wind {
  * @property {number} [visibility] - Visibility in meters
  * @property {number} [qnh] - Barometric pressure (QNH) in hPa
  * @property {Cloud[]} [clouds] - Array of cloud layers, each with a quantity and optional height
+ * @property {WeatherPhenomena[]} [weatherPhenomena] - Array of current weather phenomena
+ * @property {boolean} [cavok] - CAVOK (Ceiling And Visibility OK) condition
  */
 export interface Metar {
   station: string;
@@ -73,7 +89,8 @@ export interface Metar {
   visibility?: number; // in meters
   qnh?: number; // in hPa
   clouds?: Cloud[];
-  // TODO: Add weather phenomena (e.g., rain, snow, fog)
+  weatherPhenomena?: WeatherPhenomena[];
+  cavok?: boolean;
 }
 
 export type MetarFlightRuleColor = 'green' | 'blue' | 'red' | 'purple' | 'black';
