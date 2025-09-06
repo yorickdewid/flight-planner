@@ -98,6 +98,15 @@ export { RunwaySurface, FrequencyType, WaypointVariant } from "./waypoint.types.
 export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js";
 
 // =============================================================================
+// SUN CALCULATIONS
+// =============================================================================
+
+/**
+ * Sun event calculations and daylight/night determination functions.
+ */
+export { calculateSunEvents, isDaylight, isNight } from "./sun.js";
+
+// =============================================================================
 // AIRCRAFT
 // =============================================================================
 
