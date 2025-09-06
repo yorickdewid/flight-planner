@@ -8,7 +8,7 @@ import { Waypoint } from './waypoint.types.js';
  * @param date - The date for which to calculate sun events
  * @returns An object containing sun event times
  */
-function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()): GetTimesResult {
+export const calculateSunEvents = (waypoint: Waypoint, date: Date = new Date()): GetTimesResult => {
   const longitude = waypoint.location.geometry.coordinates[0];
   const latitude = waypoint.location.geometry.coordinates[1];
 
@@ -22,7 +22,7 @@ function calculateSunEvents(waypoint: Waypoint, date: Date = new Date()): GetTim
  * @param time - The time to check (defaults to current time)
  * @returns true if the specified time is during daylight (between sunrise and sunset)
  */
-export function isDaylight(waypoint: Waypoint, time: Date = new Date()): boolean {
+export const isDaylight = (waypoint: Waypoint, time: Date = new Date()): boolean => {
   const events = calculateSunEvents(waypoint, time);
   return time >= events.sunrise && time <= events.sunset;
 }
@@ -35,7 +35,7 @@ export function isDaylight(waypoint: Waypoint, time: Date = new Date()): boolean
  * @param time - The time to check (defaults to current time)
  * @returns true if the specified time is during night
  */
-export function isNight(waypoint: Waypoint, time: Date = new Date()): boolean {
+export const isNight = (waypoint: Waypoint, time: Date = new Date()): boolean => {
   const events = calculateSunEvents(waypoint, time);
   return time <= events.dawn || time >= events.dusk;
 }
