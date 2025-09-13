@@ -86,7 +86,8 @@ export { formatWind, formatVisibility, formatCloud } from "./format.js";
 // NOTAM
 // =============================================================================
 
-export type { Notam, NotamType, NotamScope, NotamPriority } from "./notam.types.js";
+export type { Notam } from "./notam.types.js";
+export { NotamType, NotamScope, NotamPriority } from "./notam.types.js";
 
 // =============================================================================
 // WAYPOINTS & AERODROMES
