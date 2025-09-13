@@ -20,8 +20,12 @@
     "waypoint"
   ],
   "type": "module",
+  "sideEffects": false,
   "author": "Yorick de Wid <ydewid@gmail.com>",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "homepage": "https://github.com/yorickdewid/flight-planner#readme",
   "repository": {
     "type": "git",
@@ -30,18 +34,15 @@
   "bugs": {
     "url": "https://github.com/yorickdewid/flight-planner/issues"
   },
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "scripts": {
     "build": "tsc && pnpm run lint",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test": "pnpm run build && NODE_OPTIONS=--experimental-vm-modules npx jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test:watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
-    "test:coverage": "pnpm run build && NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
+    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
     "prepare": "pnpm run build",
     "prepublishOnly": "pnpm test && pnpm run lint",
     "dev": "pnpm run build:watch"
