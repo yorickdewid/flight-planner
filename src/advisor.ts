@@ -12,7 +12,8 @@
 // - Check for wind gusts
 
 import { Aircraft } from './aircraft.js';
-import { RouteTrip, RouteOptions, routeTripWaypoints } from './navigation.js';
+import { routeTripWaypoints } from './navigation.js';
+import type { RouteTrip, RouteOptions } from './navigation.types.js';
 import { FlightRules } from './index.js';
 import { Metar } from './metar.types.js';
 import { metarFlightRule, metarCeiling } from './metar.js';

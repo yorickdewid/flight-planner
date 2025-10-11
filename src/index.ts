@@ -129,7 +129,7 @@ export type { AircraftRepository } from "./repositories/aircraft.repository.js";
 /**
  * Route planning types and data structures.
  */
-export type { RouteOptions, RouteLeg, RouteTrip, WaypointType, RouteSegment } from "./navigation.js";
+export type { RouteOptions, RouteLeg, RouteTrip, WaypointType, RouteSegment } from "./navigation.types.js";
 
 /**
  * Route planning and flight plan functions.
