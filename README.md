@@ -57,10 +57,38 @@ const isExpired = isMetarExpired(metar);
 ### Flight Planning
 
 ```typescript
-import { createFlightPlanFromString, flightPlan } from 'flight-planner/planner';
+import {
+  PlannerService,
+  AerodromeService,
+  WeatherService,
+  AircraftService,
+  flightPlan
+} from 'flight-planner';
 
-const route = createFlightPlanFromString('EGLL DCT EHAM');
-const plan = flightPlan(route, options);
+// Initialize services with your repositories
+const aerodromeService = new AerodromeService(aerodromeRepository);
+const weatherService = new WeatherService(weatherRepository);
+const aircraftService = new AircraftService(aircraftRepository);
+
+// Create planner service
+const plannerService = new PlannerService(
+  aerodromeService,
+  weatherService,
+  aircraftService
+);
+
+// Create a flight plan from a route string
+const routeTrip = await plannerService.createFlightPlanFromString(
+  'EGLL EHAM',
+  'N12345',
+  { defaultAltitude: 3500 }
+);
+
+// Or use the lower-level flightPlan function for direct calculations
+const plan = flightPlan({
+  segments: [/* your segments */],
+  aircraft: myAircraft
+});
 ```
 
 ### Unit Conversion
