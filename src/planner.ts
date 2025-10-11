@@ -205,7 +205,7 @@ export const isWestbound = (track: number): boolean => {
  * @param {number} altitude - The minimum desired altitude in feet.
  * @returns {number} The calculated VFR cruising altitude in feet.
  */
-export const calculateVFRCruisingAltitude = (track: number, altitude: number): number => {
+export function calculateVFRCruisingAltitude(track: number, altitude: number): number {
   let altitudeLevel: number;
 
   if (isEastbound(track)) {
@@ -242,7 +242,7 @@ export const flightLevel = (altitude: number): number => {
  * @param location - The location to find the closest leg to, as a [longitude, latitude] tuple.
  * @returns The closest route leg, or undefined if no route legs are found or the input is invalid.
  */
-export const closestRouteLeg = (routeTrip: RouteTrip, location: [number, number]): RouteLeg | undefined => {
+export function closestRouteLeg(routeTrip: RouteTrip, location: [number, number]): RouteLeg | undefined {
   if (!routeTrip || !routeTrip.route || routeTrip.route.length === 0) {
     return undefined;
   }
@@ -282,7 +282,7 @@ export const closestRouteLeg = (routeTrip: RouteTrip, location: [number, number]
  * @param location - The location to find the closest waypoint to, as a [longitude, latitude] tuple.
  * @returns The closest waypoint, or undefined if no waypoints are found or the input is invalid.
  */
-export const closestWaypoint = (routeTrip: RouteTrip, location: [number, number]): WaypointType | undefined => {
+export function closestWaypoint(routeTrip: RouteTrip, location: [number, number]): WaypointType | undefined {
   if (!routeTrip || !routeTrip.route || routeTrip.route.length === 0) {
     return undefined;
   }
@@ -620,30 +620,30 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
 /**
  * Calculates a single leg of a flight route.
  *
- * @param {RouteSegment} startSegment - The starting segment of the leg.
- * @param {RouteSegment} endSegment - The ending segment of the leg.
+ * @param {RouteSegment} start - The starting segment of the leg.
+ * @param {RouteSegment} end - The ending segment of the leg.
  * @param {Aircraft} [aircraft] - The aircraft used for performance calculations.
  * @param {Date} departureDate - The departure date from the start of this leg.
  * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
-  startSegment: RouteSegment,
-  endSegment: RouteSegment,
+  start: RouteSegment,
+  end: RouteSegment,
   aircraft: Aircraft | undefined,
   departureDate: Date
 ): RouteLeg {
-  const course = calculateRouteCourse(startSegment.waypoint, endSegment.waypoint);
+  const course = calculateRouteCourse(start.waypoint, end.waypoint);
 
   // TODO:
-  // const temperature = startSegment.waypoint.metarStation?.metar.temperature;
-  const wind = endSegment.waypoint.metarStation?.metar.wind;
+  // const temperature = start.waypoint.metarStation?.metar.temperature;
+  const wind = end.waypoint.metarStation?.metar.wind;
 
   const performance = aircraft && wind && calculatePerformance(aircraft, course, wind);
   const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
 
   return {
-    start: startSegment,
-    end: endSegment,
+    start,
+    end,
     course,
     wind,
     arrivalDate,
@@ -654,18 +654,18 @@ function calculateRouteLeg(
 /**
  * Calculates the course vector (distance and track) between two waypoints.
  *
- * @param {Waypoint} startWaypoint - The starting waypoint.
- * @param {Waypoint} endWaypoint - The ending waypoint.
+ * @param {Waypoint} start - The starting waypoint.
+ * @param {Waypoint} end - The ending waypoint.
  * @returns {CourseVector} The calculated course vector.
  */
-function calculateRouteCourse(startWaypoint: Waypoint, endWaypoint: Waypoint): CourseVector {
-  const trueTrack = waypointHeading(startWaypoint, endWaypoint);
-  const magneticDeclination = startWaypoint.declination
-    || endWaypoint.declination
+function calculateRouteCourse(start: Waypoint, end: Waypoint): CourseVector {
+  const trueTrack = waypointHeading(start, end);
+  const magneticDeclination = start.declination
+    || end.declination
     || 0;
 
   return {
-    distance: waypointDistance(startWaypoint, endWaypoint),
+    distance: waypointDistance(start, end),
     track: bearingToAzimuth(trueTrack),
     magneticTrack: bearingToAzimuth(trueTrack - magneticDeclination),
   };
