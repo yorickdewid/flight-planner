@@ -2,12 +2,21 @@ name: Node.js CI
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - "main"
+      - "feat/**"
+      - "fix/**"
+      - "chore/**"
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build and Test (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
 
     strategy:
