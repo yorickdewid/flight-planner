@@ -10,7 +10,6 @@ import type {
   RouteLegPerformance,
   RouteLeg,
   RouteTrip,
-  RouteOptions,
   FlightPlanOptions,
   WaypointType,
   RouteSegment,
