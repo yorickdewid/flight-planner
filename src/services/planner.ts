@@ -1,6 +1,5 @@
 import AerodromeService from './aerodrome.js';
 import WeatherService from './weather.js';
-import AircraftService from './aircraft.js';
 import { flightPlan } from '../navigation.js';
 import type { WaypointType, RouteSegment, RouteOptions, RouteTrip } from '../navigation.types.js';
 import { Waypoint } from '../waypoint.types.js';
@@ -79,16 +78,14 @@ class PlannerService {
    *
    * @param aerodromeService - The aerodrome service for looking up airports and aerodromes.
    * @param weatherService - The weather service for attaching weather data to waypoints.
-   * @param aircraftService - The aircraft service for looking up aircraft information.
    * @param customResolvers - Optional array of custom waypoint resolvers. These will be tried before the default resolvers.
    */
   constructor(
     private aerodromeService: AerodromeService,
     private weatherService: WeatherService,
-    private aircraftService: AircraftService,
     customResolvers: WaypointResolver[] = []
   ) {
-    if (!aerodromeService || !weatherService || !aircraftService) {
+    if (!aerodromeService || !weatherService) {
       throw new Error('PlannerService requires all service dependencies.');
     }
 
@@ -167,25 +164,21 @@ class PlannerService {
   }
 
   /**
-   * Creates a flight plan from a route string, aircraft registration, and optional route options.
+   * Creates a flight plan from a route string and route options.
    *
    * This function parses the route string into waypoints, attaches weather data, finds an alternate aerodrome if not provided,
    * and constructs a flight plan with segments and performance calculations.
    *
    * @param routeString - The route string to parse into waypoints.
-   * @param aircraftRegistration - The registration of the aircraft to be used in the flight plan.
-   * @param options - Optional parameters for the flight plan, including default altitude, departure date, and reserve fuel.
+   * @param options - Optional parameters for the flight plan, including aircraft, default altitude, departure date, and reserve fuel.
    * @returns A promise that resolves to a RouteTrip object with optional advisory information.
    */
   async createFlightPlanFromString(
     routeString: string,
-    aircraftRegistration: string,
     options: RouteOptions = {}
   ): Promise<RouteTrip & { advisory?: Advisory[] }> {
     const waypoints = await this.parseRouteString(routeString);
     const lastWaypoint = waypoints[waypoints.length - 1];
-
-    options.aircraft = await this.aircraftService.findByRegistration(aircraftRegistration);
 
     await this.weatherService.attachWeather(waypoints);
 
