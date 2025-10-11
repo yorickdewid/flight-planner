@@ -10,7 +10,7 @@ import { Metar, Cloud, Wind, MetarFlightRuleColor, MetarColorCode, ColorConditio
  * @param raw The raw METAR string
  * @returns A Metar object
  */
-export const createMetarFromString = (raw: string): Metar => {
+export function createMetarFromString(raw: string): Metar {
   const metar = parseMetar(raw);
 
   const observationTime = new Date();
@@ -72,7 +72,7 @@ export const createMetarFromString = (raw: string): Metar => {
  * @param {Metar} metar - The METAR data.
  * @returns {number | undefined} The ceiling height in feet, or undefined if no ceiling exists.
  */
-export const metarCeiling = (metar: Metar): number | undefined => {
+export function metarCeiling(metar: Metar): number | undefined {
   const cloudCeilingQuantity = ['BKN', 'OVC'];
   const clouds = metar.clouds || [];
   const cloudCeiling = clouds.filter(cloud => cloudCeilingQuantity.includes(cloud.quantity)).sort((a, b) => (a.height ?? 0) - (b.height ?? 0));
@@ -88,7 +88,7 @@ export const metarCeiling = (metar: Metar): number | undefined => {
  * @param {Metar} metar - The METAR data.
  * @returns {FlightRules} The flight rules category (LIFR, IFR, MVFR, VFR).
  */
-export const metarFlightRule = (metar: Metar): FlightRules => {
+export function metarFlightRule(metar: Metar): FlightRules {
   const ceiling = metarCeiling(metar);
 
   if ((metar.visibility !== undefined && metar.visibility <= 1500) ||
@@ -119,7 +119,7 @@ export const metarFlightRule = (metar: Metar): FlightRules => {
  * @param {boolean} [options.useStandardRules=true] - Whether to use standard expiration rules.
  * @returns {boolean} True if the METAR has expired, false otherwise.
  */
-export const isMetarExpired = (metar: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean => {
+export function isMetarExpired(metar: Metar, options: { customMinutes?: number; useStandardRules?: boolean } = {}): boolean {
   const now = new Date();
   const { customMinutes, useStandardRules = true } = options;
 
@@ -149,7 +149,7 @@ export const isMetarExpired = (metar: Metar, options: { customMinutes?: number; 
  * @param {Metar} metarData - The METAR data.
  * @returns {MetarFlightRuleColor} The color string ('green', 'blue', 'red', 'purple', 'black').
  */
-export const metarFlightRuleColor = (metarData: Metar): MetarFlightRuleColor => {
+export function metarFlightRuleColor(metarData: Metar): MetarFlightRuleColor {
   const flightRule = metarFlightRule(metarData);
   switch (flightRule) {
     case FlightRules.VFR:
@@ -205,7 +205,7 @@ const colorConditions: ColorCondition[] = [
  * @param {Metar} metarData - The METAR data to evaluate.
  * @returns {MetarColorCode} The color code representing the weather conditions.
  */
-export const metarColorCode = (metarData: Metar): MetarColorCode => {
+export function metarColorCode(metarData: Metar): MetarColorCode {
   const visibility = metarData.visibility;
   const ceiling = metarCeiling(metarData);
   const windSpeed = metarData.wind?.speed;
