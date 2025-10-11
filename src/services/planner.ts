@@ -1,8 +1,8 @@
 import AerodromeService from './aerodrome.js';
 import WeatherService from './weather.js';
 import AircraftService from './aircraft.js';
-import { flightPlan, WaypointType, RouteSegment } from '../planner.js';
-import { RouteOptions, RouteTrip } from '../planner.js';
+import { flightPlan, WaypointType, RouteSegment } from '../navigation.js';
+import { RouteOptions, RouteTrip } from '../navigation.js';
 import { Waypoint } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import { point as turfPoint } from '@turf/turf';
