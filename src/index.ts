@@ -155,7 +155,6 @@ export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
  * Core service classes for aerodrome, weather, aircraft, and planning operations.
  */
 export { AerodromeService, WeatherService };
-export { default as AircraftService } from "./services/aircraft.js";
 export { default as PlannerService } from "./services/planner.js";
 export type { WaypointResolver } from "./services/planner.js";
 
