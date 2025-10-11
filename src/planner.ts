@@ -121,7 +121,33 @@ export interface RouteOptions {
   departureDate?: Date;
   aircraft?: Aircraft;
   alternate?: Aerodrome;
-  alternateRadius?: number; // Added this line
+  alternateRadius?: number;
+  reserveFuel?: number;
+  reserveFuelDuration?: number;
+  taxiFuel?: number;
+  takeoffFuel?: number;
+  landingFuel?: number;
+}
+
+/**
+ * Options for configuring a flight plan.
+ *
+ * @interface FlightPlanOptions
+ * @property {RouteSegment[]} segments - Array of route segments representing the waypoints and altitudes for the flight.
+ * @property {RouteSegment} [alternateSegment] - Optional alternate aerodrome segment for the flight plan.
+ * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
+ * @property {Date} [departureDate] - The scheduled departure date and time.
+ * @property {number} [reserveFuel] - The amount of reserve fuel to carry in liters.
+ * @property {number} [reserveFuelDuration] - The duration for which reserve fuel is calculated in minutes.
+ * @property {number} [taxiFuel] - The amount of fuel required for taxiing in liters.
+ * @property {number} [takeoffFuel] - The amount of fuel required for takeoff in liters.
+ * @property {number} [landingFuel] - The amount of fuel required for landing in liters.
+ */
+export interface FlightPlanOptions {
+  segments: RouteSegment[];
+  alternateSegment?: RouteSegment;
+  aircraft?: Aircraft;
+  departureDate?: Date;
   reserveFuel?: number;
   reserveFuelDuration?: number;
   taxiFuel?: number;
@@ -463,35 +489,47 @@ export async function createFlightPlanFromString(
     altitude: options.alternate.elevation
   } : undefined;
 
-  const routeTrip = flightPlan(segments, alternateSegment, options.aircraft, options);
+  const routeTrip = flightPlan({
+    segments,
+    alternateSegment,
+    aircraft: options.aircraft,
+    departureDate: options.departureDate,
+    reserveFuel: options.reserveFuel,
+    reserveFuelDuration: options.reserveFuelDuration,
+    taxiFuel: options.taxiFuel,
+    takeoffFuel: options.takeoffFuel,
+    landingFuel: options.landingFuel
+  });
   const advisory = routeTripValidate(routeTrip, options.aircraft, options);
 
   return { ...routeTrip, advisory };
 }
 
 /**
- * Generates a flight plan based on the provided route segments, alternate segment, aircraft, and options.
+ * Generates a flight plan based on the provided options.
  *
  * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
  * It returns a RouteTrip object containing all relevant information about the flight plan.
  *
- * @param segments - An array of RouteSegment objects representing the waypoints and altitudes for the flight.
- * @param alternateSegment - An optional RouteSegment representing an alternate aerodrome for the flight.
- * @param aircraft - The Aircraft object containing performance data for the flight.
- * @param options - Optional parameters for the flight plan, including departure date and reserve fuel duration.
+ * @param options - Flight plan options containing segments, aircraft, and fuel parameters.
  * @returns A RouteTrip object containing the calculated flight plan details.
  */
-export function flightPlan(
-  segments: RouteSegment[],
-  alternateSegment: RouteSegment | undefined,
-  aircraft: Aircraft | undefined,
-  options: RouteOptions = {}
-): RouteTrip {
+export function flightPlan(options: FlightPlanOptions): RouteTrip {
+  const {
+    segments,
+    alternateSegment,
+    aircraft,
+    departureDate = new Date(),
+    reserveFuelDuration = 30,
+    reserveFuel,
+    taxiFuel,
+    takeoffFuel,
+    landingFuel
+  } = options;
+
   if (segments.length < 2) {
     throw new InsufficientWaypointsError(segments.length);
   }
-
-  const { departureDate = new Date(), reserveFuelDuration = 30, reserveFuel } = options;
 
   const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraft, departureDate));
 
@@ -533,16 +571,16 @@ export function flightPlan(
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
   const totalTripFuel = totalFuelConsumption
     + (reserveFuelRequired || 0)
-    + (options.takeoffFuel || 0)
-    + (options.landingFuel || 0)
-    + (options.taxiFuel || 0);
+    + (takeoffFuel || 0)
+    + (landingFuel || 0)
+    + (taxiFuel || 0);
 
   const fuelBreakdown = {
     trip: Math.round(totalFuelConsumption),
     reserve: Math.round(reserveFuelRequired || 0),
-    takeoff: options.takeoffFuel && Math.round(options.takeoffFuel),
-    landing: options.landingFuel && Math.round(options.landingFuel),
-    taxi: options.taxiFuel && Math.round(options.taxiFuel),
+    takeoff: takeoffFuel && Math.round(takeoffFuel),
+    landing: landingFuel && Math.round(landingFuel),
+    taxi: taxiFuel && Math.round(taxiFuel),
     alternate: routeAlternate?.performance?.fuelConsumption && Math.round(routeAlternate.performance.fuelConsumption)
   };
 
