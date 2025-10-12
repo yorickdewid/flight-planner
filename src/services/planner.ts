@@ -163,6 +163,7 @@ export class PlannerService {
     return waypoints;
   }
 
+  // TODO: All we really need is to resolve a route. Then the flightPlan function can handle the rest.
   /**
    * Creates a flight plan from a route string and route options.
    *
@@ -200,6 +201,7 @@ export class PlannerService {
       altitude: options.defaultAltitude
     }));
 
+    // TODO: Move to flightPlan function
     segments[0].altitude = segments[0].waypoint.elevation;
     segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
 
@@ -219,6 +221,8 @@ export class PlannerService {
       takeoffFuel: options.takeoffFuel,
       landingFuel: options.landingFuel
     });
+
+    // TODO: Dont need this here
     const advisory = routeTripValidate(routeTrip, options.aircraft as Aircraft, options);
 
     return { ...routeTrip, advisory };
