@@ -61,7 +61,6 @@ import {
   PlannerService,
   AerodromeService,
   WeatherService,
-  AircraftService,
   WaypointResolver,
   WaypointType,
   flightPlan
@@ -70,7 +69,6 @@ import {
 // Initialize services with your repositories
 const aerodromeService = new AerodromeService(aerodromeRepository);
 const weatherService = new WeatherService(weatherRepository);
-const aircraftService = new AircraftService(aircraftRepository);
 
 // Create planner service with default resolvers (ICAO and coordinates)
 const plannerService = new PlannerService(
@@ -78,14 +76,11 @@ const plannerService = new PlannerService(
   weatherService
 );
 
-// Get aircraft information
-const aircraft = await aircraftService.findByRegistration('N12345');
-
 // Create a flight plan from a route string
 const routeTrip = await plannerService.createFlightPlanFromString(
   'EGLL EHAM',
   {
-    aircraft,
+    aircraft: myAircraft,
     defaultAltitude: 3500
   }
 );
@@ -147,14 +142,11 @@ const plannerService = new PlannerService(
   ]
 );
 
-// Get aircraft information
-const aircraft = await aircraftService.findByRegistration('N12345');
-
 // Now you can use IATA codes and navaids in your route strings
 const routeTrip = await plannerService.createFlightPlanFromString(
   'JFK VOR123 LAX',  // IATA codes and VOR
   {
-    aircraft,
+    aircraft: myAircraft,
     defaultAltitude: 3500
   }
 );
