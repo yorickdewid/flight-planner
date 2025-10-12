@@ -231,6 +231,9 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
+    if (altitude && !alternateSegment.altitude) {
+      alternateSegment.altitude = altitude;
+    }
     routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, departureDate);
   }
 
