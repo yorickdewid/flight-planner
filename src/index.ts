@@ -112,15 +112,6 @@ export { validateFrequencyType, calculateRunwayWindVector } from "./waypoint.js"
 export { calculateSunEvents, isDaylight, isNight } from "./sun.js";
 
 // =============================================================================
-// AIRCRAFT
-// =============================================================================
-
-/**
- * Aircraft-related repository interface.
- */
-export type { AircraftRepository } from "./repositories/aircraft.repository.js";
-
-// =============================================================================
 // FLIGHT PLANNING & ROUTES
 // =============================================================================
 
