@@ -1,5 +1,5 @@
-import AerodromeService from './aerodrome.js';
-import WeatherService from './weather.js';
+import { AerodromeService } from './aerodrome.js';
+import { WeatherService } from './weather.js';
 import { flightPlan } from '../navigation.js';
 import type { WaypointType, RouteSegment, RouteOptions, RouteTrip } from '../navigation.types.js';
 import { Waypoint } from '../waypoint.types.js';
@@ -70,7 +70,7 @@ class CoordinateResolver implements WaypointResolver {
  *
  * @class PlannerService
  */
-class PlannerService {
+export class PlannerService {
   private resolvers: WaypointResolver[];
 
   /**
@@ -224,5 +224,3 @@ class PlannerService {
     return { ...routeTrip, advisory };
   }
 }
-
-export default PlannerService;
