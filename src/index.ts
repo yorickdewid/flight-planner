@@ -129,7 +129,7 @@ export type { AircraftRepository } from "./repositories/aircraft.repository.js";
 /**
  * Route planning types and data structures.
  */
-export type { RouteOptions, RouteLeg, RouteTrip } from "./planner.js";
+export type { RouteOptions, RouteLeg, RouteTrip, WaypointType, RouteSegment } from "./navigation.types.js";
 
 /**
  * Route planning and flight plan functions.
@@ -138,10 +138,8 @@ export {
   routeTripWaypoints,
   routeTripDepartureWaypoint,
   routeTripArrivalWaypoint,
-  parseRouteString,
-  createFlightPlanFromString,
   flightPlan
-} from "./planner.js";
+} from "./navigation.js";
 
 /**
  * Route validation and advisory functions.
@@ -158,6 +156,8 @@ export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
  */
 export { AerodromeService, WeatherService };
 export { default as AircraftService } from "./services/aircraft.js";
+export { default as PlannerService } from "./services/planner.js";
+export type { WaypointResolver } from "./services/planner.js";
 
 /**
  * Repository interfaces for data access abstraction.

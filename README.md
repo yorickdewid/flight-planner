@@ -57,10 +57,107 @@ const isExpired = isMetarExpired(metar);
 ### Flight Planning
 
 ```typescript
-import { createFlightPlanFromString, flightPlan } from 'flight-planner/planner';
+import {
+  PlannerService,
+  AerodromeService,
+  WeatherService,
+  AircraftService,
+  WaypointResolver,
+  WaypointType,
+  flightPlan
+} from 'flight-planner';
 
-const route = createFlightPlanFromString('EGLL DCT EHAM');
-const plan = flightPlan(route, options);
+// Initialize services with your repositories
+const aerodromeService = new AerodromeService(aerodromeRepository);
+const weatherService = new WeatherService(weatherRepository);
+const aircraftService = new AircraftService(aircraftRepository);
+
+// Create planner service with default resolvers (ICAO and coordinates)
+const plannerService = new PlannerService(
+  aerodromeService,
+  weatherService
+);
+
+// Get aircraft information
+const aircraft = await aircraftService.findByRegistration('N12345');
+
+// Create a flight plan from a route string
+const routeTrip = await plannerService.createFlightPlanFromString(
+  'EGLL EHAM',
+  {
+    aircraft,
+    defaultAltitude: 3500
+  }
+);
+
+// Or use the lower-level flightPlan function for direct calculations
+const plan = flightPlan({
+  segments: [/* your segments */],
+  aircraft: myAircraft
+});
+```
+
+#### Custom Waypoint Resolvers
+
+You can extend the route parser with custom waypoint resolvers to support additional formats like IATA codes, VORs, NDBs, or IFR waypoints:
+
+```typescript
+import { WaypointResolver, WaypointType } from 'flight-planner';
+
+// Example: Custom IATA resolver
+class IATAResolver implements WaypointResolver {
+  constructor(private aerodromeService: AerodromeService) {}
+
+  async resolve(part: string): Promise<WaypointType | null> {
+    // Check if it's a 3-letter code (potential IATA)
+    if (/^[A-Z]{3}$/.test(part)) {
+      const airport = await this.aerodromeService.findByIATA(part);
+      if (airport) {
+        return airport;
+      }
+    }
+    return null; // Not handled by this resolver
+  }
+}
+
+// Example: VOR/NDB resolver
+class NavaidResolver implements WaypointResolver {
+  constructor(private navaidService: NavaidService) {}
+
+  async resolve(part: string): Promise<WaypointType | null> {
+    // Check for VOR or NDB pattern
+    if (/^(VOR|NDB)/.test(part)) {
+      const navaid = await this.navaidService.findByIdentifier(part);
+      if (navaid) {
+        return navaid;
+      }
+    }
+    return null;
+  }
+}
+
+// Create planner with custom resolvers
+const plannerService = new PlannerService(
+  aerodromeService,
+  weatherService,
+  [
+    new IATAResolver(aerodromeService),
+    new NavaidResolver(navaidService)
+    // Add more custom resolvers as needed
+  ]
+);
+
+// Get aircraft information
+const aircraft = await aircraftService.findByRegistration('N12345');
+
+// Now you can use IATA codes and navaids in your route strings
+const routeTrip = await plannerService.createFlightPlanFromString(
+  'JFK VOR123 LAX',  // IATA codes and VOR
+  {
+    aircraft,
+    defaultAltitude: 3500
+  }
+);
 ```
 
 ### Unit Conversion
