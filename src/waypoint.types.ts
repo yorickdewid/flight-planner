@@ -175,6 +175,7 @@ export interface Frequency {
   value: string;
 }
 
+// TODO: Move this some place else
 /**
  * Represents a wind vector in relation to a specific runway.
  *
