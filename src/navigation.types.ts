@@ -150,6 +150,7 @@ export interface RouteOptions {
  * @property {RouteSegment} [alternateSegment] - Optional alternate aerodrome segment for the flight plan.
  * @property {Aircraft} [aircraft] - The aircraft to be used for the flight.
  * @property {Date} [departureDate] - The scheduled departure date and time.
+ * @property {number} [altitude] - The default altitude for the flight in feet.
  * @property {number} [reserveFuel] - The amount of reserve fuel to carry in liters.
  * @property {number} [reserveFuelDuration] - The duration for which reserve fuel is calculated in minutes.
  * @property {number} [taxiFuel] - The amount of fuel required for taxiing in liters.
@@ -161,6 +162,7 @@ export interface FlightPlanOptions {
   alternateSegment?: RouteSegment;
   aircraft?: Aircraft;
   departureDate?: Date;
+  altitude?: number;
   reserveFuel?: number;
   reserveFuelDuration?: number;
   taxiFuel?: number;

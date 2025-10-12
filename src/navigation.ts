@@ -211,6 +211,7 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     alternateSegment,
     aircraft,
     departureDate = new Date(),
+    altitude,
     reserveFuelDuration = 30,
     reserveFuel,
     taxiFuel,
