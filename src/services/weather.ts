@@ -12,7 +12,7 @@ export type { WeatherRepository } from "../repositories/weather.repository.js";
  * @class WeatherService
  * @property {RepositoryBase<MetarStation>} [repository] - Optional repository for fetching METAR data.
  */
-class WeatherService {
+export class WeatherService {
   /**
    * Creates a new instance of the WeatherService class.
    *
@@ -174,5 +174,3 @@ class WeatherService {
       }));
   }
 }
-
-export default WeatherService;

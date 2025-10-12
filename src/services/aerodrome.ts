@@ -14,7 +14,7 @@ export type { AerodromeRepository } from "../repositories/aerodrome.repository.j
  * @class AerodromeService
  * @throws Error if the repository is not provided.
  */
-class AerodromeService {
+export class AerodromeService {
   /**
    * Creates a new instance of the AerodromeService class.
    *
@@ -148,5 +148,3 @@ class AerodromeService {
     return await this.repository.exists(normalizedIcao);
   }
 }
-
-export default AerodromeService;
