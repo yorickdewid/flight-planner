@@ -97,6 +97,23 @@ export class PlannerService {
   }
 
   /**
+   * Adds a custom waypoint resolver to the resolver chain.
+   * The resolver will be added at the beginning of the chain and will be tried before existing resolvers.
+   *
+   * @param resolver - The waypoint resolver to add.
+   */
+  addResolver(resolver: WaypointResolver): void {
+    this.resolvers.unshift(resolver);
+  }
+
+  /**
+   * Clears all waypoint resolvers from the resolver chain.
+   */
+  clearResolvers(): void {
+    this.resolvers = [];
+  }
+
+  /**
    * Parses a route string into an array of waypoints.
    *
    * This function accepts a route string containing various waypoint formats and converts them
