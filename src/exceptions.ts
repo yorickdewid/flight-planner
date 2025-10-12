@@ -1,8 +1,4 @@
 /**
- * Custom exceptions for the flight planner application.
- */
-
-/**
  * Base class for all flight planner exceptions.
  */
 export abstract class FlightPlannerError extends Error {
