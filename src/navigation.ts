@@ -15,17 +15,6 @@ import type {
   RouteSegment,
 } from './navigation.types.js';
 
-// Re-export types for convenience
-export type {
-  CourseVector,
-  RouteLegPerformance,
-  RouteLeg,
-  RouteTrip,
-  FlightPlanOptions,
-  WaypointType,
-  RouteSegment,
-} from './navigation.types.js';
-
 /**
  * Checks if a given track is eastbound (0-179 degrees).
  *
