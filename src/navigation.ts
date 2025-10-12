@@ -3,7 +3,6 @@ import { createWaypoint, waypointDistance, waypointHeading } from './waypoint.js
 import { calculateGroundspeed, calculateWindCorrectionAngle, calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
 import { bearingToAzimuth, lineString, point as turfPoint, pointToLineDistance } from '@turf/turf';
-import { Aircraft } from './aircraft.js';
 import { InsufficientWaypointsError } from './exceptions.js';
 import type {
   CourseVector,
