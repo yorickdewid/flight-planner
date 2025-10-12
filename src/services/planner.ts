@@ -151,20 +151,12 @@ export class PlannerService {
 
     for (const part of routeParts) {
       try {
-        let resolved = false;
-
-        // Try each resolver in sequence
         for (const resolver of this.resolvers) {
           const waypoint = await resolver.resolve(part);
           if (waypoint) {
             waypoints.push(waypoint);
-            resolved = true;
             break;
           }
-        }
-
-        if (!resolved) {
-          throw new Error(`Unrecognized waypoint format: ${part}`);
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
