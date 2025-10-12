@@ -16,6 +16,14 @@ import type {
 } from './navigation.types.js';
 
 /**
+ * Minimal aircraft performance data required for flight calculations.
+ */
+interface AircraftPerformance {
+  cruiseSpeed: number;
+  fuelConsumption?: number;
+}
+
+/**
  * Checks if a given track is eastbound (0-179 degrees).
  *
  * @param {number} track - The track in degrees.
@@ -158,7 +166,7 @@ export function closestWaypoint(routeTrip: RouteTrip, location: [number, number]
  * @param routeTrip - The route trip containing legs with start and end waypoints
  * @returns An array of unique waypoints representing all points in the route trip
  */
-export const routeTripWaypoints = (routeTrip: RouteTrip): WaypointType[] => {
+export function routeTripWaypoints(routeTrip: RouteTrip): WaypointType[] {
   const allWaypoints = routeTrip.route.flatMap(leg => [leg.start.waypoint, leg.end.waypoint]);
 
   const uniqueWaypoints = new Map<string, WaypointType>();
@@ -215,11 +223,16 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     throw new InsufficientWaypointsError(segments.length);
   }
 
-  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraft, departureDate));
+  const aircraftPerformance: AircraftPerformance | undefined = aircraft?.cruiseSpeed ? {
+    cruiseSpeed: aircraft.cruiseSpeed,
+    fuelConsumption: aircraft.fuelConsumption
+  } : undefined;
+
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance, departureDate));
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraft, departureDate);
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, departureDate);
   }
 
   let totalDistance = 0;
@@ -306,14 +319,14 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
  *
  * @param {RouteSegment} start - The starting segment of the leg.
  * @param {RouteSegment} end - The ending segment of the leg.
- * @param {Aircraft} [aircraft] - The aircraft used for performance calculations.
+ * @param {AircraftPerformance} [aircraft] - The aircraft performance data for calculations.
  * @param {Date} departureDate - The departure date from the start of this leg.
  * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
   start: RouteSegment,
   end: RouteSegment,
-  aircraft: Aircraft | undefined,
+  aircraft: AircraftPerformance | undefined,
   departureDate: Date
 ): RouteLeg {
   const course = calculateRouteCourse(start.waypoint, end.waypoint);
@@ -322,7 +335,7 @@ function calculateRouteLeg(
   // const temperature = start.waypoint.metarStation?.metar.temperature;
   const wind = end.waypoint.metarStation?.metar.wind;
 
-  const performance = aircraft && wind && calculatePerformance(aircraft, course, wind);
+  const performance = aircraft && wind ? calculatePerformance(aircraft, course, wind) : undefined;
   const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
 
   return {
@@ -356,16 +369,14 @@ function calculateRouteCourse(start: Waypoint, end: Waypoint): CourseVector {
 }
 
 /**
- * Calculates aircraft performance for a given course, aircraft, and wind conditions.
+ * Calculates aircraft performance for a given course, aircraft performance data, and wind conditions.
  *
- * @param {Aircraft} aircraft - The aircraft for which to calculate performance.
+ * @param {AircraftPerformance} aircraft - The aircraft performance data (cruise speed and fuel consumption).
  * @param {CourseVector} course - The course vector (track and distance).
  * @param {Wind} wind - The wind conditions.
- * @returns {RouteLegPerformance | undefined} The calculated aircraft performance, or undefined if essential data is missing.
+ * @returns {RouteLegPerformance} The calculated aircraft performance.
  */
-function calculatePerformance(aircraft: Aircraft, course: CourseVector, wind: Wind): RouteLegPerformance | undefined {
-  if (!aircraft.cruiseSpeed) return undefined;
-
+function calculatePerformance(aircraft: AircraftPerformance, course: CourseVector, wind: Wind): RouteLegPerformance {
   // Calculate the true airspeed
   const trueAirspeed = aircraft.cruiseSpeed;
 
