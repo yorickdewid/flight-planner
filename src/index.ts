@@ -144,19 +144,3 @@ export {
  */
 export type { Advisory } from "./advisor.js";
 export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
-
-// =============================================================================
-// SERVICES & REPOSITORIES
-// =============================================================================
-
-/**
- * Core service classes for aerodrome, weather, aircraft, and planning operations.
- */
-export { AerodromeService, WeatherService, PlannerService } from "./services/index.js";
-export type { WaypointResolver } from "./services/planner.js";
-
-/**
- * Repository interfaces for data access abstraction.
- */
-export type { AerodromeRepository } from "./repositories/aerodrome.repository.js";
-export type { WeatherRepository } from "./repositories/weather.repository.js";
