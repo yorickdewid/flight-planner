@@ -4,6 +4,8 @@ import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 import { WeatherRepository } from "../repositories/weather.repository.js";
 
+export type { WeatherRepository } from "../repositories/weather.repository.js";
+
 /**
  * WeatherService class provides methods to manage and retrieve METAR station data.
  *

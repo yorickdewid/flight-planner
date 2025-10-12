@@ -5,10 +5,12 @@ import { isICAO, normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
+export type { AerodromeRepository } from "../repositories/aerodrome.repository.js";
+
 /**
  * AerodromeService class provides methods to manage and retrieve aerodrome data.
  * Acts as a service layer that handles business logic and validation.
- * 
+ *
  * @class AerodromeService
  * @throws Error if the repository is not provided.
  */
@@ -67,7 +69,7 @@ class AerodromeService {
 
   /**
    * Finds the nearest aerodrome to the given location.
-   * 
+   *
    * @param location - The geographical location to find the nearest aerodrome to.
    * @param radius - The search radius in kilometers (default is 100 km).
    * @param exclude - An optional array of ICAO codes to exclude from the search.
@@ -101,7 +103,7 @@ class AerodromeService {
 
   /**
    * Fetches data by geographic location within specified radius.
-   * 
+   *
    * @param location - The location coordinates [longitude, latitude].
    * @param radius - The radius in kilometers (default: 100, max: 1000).
    * @returns A promise that resolves to an array of aerodromes.
@@ -132,7 +134,7 @@ class AerodromeService {
 
   /**
    * Checks if an aerodrome exists.
-   * 
+   *
    * @param icaoCode - The ICAO code of the aerodrome to check.
    * @returns A promise that resolves to true if the aerodrome exists, false otherwise.
    * @throws Error if the ICAO code is invalid.
