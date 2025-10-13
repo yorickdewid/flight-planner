@@ -1,8 +1,52 @@
+import { z } from 'zod';
+
+/**
+ * Checks if the given string is a valid aircraft registration.
+ *
+ * @param registration - The string to check
+ * @returns True if the string is a valid aircraft registration, false otherwise
+ */
+export const isAircraftRegistration = (registration: string): boolean => {
+  return /^(N[1-9][0-9A-HJ-NP-Z]{0,4}|[A-Z]{1,2}-?[A-Z0-9]{1,4})$/.test(registration.toUpperCase());
+}
+
+/**
+ * Zod schema for validating Aircraft objects.
+ * This is the single source of truth for aircraft data structure.
+ * Uses the isAircraftRegistration function to validate the registration field.
+ */
+export const AircraftSchema = z.object({
+  registration: z.string().refine(isAircraftRegistration, {
+    message: "Invalid aircraft registration format"
+  }),
+  manufacturer: z.string().optional(),
+  icaoType: z.string().optional(),
+  hexcode: z.string().optional(),
+  colors: z.string().optional(),
+  numberOfEngines: z.number().optional(),
+  avionics: z.array(z.string()).optional(),
+  cruiseSpeed: z.number().optional(),
+  fuelCapacity: z.number().optional(),
+  fuelConsumption: z.number().optional(),
+  fuelType: z.enum(['Avgas', 'Jet A', 'Jet A1', 'Jet B', 'Mogas', 'Diesel']).optional(),
+  engineType: z.enum(['piston', 'turboprop', 'turbojet', 'turbofan', 'electric', 'turboshaft']).optional(),
+  maxTakeoffWeight: z.number().optional(),
+  rentalPrice: z.number().optional(),
+  emptyWeight: z.number().optional(),
+  serviceCeiling: z.number().optional(),
+  maxDemonstratedCrosswind: z.number().optional(),
+  takeoffDistance: z.number().optional(),
+  landingDistance: z.number().optional(),
+  wingspan: z.number().optional(),
+  propellerType: z.enum(['fixed-pitch', 'variable-pitch', 'constant-speed']).optional(),
+  landingGearType: z.enum(['fixed tricycle', 'retractable tricycle', 'fixed conventional', 'retractable conventional', 'skis', 'floats']).optional(),
+});
+
 /**
  * Represents an aircraft with its specifications and characteristics.
+ * This type is inferred from the AircraftSchema to ensure type and validation stay in sync.
  *
- * @interface Aircraft
- * @property {string} [registration] - The registration identifier of the aircraft.
+ * @property {string} registration - The registration identifier of the aircraft.
  * @property {string} [manufacturer] - The manufacturer of the aircraft.
  * @property {string} [icaoType] - The ICAO type designator of the aircraft.
  * @property {string} [hexcode] - The hex code of the aircraft, typically used for ADS-B.
@@ -12,7 +56,7 @@
  * @property {number} [cruiseSpeed] - The cruising speed of the aircraft in knots.
  * @property {number} [fuelCapacity] - The fuel capacity of the aircraft in liters.
  * @property {number} [fuelConsumption] - The fuel consumption rate in liters per hour.
- * @property {number} [fuelType] - The type of fuel used by the aircraft (e.g., 'Avgas', 'Jet A', 'Mogas').
+ * @property {'Avgas' | 'Jet A' | 'Jet A1' | 'Jet B' | 'Mogas' | 'Diesel'} [fuelType] - The type of fuel used by the aircraft.
  * @property {'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft'} [engineType] - The type of engine used in the aircraft.
  * @property {number} [maxTakeoffWeight] - The maximum takeoff weight of the aircraft in kilograms.
  * @property {number} [rentalPrice] - The rental price of the aircraft per hour in the local currency.
@@ -25,40 +69,7 @@
  * @property {'fixed-pitch' | 'variable-pitch' | 'constant-speed'} [propellerType] - The type of propeller, if applicable.
  * @property {'fixed tricycle' | 'retractable tricycle' | 'fixed conventional' | 'retractable conventional' | 'skis' | 'floats'} [landingGearType] - The type of landing gear.
  */
-export interface Aircraft {
-  registration: string;
-  manufacturer?: string;
-  icaoType?: string;
-  hexcode?: string;
-  colors?: string;
-  numberOfEngines?: number;
-  avionics?: string[];
-  cruiseSpeed?: number;
-  fuelCapacity?: number;
-  fuelConsumption?: number;
-  fuelType?: 'Avgas' | 'Jet A' | 'Jet A1' | 'Jet B' | 'Mogas' | 'Diesel';
-  engineType?: 'piston' | 'turboprop' | 'turbojet' | 'turbofan' | 'electric' | 'turboshaft';
-  maxTakeoffWeight?: number;
-  rentalPrice?: number;
-  emptyWeight?: number;
-  serviceCeiling?: number;
-  maxDemonstratedCrosswind?: number;
-  takeoffDistance?: number;
-  landingDistance?: number;
-  wingspan?: number;
-  propellerType?: 'fixed-pitch' | 'variable-pitch' | 'constant-speed';
-  landingGearType?: 'fixed tricycle' | 'retractable tricycle' | 'fixed conventional' | 'retractable conventional' | 'skis' | 'floats';
-}
-
-/**
- * Checks if the given string is a valid aircraft registration.
- *
- * @param registration - The string to check
- * @returns True if the string is a valid aircraft registration, false otherwise
- */
-export const isAircraftRegistration = (registration: string): boolean => {
-  return /^(N[1-9][0-9A-HJ-NP-Z]{0,4}|[A-Z]{1,2}-?[A-Z0-9]{1,4})$/.test(registration.toUpperCase());
-}
+export type Aircraft = z.infer<typeof AircraftSchema>;
 
 /**
  * Normalizes the given aircraft registration to uppercase.
