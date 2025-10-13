@@ -145,28 +145,27 @@ export class PlannerService {
   async parseRouteString(routeString: string): Promise<WaypointType[]> {
     if (!routeString) return [];
 
-    const waypoints: WaypointType[] = [];
     const routeParts = routeString.toUpperCase().split(/[;\s\n]+/).filter(part => part.length > 0);
-    const parseErrors: string[] = [];
+    return await this.resolveRouteParts(routeParts);
+  }
 
-    for (const part of routeParts) {
-      try {
-        const waypoint = await this.resolveRoutePart(part);
+  /**
+   * Attempts to resolve multiple route parts into waypoints using the chain of resolvers.
+   *
+   * @param parts - An array of route string parts to resolve.
+   * @returns A promise that resolves to an array of successfully resolved waypoints.
+   */
+  async resolveRouteParts(parts: string[]): Promise<WaypointType[]> {
+    const waypoints: WaypointType[] = [];
+
+    for (const part of parts) {
+      for (const resolver of this.resolvers) {
+        const waypoint = await resolver.resolve(part);
         if (waypoint) {
           waypoints.push(waypoint);
-        } else {
-          parseErrors.push(`Unrecognized route part: "${part}"`);
-          console.error(parseErrors[parseErrors.length - 1]);
+          break;
         }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        parseErrors.push(`Error parsing route part "${part}": ${errorMessage}`);
-        console.error(parseErrors[parseErrors.length - 1]);
       }
-    }
-
-    if (waypoints.length === 0 && parseErrors.length > 0) {
-      throw new Error(`Failed to parse route string: ${parseErrors.join('; ')}`);
     }
 
     return waypoints;
