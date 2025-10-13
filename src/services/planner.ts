@@ -172,6 +172,16 @@ export class PlannerService {
     return waypoints;
   }
 
+  /**
+   * Attaches weather data to an array of waypoints using the WeatherService.
+   *
+   * @param waypoints - The array of waypoints to attach weather data to.
+   * @returns A promise that resolves when the weather data has been attached.
+   */
+  async attachWeatherToWaypoints(waypoints: WaypointType[]): Promise<void> {
+    await this.weatherService.attachWeather(waypoints);
+  }
+
   // TODO: All we really need is to resolve a route. Then the flightPlan function can handle the rest.
   /**
    * Creates a flight plan from a route string and route options.
