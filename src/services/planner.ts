@@ -151,12 +151,12 @@ export class PlannerService {
 
     for (const part of routeParts) {
       try {
-        for (const resolver of this.resolvers) {
-          const waypoint = await resolver.resolve(part);
-          if (waypoint) {
-            waypoints.push(waypoint);
-            break;
-          }
+        const waypoint = await this.resolveRoutePart(part);
+        if (waypoint) {
+          waypoints.push(waypoint);
+        } else {
+          parseErrors.push(`Unrecognized route part: "${part}"`);
+          console.error(parseErrors[parseErrors.length - 1]);
         }
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -170,6 +170,21 @@ export class PlannerService {
     }
 
     return waypoints;
+  }
+
+  /**
+   * Attempts to resolve a single route part into a waypoint using the chain of resolvers.
+   *
+   * @param part - The route string part to resolve.
+   * @returns A promise that resolves to a WaypointType if successful, or null/undefined if no resolver could handle it.
+   */
+  async resolveRoutePart(part: string): Promise<WaypointType | null | undefined> {
+    for (const resolver of this.resolvers) {
+      const waypoint = await resolver.resolve(part);
+      if (waypoint) {
+        return waypoint;
+      }
+    }
   }
 
   /**
