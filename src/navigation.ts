@@ -345,7 +345,7 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     routeAlternate,
     totalDistance: Math.round(totalDistance),
     totalDuration: Math.round(totalDuration),
-    totalTripFuel: totalTripFuel > 0 ? Math.round(totalTripFuel) : undefined,
+    totalTripFuel: totalTripFuel !== undefined ? Math.round(totalTripFuel) : undefined,
     fuelBreakdown,
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
