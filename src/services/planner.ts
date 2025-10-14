@@ -1,7 +1,7 @@
 import { AerodromeService } from './aerodrome.js';
 import { WeatherService } from './weather.js';
 import { flightPlan } from '../navigation.js';
-import type { WaypointType, RouteSegment, RouteOptions, RouteTrip } from '../navigation.types.js';
+import type { WaypointType, RouteOptions, RouteTrip } from '../navigation.types.js';
 import { Waypoint } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import { point as turfPoint } from '@turf/turf';
@@ -209,55 +209,71 @@ export class PlannerService {
    */
   async createFlightPlanFromString(
     routeString: string,
-    options: RouteOptions = {}
-  ): Promise<RouteTrip & { advisory?: Advisory[] }> {
+    alternate?: string,
+    alternateRadius: number = 50,
+  ): Promise<{ waypoints: WaypointType[]; alternate?: WaypointType }> {
     const waypoints = await this.parseRouteString(routeString);
-    const lastWaypoint = waypoints[waypoints.length - 1];
-
-    await this.weatherService.attachWeather(waypoints);
+    if (waypoints.length < 2) {
+      throw new Error('Route must contain at least two waypoints (departure and destination).');
+    }
 
     // TODO: Improve this logic to find the alternate aerodrome
     // - Consider factors like runway length, instrument approaches, and services available.
     // - This might involve more complex lookups or integration with additional data sources.
-    if (!options.alternate) {
-      const alternateRadius = options.alternateRadius ?? 50; // Use option if provided, otherwise default to 50
+    let alternateWaypoint: WaypointType | undefined;
+    if (alternate) {
+      alternateWaypoint = (await this.parseRouteString(alternate))[0];
+      if (!alternateWaypoint) {
+        throw new Error(`Could not resolve alternate waypoint: ${alternate}`);
+      }
+    } else {
+      const lastWaypoint = waypoints[waypoints.length - 1];
       const alternateExclude = lastWaypoint.ICAO ? [lastWaypoint.ICAO] : [];
       const alternate = await this.aerodromeService.nearest(lastWaypoint.location.geometry.coordinates, alternateRadius, alternateExclude);
       if (alternate) {
-        await this.weatherService.attachWeather([alternate]);
-        options.alternate = alternate;
+        alternateWaypoint = alternate;
       }
     }
 
-    const segments: RouteSegment[] = waypoints.map(waypoint => ({
-      waypoint,
-      altitude: options.defaultAltitude
-    }));
+    await this.weatherService.attachWeather(waypoints);
+    if (alternateWaypoint) {
+      await this.weatherService.attachWeather([alternateWaypoint]);
+    }
+
+    return {
+      waypoints,
+      alternate: alternateWaypoint
+    }
+
+    // const segments: RouteSegment[] = waypoints.map(waypoint => ({
+    //   waypoint,
+    //   altitude: options.defaultAltitude
+    // }));
 
     // TODO: Move to flightPlan function
-    segments[0].altitude = segments[0].waypoint.elevation;
-    segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
+    // segments[0].altitude = segments[0].waypoint.elevation;
+    // segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
 
-    const alternateSegment: RouteSegment | undefined = options.alternate ? {
-      waypoint: options.alternate,
-      altitude: options.alternate.elevation
-    } : undefined;
+    // const alternateSegment: RouteSegment | undefined = options.alternate ? {
+    //   waypoint: options.alternate,
+    //   altitude: options.alternate.elevation
+    // } : undefined;
 
-    const routeTrip = flightPlan({
-      segments,
-      alternateSegment,
-      aircraft: options.aircraft,
-      departureDate: options.departureDate,
-      reserveFuel: options.reserveFuel,
-      reserveFuelDuration: options.reserveFuelDuration,
-      taxiFuel: options.taxiFuel,
-      takeoffFuel: options.takeoffFuel,
-      landingFuel: options.landingFuel
-    });
+    // const routeTrip = flightPlan({
+    //   segments: waypoints.map(waypoint => ({ waypoint, altitude: options.defaultAltitude })),
+    //   alternateSegment: options.alternate ? { waypoint: options.alternate, altitude: options.alternate.elevation } : undefined,
+    //   aircraft: options.aircraft,
+    //   departureDate: options.departureDate,
+    //   reserveFuel: options.reserveFuel,
+    //   reserveFuelDuration: options.reserveFuelDuration,
+    //   taxiFuel: options.taxiFuel,
+    //   takeoffFuel: options.takeoffFuel,
+    //   landingFuel: options.landingFuel
+    // });
 
-    // TODO: Dont need this here
-    const advisory = routeTripValidate(routeTrip, options.aircraft as Aircraft, options);
+    // // TODO: Dont need this here
+    // const advisory = routeTripValidate(routeTrip, options.aircraft as Aircraft, options);
 
-    return { ...routeTrip, advisory };
+    // return { ...routeTrip, advisory };
   }
 }

@@ -197,6 +197,31 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
 }
 
 /**
+ * Rounds all numeric values in a route leg for consistent precision.
+ *
+ * @param {RouteLeg} leg - The route leg to round.
+ */
+function roundRouteLeg(leg: RouteLeg): void {
+  leg.course.distance = Math.round(leg.course.distance);
+  leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
+  leg.course.track = Math.round(leg.course.track);
+
+  if (leg.performance) {
+    leg.performance.headWind = Math.round(leg.performance.headWind);
+    leg.performance.crossWind = Math.round(leg.performance.crossWind);
+    leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
+    leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
+    leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
+    leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
+    leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
+    leg.performance.duration = Math.round(leg.performance.duration);
+    if (leg.performance.fuelConsumption !== undefined) {
+      leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
+    }
+  }
+}
+
+/**
  * Generates a flight plan based on the provided options.
  *
  * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
@@ -207,8 +232,8 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
  */
 export function flightPlan(options: FlightPlanOptions): RouteTrip {
   const {
-    segments,
-    alternateSegment,
+    segments: inputSegments,
+    alternateSegment: inputAlternateSegment,
     aircraft,
     departureDate = new Date(),
     altitude,
@@ -219,8 +244,26 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     landingFuel
   } = options;
 
-  if (segments.length < 2) {
-    throw new InsufficientWaypointsError(segments.length);
+  if (inputSegments.length < 2) {
+    throw new InsufficientWaypointsError(inputSegments.length);
+  }
+
+  const segments = inputSegments.map(seg => ({ ...seg }));
+  const alternateSegment = inputAlternateSegment ? { ...inputAlternateSegment } : undefined;
+
+  if (segments[0].waypoint.elevation !== undefined) {
+    segments[0].altitude = segments[0].waypoint.elevation;
+  }
+  if (segments[segments.length - 1].waypoint.elevation !== undefined) {
+    segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
+  }
+
+  if (altitude) {
+    for (let i = 1; i < segments.length - 1; i++) {
+      if (!segments[i].altitude) {
+        segments[i].altitude = altitude;
+      }
+    }
   }
 
   const aircraftPerformance: AircraftPerformance | undefined = aircraft?.cruiseSpeed ? {
@@ -248,24 +291,9 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     totalFuelConsumption += leg.performance?.fuelConsumption || 0;
   }
 
+  // Round individual legs after calculating totals to avoid cumulative rounding errors
   for (const leg of legs) {
-    leg.course.distance = Math.round(leg.course.distance);
-    leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
-    leg.course.track = Math.round(leg.course.track);
-
-    if (leg.performance) {
-      leg.performance.headWind = Math.round(leg.performance.headWind);
-      leg.performance.crossWind = Math.round(leg.performance.crossWind);
-      leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
-      leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
-      leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
-      leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
-      leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
-      leg.performance.duration = Math.round(leg.performance.duration);
-      if (leg.performance.fuelConsumption !== undefined) {
-        leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
-      }
-    }
+    roundRouteLeg(leg);
   }
 
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
@@ -285,23 +313,7 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
   };
 
   if (routeAlternate) {
-    routeAlternate.course.distance = Math.round(routeAlternate.course.distance);
-    routeAlternate.course.magneticTrack = Math.round(routeAlternate.course.magneticTrack);
-    routeAlternate.course.track = Math.round(routeAlternate.course.track);
-
-    if (routeAlternate.performance) {
-      routeAlternate.performance.headWind = Math.round(routeAlternate.performance.headWind);
-      routeAlternate.performance.crossWind = Math.round(routeAlternate.performance.crossWind);
-      routeAlternate.performance.trueAirspeed = Math.round(routeAlternate.performance.trueAirspeed);
-      routeAlternate.performance.windCorrectionAngle = Math.round(routeAlternate.performance.windCorrectionAngle);
-      routeAlternate.performance.trueHeading = Math.round(routeAlternate.performance.trueHeading);
-      routeAlternate.performance.magneticHeading = Math.round(routeAlternate.performance.magneticHeading);
-      routeAlternate.performance.groundSpeed = Math.round(routeAlternate.performance.groundSpeed);
-      routeAlternate.performance.duration = Math.round(routeAlternate.performance.duration);
-      if (routeAlternate.performance.fuelConsumption !== undefined) {
-        routeAlternate.performance.fuelConsumption = Math.round(routeAlternate.performance.fuelConsumption);
-      }
-    }
+    roundRouteLeg(routeAlternate);
   }
 
   return {
