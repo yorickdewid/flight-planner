@@ -73,6 +73,7 @@ import {
   WeatherService,
   WaypointResolver,
   WaypointType,
+  waypointsToSegments,
   calculateNavLog,
 } from "flight-planner";
 
@@ -87,12 +88,12 @@ const plannerService = new PlannerService(aerodromeService, weatherService);
 const waypoints = await plannerService.parseRouteString("EGLL EHAM");
 await plannerService.attachWeatherToWaypoints(waypoints);
 
-// Or use the lower-level calculateNavLog function for direct calculations
+// Convert waypoints to segments and calculate navigation log
+const segments = waypointsToSegments(waypoints, 5500); // 5500 ft altitude
 const navLog = calculateNavLog({
-  segments: [
-    /* your segments */
-  ],
+  segments,
   aircraft: myAircraft,
+  reserveFuelDuration: 45,
 });
 ```
 
@@ -149,10 +150,10 @@ const waypoints = await plannerService.parseRouteString(
 await plannerService.attachWeatherToWaypoints(waypoints);
 
 // Calculate navigation log with the waypoints
+const segments = waypointsToSegments(waypoints, 3500);
 const navLog = calculateNavLog({
-  segments: waypoints.map((wp) => ({ waypoint: wp })),
+  segments,
   aircraft: myAircraft,
-  altitude: 3500,
 });
 ```
 

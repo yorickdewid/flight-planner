@@ -177,6 +177,30 @@ export function routeTripWaypoints(routeTrip: RouteTrip): WaypointType[] {
 }
 
 /**
+ * Converts an array of waypoints to an array of route segments.
+ *
+ * This is a convenience function for preparing waypoints to be used with `calculateNavLog`.
+ * Each waypoint is converted to a segment with an optional altitude.
+ *
+ * @param waypoints - Array of waypoints to convert to segments
+ * @param altitude - Optional altitude in feet to apply to all segments
+ * @returns Array of route segments ready for navigation log calculation
+ *
+ * @example
+ * ```typescript
+ * const waypoints = [departureAerodrome, enrouteWaypoint, arrivalAerodrome];
+ * const segments = waypointsToSegments(waypoints, 5500);
+ * const navLog = calculateNavLog({ segments, aircraft });
+ * ```
+ */
+export function waypointsToSegments(waypoints: WaypointType[], altitude?: number): RouteSegment[] {
+  return waypoints.map(waypoint => ({
+    waypoint,
+    ...(altitude !== undefined && { altitude })
+  }));
+}
+
+/**
  * Gets the departure waypoint from a route trip.
  *
  * @param routeTrip - The route trip from which to extract the departure waypoint

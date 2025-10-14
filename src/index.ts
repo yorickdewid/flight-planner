@@ -127,6 +127,7 @@ export {
   routeTripWaypoints,
   routeTripDepartureWaypoint,
   routeTripArrivalWaypoint,
+  waypointsToSegments,
   calculateNavLog
 } from "./navigation.js";
 
