@@ -1,12 +1,9 @@
 import { AerodromeService } from './aerodrome.js';
 import { WeatherService } from './weather.js';
-import { flightPlan } from '../navigation.js';
-import type { WaypointType, RouteOptions, RouteTrip } from '../navigation.types.js';
+import type { WaypointType } from '../navigation.types.js';
 import { Waypoint } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import { point as turfPoint } from '@turf/turf';
-import { routeTripValidate, Advisory } from '../advisor.js';
-import { Aircraft } from '../aircraft.js';
 
 /**
  * Interface for waypoint resolvers that attempt to resolve a route string part into a waypoint.
@@ -19,17 +16,28 @@ export interface WaypointResolver {
    * Attempts to resolve a route string part into a waypoint.
    *
    * @param part - The route string part to resolve (e.g., "KJFK", "WP(40.7128,-74.0060)", "VOR123")
-   * @returns A promise that resolves to a WaypointType if successful, or null/undefined if the resolver cannot handle this part
+   * @returns A promise that resolves to a WaypointType if successful, null/undefined if the resolver cannot handle this part
+   * @throws {Error} May throw an error if the part matches the resolver's pattern but is invalid (e.g., invalid ICAO, malformed coordinates)
    */
   resolve(part: string): Promise<WaypointType | null | undefined>;
 }
 
 /**
  * Default ICAO waypoint resolver that looks up aerodromes by ICAO code.
+ *
+ * @class ICAOResolver
+ * @implements {WaypointResolver}
  */
 class ICAOResolver implements WaypointResolver {
   constructor(private aerodromeService: AerodromeService) { }
 
+  /**
+   * Resolves a route part if it matches a valid ICAO code pattern (4 letters).
+   *
+   * @param part - The route string part to resolve
+   * @returns The aerodrome if found, null if part is not a valid ICAO code
+   * @throws {Error} If the part is a valid ICAO code but no aerodrome is found
+   */
   async resolve(part: string): Promise<WaypointType | null> {
     if (isICAO(part)) {
       const airport = await this.aerodromeService.findOne(part);
@@ -44,10 +52,20 @@ class ICAOResolver implements WaypointResolver {
 
 /**
  * Default coordinate waypoint resolver that parses WP(lat,lng) format.
+ *
+ * @class CoordinateResolver
+ * @implements {WaypointResolver}
  */
 class CoordinateResolver implements WaypointResolver {
   private waypointRegex = /^WP\((-?\d+\.?\d*),(-?\d+\.?\d*)\)$/;
 
+  /**
+   * Resolves a route part if it matches the WP(lat,lng) coordinate format.
+   *
+   * @param part - The route string part to resolve
+   * @returns A waypoint with the parsed coordinates, or null if the part doesn't match the coordinate format
+   * @throws {Error} If the part matches the format but contains invalid numeric values
+   */
   async resolve(part: string): Promise<WaypointType | null> {
     const waypointMatch = part.match(this.waypointRegex);
     if (waypointMatch) {
@@ -76,19 +94,16 @@ export class PlannerService {
   /**
    * Creates a new instance of the PlannerService class.
    *
-   * @param aerodromeService - The aerodrome service for looking up airports and aerodromes.
-   * @param weatherService - The weather service for attaching weather data to waypoints.
-   * @param customResolvers - Optional array of custom waypoint resolvers. These will be tried before the default resolvers.
+   * @param aerodromeService - The aerodrome service for looking up airports and aerodromes
+   * @param weatherService - The weather service for attaching weather data to waypoints
+   * @param customResolvers - Optional array of custom waypoint resolvers that will be tried before the default resolvers (ICAO and Coordinate)
+   * @throws {Error} If aerodromeService or weatherService are not provided
    */
   constructor(
     private aerodromeService: AerodromeService,
     private weatherService: WeatherService,
     customResolvers: WaypointResolver[] = []
   ) {
-    if (!aerodromeService || !weatherService) {
-      throw new Error('PlannerService requires all service dependencies.');
-    }
-
     this.resolvers = [
       ...customResolvers,
       new ICAOResolver(aerodromeService),
@@ -100,7 +115,8 @@ export class PlannerService {
    * Adds a custom waypoint resolver to the resolver chain.
    * The resolver will be added at the beginning of the chain and will be tried before existing resolvers.
    *
-   * @param resolver - The waypoint resolver to add.
+   * @param resolver - The waypoint resolver to add
+   * @returns void
    */
   addResolver(resolver: WaypointResolver): void {
     this.resolvers.unshift(resolver);
@@ -108,6 +124,12 @@ export class PlannerService {
 
   /**
    * Clears all waypoint resolvers from the resolver chain.
+   *
+   * @remarks
+   * WARNING: This removes ALL resolvers including the default ICAO and Coordinate resolvers.
+   * After calling this method, route parsing will fail unless new resolvers are added.
+   *
+   * @returns void
    */
   clearResolvers(): void {
     this.resolvers = [];
@@ -117,10 +139,10 @@ export class PlannerService {
    * Parses a route string into an array of waypoints.
    *
    * This function accepts a route string containing various waypoint formats and converts them
-   * into standardized waypoint objects. It uses a chain of resolvers to identify and resolve waypoints.
+   * into standardized waypoint objects using a chain of resolvers.
    *
    * @param routeString - The route string to parse, containing waypoints separated by spaces, semicolons, or newlines
-   * @returns A promise that resolves to an array of parsed waypoints
+   * @returns A promise that resolves to an array of successfully parsed waypoints
    *
    * @description
    * Default supported waypoint formats:
@@ -134,13 +156,24 @@ export class PlannerService {
    * - VFR reporting points (e.g., "VRP_XX")
    *
    * The function performs the following operations:
-   * 1. Splits the route string by whitespace, semicolons, and newlines
-   * 2. Filters out empty parts
-   * 3. Converts all input to uppercase for consistency
-   * 4. For each part, attempts to resolve using the chain of resolvers
-   * 5. Collects parsing errors and throws if no valid waypoints are found
+   * 1. Returns empty array if routeString is empty or falsy
+   * 2. Converts input to uppercase for consistency
+   * 3. Splits the route string by whitespace, semicolons, and newlines
+   * 4. Filters out empty parts
+   * 5. For each part, attempts to resolve using the chain of resolvers in order
+   * 6. Silently skips parts that cannot be resolved by any resolver
    *
-   * @throws {Error} Throws an error if the route string cannot be parsed or contains no valid waypoints
+   * @remarks
+   * Note: This method does NOT throw errors for unresolved waypoints. Parts that cannot be resolved
+   * by any resolver are silently skipped. This means the returned array may have fewer waypoints
+   * than parts in the input string. If a resolver throws an error for a matched pattern
+   * (e.g., valid ICAO but aerodrome not found), that error will propagate.
+   *
+   * @example
+   * ```typescript
+   * const waypoints = await planner.parseRouteString("KJFK EGLL WP(51.5,-0.1)");
+   * // Returns array with resolved waypoints, skipping any unresolvable parts
+   * ```
    */
   async parseRouteString(routeString: string): Promise<WaypointType[]> {
     if (!routeString) return [];
@@ -152,8 +185,13 @@ export class PlannerService {
   /**
    * Attempts to resolve multiple route parts into waypoints using the chain of resolvers.
    *
-   * @param parts - An array of route string parts to resolve.
-   * @returns A promise that resolves to an array of successfully resolved waypoints.
+   * @param parts - An array of route string parts to resolve
+   * @returns A promise that resolves to an array of successfully resolved waypoints
+   *
+   * @remarks
+   * For each part, resolvers are tried in order until one successfully resolves it.
+   * Parts that cannot be resolved by any resolver are silently skipped.
+   * If a resolver throws an error for a matched pattern, that error will propagate and stop processing.
    */
   async resolveRouteParts(parts: string[]): Promise<WaypointType[]> {
     const waypoints: WaypointType[] = [];
@@ -174,8 +212,13 @@ export class PlannerService {
   /**
    * Attempts to resolve a single route part into a waypoint using the chain of resolvers.
    *
-   * @param part - The route string part to resolve.
-   * @returns A promise that resolves to a WaypointType if successful, or null/undefined if no resolver could handle it.
+   * @param part - The route string part to resolve
+   * @returns A promise that resolves to a WaypointType if any resolver successfully handles it, or null/undefined if no resolver can handle it
+   *
+   * @remarks
+   * Resolvers are tried in order (custom resolvers first, then ICAO, then Coordinate).
+   * Returns the result from the first resolver that returns a non-null/non-undefined value.
+   * If a resolver throws an error, that error will propagate.
    */
   async resolveRoutePart(part: string): Promise<WaypointType | null | undefined> {
     for (const resolver of this.resolvers) {
@@ -184,30 +227,58 @@ export class PlannerService {
         return waypoint;
       }
     }
+
+    return null;
   }
 
   /**
    * Attaches weather data to an array of waypoints using the WeatherService.
    *
-   * @param waypoints - The array of waypoints to attach weather data to.
-   * @returns A promise that resolves when the weather data has been attached.
+   * @param waypoints - The array of waypoints to attach weather data to
+   * @returns A promise that resolves when the weather data has been attached to all waypoints
+   *
+   * @remarks
+   * This method mutates the waypoints by adding weather/METAR station data to them.
+   * Weather attachment may fail silently for waypoints without associated METAR stations.
    */
   async attachWeatherToWaypoints(waypoints: WaypointType[]): Promise<void> {
     await this.weatherService.attachWeather(waypoints);
   }
 
-  // TODO: All we really need is to resolve a route. Then the flightPlan function can handle the rest.
   /**
-   * Creates a flight plan from a route string and route options.
+   * Creates a flight plan from a route string by parsing waypoints, attaching weather data, and finding an alternate aerodrome.
    *
-   * This function parses the route string into waypoints, attaches weather data, finds an alternate aerodrome if not provided,
-   * and constructs a flight plan with segments and performance calculations.
+   * @param routeString - The route string to parse into waypoints (must contain at least departure and destination)
+   * @param alternate - Optional ICAO code or waypoint identifier for the alternate aerodrome. If not provided, the nearest suitable aerodrome to the destination will be automatically selected
+   * @param alternateRadius - The search radius in kilometers for finding an alternate aerodrome (default: 50 km)
+   * @returns A promise that resolves to an object containing the parsed waypoints array and optional alternate waypoint
    *
-   * @param routeString - The route string to parse into waypoints.
-   * @param options - Optional parameters for the flight plan, including aircraft, default altitude, departure date, and reserve fuel.
-   * @returns A promise that resolves to a RouteTrip object with optional advisory information.
+   * @throws {Error} If the route string contains fewer than 2 waypoints (departure and destination required)
+   * @throws {Error} If a specified alternate waypoint cannot be resolved
+   * @throws {Error} If no suitable alternate aerodrome is found within the specified radius
+   *
+   * @remarks
+   * The function performs the following operations:
+   * 1. Parses the route string into waypoints using the resolver chain
+   * 2. Validates that at least 2 waypoints (departure and destination) are present
+   * 3. If alternate is specified, resolves it as a waypoint
+   * 4. If alternate is not specified, finds the nearest aerodrome to the destination within the alternateRadius,
+   *    excluding the destination itself
+   * 5. Attaches weather data to all waypoints including the alternate
+   *
+   * Note: The alternate aerodrome selection logic is basic and only considers distance.
+   * It does not validate runway length, instrument approaches, or services availability.
+   *
+   * @example
+   * ```typescript
+   * // With automatic alternate selection
+   * const plan = await planner.createRouteFromString("KJFK EGLL");
+   *
+   * // With specified alternate
+   * const plan = await planner.createRouteFromString("KJFK EGLL", "EGLC");
+   * ```
    */
-  async createFlightPlanFromString(
+  async createRouteFromString(
     routeString: string,
     alternate?: string,
     alternateRadius: number = 50,
@@ -243,37 +314,6 @@ export class PlannerService {
     return {
       waypoints,
       alternate: alternateWaypoint
-    }
-
-    // const segments: RouteSegment[] = waypoints.map(waypoint => ({
-    //   waypoint,
-    //   altitude: options.defaultAltitude
-    // }));
-
-    // TODO: Move to flightPlan function
-    // segments[0].altitude = segments[0].waypoint.elevation;
-    // segments[segments.length - 1].altitude = segments[segments.length - 1].waypoint.elevation;
-
-    // const alternateSegment: RouteSegment | undefined = options.alternate ? {
-    //   waypoint: options.alternate,
-    //   altitude: options.alternate.elevation
-    // } : undefined;
-
-    // const routeTrip = flightPlan({
-    //   segments: waypoints.map(waypoint => ({ waypoint, altitude: options.defaultAltitude })),
-    //   alternateSegment: options.alternate ? { waypoint: options.alternate, altitude: options.alternate.elevation } : undefined,
-    //   aircraft: options.aircraft,
-    //   departureDate: options.departureDate,
-    //   reserveFuel: options.reserveFuel,
-    //   reserveFuelDuration: options.reserveFuelDuration,
-    //   taxiFuel: options.taxiFuel,
-    //   takeoffFuel: options.takeoffFuel,
-    //   landingFuel: options.landingFuel
-    // });
-
-    // // TODO: Dont need this here
-    // const advisory = routeTripValidate(routeTrip, options.aircraft as Aircraft, options);
-
-    // return { ...routeTrip, advisory };
+    };
   }
 }

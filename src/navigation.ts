@@ -197,31 +197,6 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
 }
 
 /**
- * Rounds all numeric values in a route leg for consistent precision.
- *
- * @param {RouteLeg} leg - The route leg to round.
- */
-function roundRouteLeg(leg: RouteLeg): void {
-  leg.course.distance = Math.round(leg.course.distance);
-  leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
-  leg.course.track = Math.round(leg.course.track);
-
-  if (leg.performance) {
-    leg.performance.headWind = Math.round(leg.performance.headWind);
-    leg.performance.crossWind = Math.round(leg.performance.crossWind);
-    leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
-    leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
-    leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
-    leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
-    leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
-    leg.performance.duration = Math.round(leg.performance.duration);
-    if (leg.performance.fuelConsumption !== undefined) {
-      leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
-    }
-  }
-}
-
-/**
  * Generates a flight plan based on the provided options.
  *
  * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
@@ -248,6 +223,7 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     throw new InsufficientWaypointsError(inputSegments.length);
   }
 
+  // TODO: We copy the segments to avoid mutating the input, have the input be readonly
   const segments = inputSegments.map(seg => ({ ...seg }));
   const alternateSegment = inputAlternateSegment ? { ...inputAlternateSegment } : undefined;
 
@@ -327,6 +303,31 @@ export function flightPlan(options: FlightPlanOptions): RouteTrip {
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
     generatedAt: new Date(),
   };
+}
+
+/**
+ * Rounds all numeric values in a route leg for consistent precision.
+ *
+ * @param {RouteLeg} leg - The route leg to round.
+ */
+function roundRouteLeg(leg: RouteLeg): void {
+  leg.course.distance = Math.round(leg.course.distance);
+  leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
+  leg.course.track = Math.round(leg.course.track);
+
+  if (leg.performance) {
+    leg.performance.headWind = Math.round(leg.performance.headWind);
+    leg.performance.crossWind = Math.round(leg.performance.crossWind);
+    leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
+    leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
+    leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
+    leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
+    leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
+    leg.performance.duration = Math.round(leg.performance.duration);
+    if (leg.performance.fuelConsumption !== undefined) {
+      leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
+    }
+  }
 }
 
 /**
