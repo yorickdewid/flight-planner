@@ -143,6 +143,7 @@ export const sortClouds = (clouds: Cloud[]): Cloud[] => {
   });
 }
 
+// TODO: Move to aerodrome.ts
 /**
  * Checks if the given string is a valid ICAO code.
  *
@@ -153,6 +154,7 @@ export const isICAO = (icao: string): boolean => {
   return /^[A-Z]{4}$/.test(icao.toUpperCase());
 }
 
+// TODO: Move to aerodrome.ts
 /**
  * Normalizes the given ICAO code to uppercase.
  *
@@ -163,6 +165,7 @@ export const normalizeICAO = (icao: string): string => {
   return icao.toUpperCase();
 }
 
+// TODO: Move to aerodrome.ts
 /**
  * Checks if the given string is a valid IATA code.
  *
@@ -173,6 +176,7 @@ export const isIATA = (iata: string): boolean => {
   return /^[A-Z]{3}$/.test(iata.toUpperCase());
 }
 
+// TODO: Move to aerodrome.ts
 /**
  * Normalizes the given IATA code to uppercase.
  *

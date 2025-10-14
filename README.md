@@ -20,10 +20,16 @@ npm install flight-planner
 ## Quick Start
 
 ```typescript
-import { createMetarFromString, metarFlightRule, FlightRules } from 'flight-planner';
+import {
+  createMetarFromString,
+  metarFlightRule,
+  FlightRules,
+} from "flight-planner";
 
 // Parse METAR data
-const metar = createMetarFromString('METAR EGLL 291020Z 24015KT 9999 SCT040 18/09 Q1022');
+const metar = createMetarFromString(
+  "METAR EGLL 291020Z 24015KT 9999 SCT040 18/09 Q1022"
+);
 console.log(metar.station); // 'EGLL'
 console.log(metar.wind?.speed); // 15
 
@@ -47,7 +53,11 @@ This package provides several specialized exports for tree-shaking:
 ### Weather & METAR
 
 ```typescript
-import { createMetarFromString, formatWind, isMetarExpired } from 'flight-planner/metar';
+import {
+  createMetarFromString,
+  formatWind,
+  isMetarExpired,
+} from "flight-planner/metar";
 
 const metar = createMetarFromString(rawMetarString);
 const windDescription = formatWind(metar.wind);
@@ -63,32 +73,27 @@ import {
   WeatherService,
   WaypointResolver,
   WaypointType,
-  flightPlan
-} from 'flight-planner';
+  waypointsToSegments,
+  calculateNavLog,
+} from "flight-planner";
 
 // Initialize services with your repositories
 const aerodromeService = new AerodromeService(aerodromeRepository);
 const weatherService = new WeatherService(weatherRepository);
 
 // Create planner service with default resolvers (ICAO and coordinates)
-const plannerService = new PlannerService(
-  aerodromeService,
-  weatherService
-);
+const plannerService = new PlannerService(aerodromeService, weatherService);
 
-// Create a flight plan from a route string
-const routeTrip = await plannerService.createFlightPlanFromString(
-  'EGLL EHAM',
-  {
-    aircraft: myAircraft,
-    defaultAltitude: 3500
-  }
-);
+// Parse a route string and attach weather data
+const waypoints = await plannerService.parseRouteString("EGLL EHAM");
+await plannerService.attachWeatherToWaypoints(waypoints);
 
-// Or use the lower-level flightPlan function for direct calculations
-const plan = flightPlan({
-  segments: [/* your segments */],
-  aircraft: myAircraft
+// Convert waypoints to segments and calculate navigation log
+const segments = waypointsToSegments(waypoints, 5500); // 5500 ft altitude
+const navLog = calculateNavLog({
+  segments,
+  aircraft: myAircraft,
+  reserveFuelDuration: 45,
 });
 ```
 
@@ -97,7 +102,7 @@ const plan = flightPlan({
 You can extend the route parser with custom waypoint resolvers to support additional formats like IATA codes, VORs, NDBs, or IFR waypoints:
 
 ```typescript
-import { WaypointResolver, WaypointType } from 'flight-planner';
+import { WaypointResolver, WaypointType } from "flight-planner";
 
 // Example: Custom IATA resolver
 class IATAResolver implements WaypointResolver {
@@ -132,33 +137,37 @@ class NavaidResolver implements WaypointResolver {
 }
 
 // Create planner with custom resolvers
-const plannerService = new PlannerService(
-  aerodromeService,
-  weatherService,
-  [
-    new IATAResolver(aerodromeService),
-    new NavaidResolver(navaidService)
-    // Add more custom resolvers as needed
-  ]
-);
+const plannerService = new PlannerService(aerodromeService, weatherService, [
+  new IATAResolver(aerodromeService),
+  new NavaidResolver(navaidService),
+  // Add more custom resolvers as needed
+]);
 
 // Now you can use IATA codes and navaids in your route strings
-const routeTrip = await plannerService.createFlightPlanFromString(
-  'JFK VOR123 LAX',  // IATA codes and VOR
-  {
-    aircraft: myAircraft,
-    defaultAltitude: 3500
-  }
+const waypoints = await plannerService.parseRouteString(
+  "JFK VOR123 LAX" // IATA codes and VOR
 );
+await plannerService.attachWeatherToWaypoints(waypoints);
+
+// Calculate navigation log with the waypoints
+const segments = waypointsToSegments(waypoints, 3500);
+const navLog = calculateNavLog({
+  segments,
+  aircraft: myAircraft,
+});
 ```
 
 ### Unit Conversion
 
 ```typescript
-import { convertSpeed, convertDistance, UnitOptions } from 'flight-planner/units';
+import {
+  convertSpeed,
+  convertDistance,
+  UnitOptions,
+} from "flight-planner/units";
 
-const speedInKnots = convertSpeed(100, { speed: 'kt' }); // Convert from default m/s
-const distanceInNM = convertDistance(1000, { distance: 'nmi' }); // Convert from default meters
+const speedInKnots = convertSpeed(100, { speed: "kt" }); // Convert from default m/s
+const distanceInNM = convertDistance(1000, { distance: "nmi" }); // Convert from default meters
 ```
 
 ## Requirements

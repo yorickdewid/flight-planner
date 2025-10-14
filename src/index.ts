@@ -118,16 +118,17 @@ export { calculateSunEvents, isDaylight, isNight } from "./sun.js";
 /**
  * Route planning types and data structures.
  */
-export type { RouteOptions, RouteLeg, RouteTrip, WaypointType, RouteSegment } from "./navigation.types.js";
+export type { RouteOptions, RouteLeg, RouteTrip, WaypointType, RouteSegment, NavLogOptions } from "./navigation.types.js";
 
 /**
- * Route planning and flight plan functions.
+ * Navigation log calculation and route analysis functions.
  */
 export {
   routeTripWaypoints,
   routeTripDepartureWaypoint,
   routeTripArrivalWaypoint,
-  flightPlan
+  waypointsToSegments,
+  calculateNavLog
 } from "./navigation.js";
 
 /**
