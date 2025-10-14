@@ -89,8 +89,6 @@ class CoordinateResolver implements WaypointResolver {
  * @class PlannerService
  */
 export class PlannerService {
-  private resolvers: WaypointResolver[];
-
   /**
    * Creates a new instance of the PlannerService class.
    *
@@ -102,14 +100,8 @@ export class PlannerService {
   constructor(
     private aerodromeService: AerodromeService,
     private weatherService: WeatherService,
-    customResolvers: WaypointResolver[] = []
-  ) {
-    this.resolvers = [
-      ...customResolvers,
-      new ICAOResolver(aerodromeService),
-      new CoordinateResolver()
-    ];
-  }
+    private resolvers: WaypointResolver[] = []
+  ) { }
 
   /**
    * Adds a custom waypoint resolver to the resolver chain.
@@ -276,4 +268,16 @@ export class PlannerService {
       : excludeICAOs;
     return await this.aerodromeService.nearest(destination.location.geometry.coordinates, radius, exclude);
   }
+}
+
+export function createDefaultPlannerService(
+  aerodromeService: AerodromeService,
+  weatherService: WeatherService,
+  customResolvers: WaypointResolver[] = []
+): PlannerService {
+  return new PlannerService(aerodromeService, weatherService, [
+    ...customResolvers,
+    new ICAOResolver(aerodromeService),
+    new CoordinateResolver()
+  ]);
 }

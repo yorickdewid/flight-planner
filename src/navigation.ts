@@ -9,7 +9,7 @@ import type {
   RouteLegPerformance,
   RouteLeg,
   RouteTrip,
-  FlightPlanOptions,
+  NavLogOptions,
   WaypointType,
   RouteSegment,
 } from './navigation.types.js';
@@ -197,15 +197,39 @@ export const routeTripArrivalWaypoint = (routeTrip: RouteTrip): WaypointType => 
 }
 
 /**
- * Generates a flight plan based on the provided options.
+ * Calculates a detailed navigation log (nav log) based on the provided options.
  *
- * This function calculates the route legs, total distance, duration, fuel consumption, and other performance metrics.
- * It returns a RouteTrip object containing all relevant information about the flight plan.
+ * A navigation log contains comprehensive flight performance calculations for each leg of the route,
+ * including wind corrections, heading calculations, groundspeed, fuel consumption, and timing.
+ * This is the detailed computational output that pilots use for in-flight navigation, as opposed
+ * to a flight plan which is the route description submitted to ATC.
  *
- * @param options - Flight plan options containing segments, aircraft, and fuel parameters.
- * @returns A RouteTrip object containing the calculated flight plan details.
+ * The function performs the following calculations:
+ * - Route leg analysis: distance, true/magnetic tracks, and headings
+ * - Wind correction angles and ground speeds based on forecast winds
+ * - Fuel planning: trip fuel, reserves, taxi, takeoff, landing, and alternate fuel
+ * - Timing: leg durations, departure/arrival times
+ * - Performance metrics: true airspeed, headwind/crosswind components
+ *
+ * @param options - Navigation log options containing segments, aircraft, and fuel parameters.
+ * @returns A RouteTrip object containing the complete navigation log with all calculated performance data.
+ * @throws {InsufficientWaypointsError} If fewer than 2 waypoints are provided in segments.
+ *
+ * @example
+ * ```typescript
+ * const navLog = calculateNavLog({
+ *   segments: [
+ *     { waypoint: departureAerodrome },
+ *     { waypoint: enrouteWaypoint, altitude: 5500 },
+ *     { waypoint: arrivalAerodrome }
+ *   ],
+ *   aircraft: { cruiseSpeed: 120, fuelConsumption: 8.5 },
+ *   altitude: 5500,
+ *   reserveFuelDuration: 45
+ * });
+ * ```
  */
-export function flightPlan(options: FlightPlanOptions): RouteTrip {
+export function calculateNavLog(options: NavLogOptions): RouteTrip {
   const {
     segments: inputSegments,
     alternateSegment: inputAlternateSegment,
