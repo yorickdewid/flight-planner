@@ -14,15 +14,9 @@ importers:
       '@turf/turf':
         specifier: ^7.2.0
         version: 7.2.0
-      base-x:
-        specifier: ^5.0.1
-        version: 5.0.1
       convert-units:
         specifier: ^2.3.4
         version: 2.3.4
-      crc-32:
-        specifier: ^1.2.2
-        version: 1.2.2
       metar-taf-parser:
         specifier: ^9.1.2
         version: 9.1.2
@@ -1108,9 +1102,6 @@ packages:
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
 
-  base-x@5.0.1:
-    resolution: {integrity: sha512-M7uio8Zt++eg3jPj+rHMfCC+IuygQHHCOU+IYsVtik6FWjuYpVt/+MRKcgsAMHh8mMFAwnB+Bs+mTrFiXjMzKg==}
-
   baseline-browser-mapping@2.8.16:
     resolution: {integrity: sha512-OMu3BGQ4E7P1ErFsIPpbJh0qvDudM/UuJeHgkAvfWe+0HFJCXh+t/l8L6fVLR55RI/UbKrVLnAXZSVwd9ysWYw==}
     hasBin: true
@@ -1205,11 +1196,6 @@ packages:
 
   convert-units@2.3.4:
     resolution: {integrity: sha512-ERHfdA0UhHJp1IpwE6PnFJx8LqG7B1ZjJ20UvVCmopEnVCfER68Tbe3kvN63dLbYXDA2xFWRE6zd4Wsf0w7POg==}
-
-  crc-32@1.2.2:
-    resolution: {integrity: sha512-ROmzCKrTnOwybPcJApAA6WBWij23HVfGVNKqqrZpuyZOHqK2CwHSvpGuyt/UNNvaIjEd8X5IFGp4Mh+Ie1IHJQ==}
-    engines: {node: '>=0.8'}
-    hasBin: true
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
@@ -4267,8 +4253,6 @@ snapshots:
 
   balanced-match@1.0.2: {}
 
-  base-x@5.0.1: {}
-
   baseline-browser-mapping@2.8.16: {}
 
   bignumber.js@9.3.1: {}
@@ -4356,8 +4340,6 @@ snapshots:
     dependencies:
       lodash.foreach: 2.3.0
       lodash.keys: 2.3.0
-
-  crc-32@1.2.2: {}
 
   create-require@1.1.1: {}
 
