@@ -208,7 +208,7 @@ export class PlannerService {
    * @returns A promise that resolves to a WaypointType if any resolver successfully handles it, or null/undefined if no resolver can handle it
    *
    * @remarks
-   * Resolvers are tried in order (custom resolvers first, then ICAO, then Coordinate).
+   * Resolvers are tried in the order they exist in the resolvers array.
    * Returns the result from the first resolver that returns a non-null/non-undefined value.
    * If a resolver throws an error, that error will propagate.
    */
