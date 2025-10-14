@@ -1,7 +1,7 @@
 import { AerodromeService } from './aerodrome.js';
 import { WeatherService } from './weather.js';
 import type { WaypointType } from '../navigation.types.js';
-import { Waypoint } from '../waypoint.types.js';
+import { Waypoint, Aerodrome } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import { point as turfPoint } from '@turf/turf';
 
@@ -246,6 +246,38 @@ export class PlannerService {
   }
 
   /**
+   * Finds an alternate aerodrome near the destination waypoint.
+   *
+   * @param destination - The destination aerodrome to search near
+   * @param radius - The search radius in kilometers (default: 50 km)
+   * @param excludeICAOs - Array of ICAO codes to exclude from the search (in addition to the destination's ICAO if present)
+   * @returns A promise that resolves to the nearest alternate aerodrome waypoint, or null if none found within the radius
+   *
+   * @remarks
+   * This method searches for the nearest aerodrome to the destination waypoint within the specified radius.
+   * It uses the destination's coordinates to perform a proximity search and excludes any specified ICAO codes.
+   * The destination's ICAO code is automatically excluded if present, ensuring the alternate is different from the destination.
+   * This is commonly used to find suitable alternate airports for flight planning.
+   *
+   * @example
+   * ```typescript
+   * const destination = await planner.resolveRoutePart("KJFK");
+   * // KJFK is automatically excluded from the search
+   * const alternate = await planner.findAlternateAerodrome(destination, 100);
+   * ```
+   */
+  async findAlternateAerodrome(
+    destination: Aerodrome,
+    radius: number = 50,
+    excludeICAOs: string[] = []
+  ): Promise<WaypointType | null> {
+    const exclude = destination.ICAO
+      ? [...excludeICAOs, destination.ICAO]
+      : excludeICAOs;
+    return await this.aerodromeService.nearest(destination.location.geometry.coordinates, radius, exclude);
+  }
+
+  /**
    * Creates a flight plan from a route string by parsing waypoints, attaching weather data, and finding an alternate aerodrome.
    *
    * @param routeString - The route string to parse into waypoints (must contain at least departure and destination)
@@ -291,9 +323,9 @@ export class PlannerService {
     // TODO: Improve this logic to find the alternate aerodrome
     // - Consider factors like runway length, instrument approaches, and services available.
     // - This might involve more complex lookups or integration with additional data sources.
-    let alternateWaypoint: WaypointType | undefined;
+    let alternateWaypoint: WaypointType | null | undefined;
     if (alternate) {
-      alternateWaypoint = (await this.parseRouteString(alternate))[0];
+      alternateWaypoint = await this.resolveRoutePart(alternate);
       if (!alternateWaypoint) {
         throw new Error(`Could not resolve alternate waypoint: ${alternate}`);
       }
@@ -313,7 +345,7 @@ export class PlannerService {
 
     return {
       waypoints,
-      alternate: alternateWaypoint
+      alternate: alternateWaypoint ?? undefined
     };
   }
 }
