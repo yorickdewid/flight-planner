@@ -290,6 +290,8 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     }
   }
 
+  segments.forEach(segment => segment.altitude !== undefined && (segment.altitude = Math.round(segment.altitude)));
+
   const aircraftPerformance: AircraftPerformance | undefined = aircraft?.cruiseSpeed ? {
     cruiseSpeed: aircraft.cruiseSpeed,
     fuelConsumption: aircraft.fuelConsumption
