@@ -297,14 +297,14 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     fuelConsumption: aircraft.fuelConsumption
   } : undefined;
 
-  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance, departureDate));
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance));
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
     if (altitude && !alternateSegment.altitude) {
       alternateSegment.altitude = altitude;
     }
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, departureDate);
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance);
   }
 
   let totalDistance = 0;
@@ -315,6 +315,9 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     totalDistance += leg.course.distance;
     totalDuration += leg.performance?.duration || 0;
     totalFuelConsumption += leg.performance?.fuelConsumption || 0;
+
+    const legArrivalDate = leg.performance && new Date(departureDate.getTime() + totalDuration * 60 * 1000);
+    leg.arrivalDate = legArrivalDate;
   }
 
   // Round individual legs after calculating totals to avoid cumulative rounding errors
@@ -386,14 +389,12 @@ function roundRouteLeg(leg: RouteLeg): void {
  * @param {RouteSegment} start - The starting segment of the leg.
  * @param {RouteSegment} end - The ending segment of the leg.
  * @param {AircraftPerformance} [aircraft] - The aircraft performance data for calculations.
- * @param {Date} departureDate - The departure date from the start of this leg.
- * @returns {RouteLeg} The calculated route leg.
+  * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
   start: RouteSegment,
   end: RouteSegment,
   aircraft: AircraftPerformance | undefined,
-  departureDate: Date
 ): RouteLeg {
   const course = calculateRouteCourse(start.waypoint, end.waypoint);
 
@@ -402,14 +403,12 @@ function calculateRouteLeg(
   const wind = end.waypoint.metarStation?.metar.wind;
 
   const performance = aircraft && wind ? calculatePerformance(aircraft, course, wind) : undefined;
-  const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
 
   return {
     start,
     end,
     course,
     wind,
-    arrivalDate,
     performance,
   };
 }
