@@ -100,7 +100,7 @@ export { RunwaySurface, FrequencyType, WaypointVariant } from "./waypoint.types.
 /**
  * Waypoint and airport utility functions.
  */
-export { validateFrequencyType, calculateRunwayWindVector, evaluateRunways } from "./waypoint.js";
+export { validateFrequencyType, calculateRunwayWindVector, evaluateRunways, isWaypointType } from "./waypoint.js";
 
 // =============================================================================
 // SUN CALCULATIONS
