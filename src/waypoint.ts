@@ -101,38 +101,41 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
 }
 
 /**
- * Determines the most favorable runway based on wind conditions.
+ * Evaluates all runways based on wind conditions.
  *
- * Returns all runways with a 'favored' field indicating which runway has the maximum headwind component.
+ * Returns all runways with wind vector information and a 'favored' field indicating which runway has the maximum headwind component.
  * The array is sorted with the favored runway as the first item.
  *
  * @param runways Array of available runways to evaluate.
  * @param wind Current wind data from METAR.
- * @returns Array of runways with 'favored' field, sorted with the favored runway first. Returns empty array if no runways are available.
+ * @returns Array of runways with wind angle, headwind, crosswind, and favored fields, sorted with the favored runway first. Returns empty array if no runways are available.
  */
-export const favoredRunway = (runways: Runway[], wind: Wind): Array<Runway & { favored: boolean }> => {
+export const evaluateRunways = (runways: Runway[], wind: Wind): Array<RunwayWindVector & { favored: boolean }> => {
   if (runways.length === 0) {
     return [];
   }
 
-  const runwaysWithHeadwind = runways.map(runway => {
+  const runwaysWithWindData = runways.map(runway => {
     const windVector = calculateWindVector(wind, runway.heading);
     return {
       runway,
-      headwind: windVector.headwind
+      windAngle: windVector.angle,
+      headwind: windVector.headwind,
+      crosswind: windVector.crosswind
     };
   });
 
-  const maxHeadwind = Math.max(...runwaysWithHeadwind.map(r => r.headwind));
+  const maxHeadwind = Math.max(...runwaysWithWindData.map(r => r.headwind));
 
-  const result = runwaysWithHeadwind.map(({ runway, headwind }) => ({
-    ...runway,
+  const result = runwaysWithWindData.map(({ runway, windAngle, headwind, crosswind }) => ({
+    runway,
+    windAngle,
+    headwind,
+    crosswind,
     favored: headwind === maxHeadwind
   }));
 
-  return result.sort((a, b) => {
-    if (a.favored && !b.favored) return -1;
-    if (!a.favored && b.favored) return 1;
-    return 0;
-  });
+  result.sort((a, b) => (b.favored ? 1 : 0) - (a.favored ? 1 : 0));
+
+  return result;
 }
