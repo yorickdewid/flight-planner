@@ -290,8 +290,6 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     });
   }
 
-  segments.forEach(segment => segment.altitude !== undefined && (segment.altitude = Math.round(segment.altitude)));
-
   const aircraftPerformance: AircraftPerformance | undefined = aircraft?.cruiseSpeed ? {
     cruiseSpeed: aircraft.cruiseSpeed,
     fuelConsumption: aircraft.fuelConsumption
@@ -320,11 +318,6 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     leg.arrivalDate = legArrivalDate;
   }
 
-  // Round individual legs after calculating totals to avoid cumulative rounding errors
-  // for (const leg of legs) {
-  //   roundRouteLeg(leg);
-  // }
-
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
   const totalTripFuel = totalFuelConsumption
     + (reserveFuelRequired || 0)
@@ -333,24 +326,20 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     + (taxiFuel || 0);
 
   const fuelBreakdown = {
-    trip: Math.round(totalFuelConsumption),
-    reserve: Math.round(reserveFuelRequired),
-    takeoff: takeoffFuel !== undefined ? Math.round(takeoffFuel) : undefined,
-    landing: landingFuel !== undefined ? Math.round(landingFuel) : undefined,
-    taxi: taxiFuel !== undefined ? Math.round(taxiFuel) : undefined,
-    alternate: routeAlternate?.performance?.fuelConsumption !== undefined ? Math.round(routeAlternate.performance.fuelConsumption) : undefined
+    trip: totalFuelConsumption,
+    reserve: reserveFuelRequired,
+    takeoff: takeoffFuel !== undefined ? takeoffFuel : undefined,
+    landing: landingFuel !== undefined ? landingFuel : undefined,
+    taxi: taxiFuel !== undefined ? taxiFuel : undefined,
+    alternate: routeAlternate?.performance?.fuelConsumption !== undefined ? routeAlternate.performance.fuelConsumption : undefined
   };
-
-  // if (routeAlternate) {
-  //   roundRouteLeg(routeAlternate);
-  // }
 
   return {
     route: legs,
     routeAlternate,
-    totalDistance: Math.round(totalDistance),
-    totalDuration: Math.round(totalDuration),
-    totalTripFuel: totalTripFuel !== undefined ? Math.round(totalTripFuel) : undefined,
+    totalDistance,
+    totalDuration,
+    totalTripFuel,
     fuelBreakdown,
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
