@@ -61,6 +61,37 @@ export const waypointQFE = (waypoint: Waypoint): number | undefined => {
 }
 
 /**
+ * Type guard function that checks if a waypoint matches a specific variant type.
+ *
+ * This function performs a runtime check on the waypoint's variant and provides TypeScript
+ * type narrowing, allowing you to safely access variant-specific properties within the type-guarded block.
+ *
+ * @template T - The specific waypoint type that extends the base waypoint variant structure.
+ *               Must have a waypointVariant property.
+ * @param waypoint - The waypoint to check.
+ * @param variant - The WaypointVariant to check against (e.g., WaypointVariant.Aerodrome, WaypointVariant.Navaid).
+ * @returns A type predicate indicating whether the waypoint matches the specified variant.
+ *          Returns true if the waypoint's variant matches the provided variant type.
+ *
+ * @example
+ * ```typescript
+ * const waypoint: Waypoint = getWaypoint();
+ *
+ * if (isWaypointType(waypoint, WaypointVariant.Aerodrome)) {
+ *   // TypeScript now knows waypoint has aerodrome-specific properties
+ *   console.log(waypoint.runways);
+ *   console.log(waypoint.frequencies);
+ * }
+ * ```
+ */
+export function isWaypointType<T extends { waypointVariant: WaypointVariant }>(
+  waypoint: Waypoint,
+  variant: WaypointVariant
+): waypoint is Waypoint & T {
+  return waypoint.waypointVariant === variant;
+}
+
+/**
  * Creates a Waypoint object from a longitude and latitude.
  *
  * @param location - The location as a [longitude, latitude] tuple.
