@@ -283,11 +283,11 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
   }
 
   if (altitude) {
-    for (let i = 1; i < segments.length - 1; i++) {
-      if (!segments[i].altitude) {
-        segments[i].altitude = altitude;
+    segments.forEach((segment, i) => {
+      if (i !== 0 && i !== segments.length - 1 && !segment.altitude) {
+        segment.altitude = altitude;
       }
-    }
+    });
   }
 
   const aircraftPerformance: AircraftPerformance | undefined = aircraft?.cruiseSpeed ? {
@@ -295,14 +295,14 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     fuelConsumption: aircraft.fuelConsumption
   } : undefined;
 
-  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance, departureDate));
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance));
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
     if (altitude && !alternateSegment.altitude) {
       alternateSegment.altitude = altitude;
     }
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, departureDate);
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance);
   }
 
   let totalDistance = 0;
@@ -313,11 +313,9 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     totalDistance += leg.course.distance;
     totalDuration += leg.performance?.duration || 0;
     totalFuelConsumption += leg.performance?.fuelConsumption || 0;
-  }
 
-  // Round individual legs after calculating totals to avoid cumulative rounding errors
-  for (const leg of legs) {
-    roundRouteLeg(leg);
+    const legArrivalDate = leg.performance && new Date(departureDate.getTime() + totalDuration * 60 * 1000);
+    leg.arrivalDate = legArrivalDate;
   }
 
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
@@ -328,24 +326,20 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     + (taxiFuel || 0);
 
   const fuelBreakdown = {
-    trip: Math.round(totalFuelConsumption),
-    reserve: Math.round(reserveFuelRequired),
-    takeoff: takeoffFuel !== undefined ? Math.round(takeoffFuel) : undefined,
-    landing: landingFuel !== undefined ? Math.round(landingFuel) : undefined,
-    taxi: taxiFuel !== undefined ? Math.round(taxiFuel) : undefined,
-    alternate: routeAlternate?.performance?.fuelConsumption !== undefined ? Math.round(routeAlternate.performance.fuelConsumption) : undefined
+    trip: totalFuelConsumption,
+    reserve: reserveFuelRequired,
+    takeoff: takeoffFuel !== undefined ? takeoffFuel : undefined,
+    landing: landingFuel !== undefined ? landingFuel : undefined,
+    taxi: taxiFuel !== undefined ? taxiFuel : undefined,
+    alternate: routeAlternate?.performance?.fuelConsumption !== undefined ? routeAlternate.performance.fuelConsumption : undefined
   };
-
-  if (routeAlternate) {
-    roundRouteLeg(routeAlternate);
-  }
 
   return {
     route: legs,
     routeAlternate,
-    totalDistance: Math.round(totalDistance),
-    totalDuration: Math.round(totalDuration),
-    totalTripFuel: totalTripFuel !== undefined ? Math.round(totalTripFuel) : undefined,
+    totalDistance,
+    totalDuration,
+    totalTripFuel,
     fuelBreakdown,
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
@@ -353,30 +347,30 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
   };
 }
 
-/**
- * Rounds all numeric values in a route leg for consistent precision.
- *
- * @param {RouteLeg} leg - The route leg to round.
- */
-function roundRouteLeg(leg: RouteLeg): void {
-  leg.course.distance = Math.round(leg.course.distance);
-  leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
-  leg.course.track = Math.round(leg.course.track);
+// /**
+//  * Rounds all numeric values in a route leg for consistent precision.
+//  *
+//  * @param {RouteLeg} leg - The route leg to round.
+//  */
+// function roundRouteLeg(leg: RouteLeg): void {
+//   leg.course.distance = Math.round(leg.course.distance);
+//   leg.course.magneticTrack = Math.round(leg.course.magneticTrack);
+//   leg.course.track = Math.round(leg.course.track);
 
-  if (leg.performance) {
-    leg.performance.headWind = Math.round(leg.performance.headWind);
-    leg.performance.crossWind = Math.round(leg.performance.crossWind);
-    leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
-    leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
-    leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
-    leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
-    leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
-    leg.performance.duration = Math.round(leg.performance.duration);
-    if (leg.performance.fuelConsumption !== undefined) {
-      leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
-    }
-  }
-}
+//   if (leg.performance) {
+//     leg.performance.headWind = Math.round(leg.performance.headWind);
+//     leg.performance.crossWind = Math.round(leg.performance.crossWind);
+//     leg.performance.trueAirspeed = Math.round(leg.performance.trueAirspeed);
+//     leg.performance.windCorrectionAngle = Math.round(leg.performance.windCorrectionAngle);
+//     leg.performance.trueHeading = Math.round(leg.performance.trueHeading);
+//     leg.performance.magneticHeading = Math.round(leg.performance.magneticHeading);
+//     leg.performance.groundSpeed = Math.round(leg.performance.groundSpeed);
+//     leg.performance.duration = Math.round(leg.performance.duration);
+//     if (leg.performance.fuelConsumption !== undefined) {
+//       leg.performance.fuelConsumption = Math.round(leg.performance.fuelConsumption);
+//     }
+//   }
+// }
 
 /**
  * Calculates a single leg of a flight route.
@@ -384,14 +378,12 @@ function roundRouteLeg(leg: RouteLeg): void {
  * @param {RouteSegment} start - The starting segment of the leg.
  * @param {RouteSegment} end - The ending segment of the leg.
  * @param {AircraftPerformance} [aircraft] - The aircraft performance data for calculations.
- * @param {Date} departureDate - The departure date from the start of this leg.
- * @returns {RouteLeg} The calculated route leg.
+  * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
   start: RouteSegment,
   end: RouteSegment,
   aircraft: AircraftPerformance | undefined,
-  departureDate: Date
 ): RouteLeg {
   const course = calculateRouteCourse(start.waypoint, end.waypoint);
 
@@ -400,14 +392,12 @@ function calculateRouteLeg(
   const wind = end.waypoint.metarStation?.metar.wind;
 
   const performance = aircraft && wind ? calculatePerformance(aircraft, course, wind) : undefined;
-  const arrivalDate = performance && new Date(departureDate.getTime() + performance.duration * 60 * 1000);
 
   return {
     start,
     end,
     course,
     wind,
-    arrivalDate,
     performance,
   };
 }
