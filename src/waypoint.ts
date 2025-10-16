@@ -99,3 +99,32 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
     crosswind: Math.round(windVector.crosswind),
   };
 }
+
+/**
+ * Determines the most favorable runway based on wind conditions.
+ *
+ * Selects the runway that provides the maximum headwind component,
+ * which is generally preferred for takeoff and landing operations.
+ *
+ * @param runways Array of available runways to evaluate.
+ * @param wind Current wind data from METAR.
+ * @returns The runway with the maximum headwind component, or undefined if no runways are available.
+ */
+export const favoredRunway = (runways: Runway[], wind: Wind): Runway | undefined => {
+  if (runways.length === 0) {
+    return undefined;
+  }
+
+  let bestRunway: Runway | undefined;
+  let maxHeadwind = -Infinity;
+
+  for (const runway of runways) {
+    const windVector = calculateWindVector(wind, runway.heading);
+    if (windVector.headwind > maxHeadwind) {
+      maxHeadwind = windVector.headwind;
+      bestRunway = runway;
+    }
+  }
+
+  return bestRunway;
+}
