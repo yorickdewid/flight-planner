@@ -130,8 +130,8 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): Array<RunwayWind
   const result = runwaysWithWindData.map(({ runway, windAngle, headwind, crosswind }) => ({
     runway,
     windAngle,
-    headwind,
-    crosswind,
+    headwind: Math.round(headwind),
+    crosswind: Math.round(crosswind),
     favored: headwind === maxHeadwind
   }));
 
