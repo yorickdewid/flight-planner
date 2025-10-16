@@ -103,28 +103,36 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
 /**
  * Determines the most favorable runway based on wind conditions.
  *
- * Selects the runway that provides the maximum headwind component,
- * which is generally preferred for takeoff and landing operations.
+ * Returns all runways with a 'favored' field indicating which runway has the maximum headwind component.
+ * The array is sorted with the favored runway as the first item.
  *
  * @param runways Array of available runways to evaluate.
  * @param wind Current wind data from METAR.
- * @returns The runway with the maximum headwind component, or undefined if no runways are available.
+ * @returns Array of runways with 'favored' field, sorted with the favored runway first. Returns empty array if no runways are available.
  */
-export const favoredRunway = (runways: Runway[], wind: Wind): Runway | undefined => {
+export const favoredRunway = (runways: Runway[], wind: Wind): Array<Runway & { favored: boolean }> => {
   if (runways.length === 0) {
-    return undefined;
+    return [];
   }
 
-  let bestRunway: Runway | undefined;
-  let maxHeadwind = -Infinity;
-
-  for (const runway of runways) {
+  const runwaysWithHeadwind = runways.map(runway => {
     const windVector = calculateWindVector(wind, runway.heading);
-    if (windVector.headwind > maxHeadwind) {
-      maxHeadwind = windVector.headwind;
-      bestRunway = runway;
-    }
-  }
+    return {
+      runway,
+      headwind: windVector.headwind
+    };
+  });
 
-  return bestRunway;
+  const maxHeadwind = Math.max(...runwaysWithHeadwind.map(r => r.headwind));
+
+  const result = runwaysWithHeadwind.map(({ runway, headwind }) => ({
+    ...runway,
+    favored: headwind === maxHeadwind
+  }));
+
+  return result.sort((a, b) => {
+    if (a.favored && !b.favored) return -1;
+    if (!a.favored && b.favored) return 1;
+    return 0;
+  });
 }
