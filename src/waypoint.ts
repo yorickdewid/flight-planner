@@ -135,11 +135,11 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
  * Evaluates all runways based on wind conditions.
  *
  * Returns all runways with wind vector information and a 'favored' field indicating which runway has the maximum headwind component.
- * The array is sorted with the favored runway as the first item.
+ * The runways array is sorted with the favored runway as the first item.
  *
  * @param runways Array of available runways to evaluate.
  * @param wind Current wind data from METAR.
- * @returns Array of runways with wind angle, headwind, crosswind, and favored fields, sorted with the favored runway first. Returns empty array if no runways are available.
+ * @returns RunwayEvaluationResult object containing the wind data and an array of runways with wind angle, headwind, crosswind, and favored fields, sorted with the favored runway first. Returns an object with an empty runways array if no runways are available.
  */
 export const evaluateRunways = (runways: Runway[], wind: Wind): RunwayEvaluationResult => {
   if (runways.length === 0) {
