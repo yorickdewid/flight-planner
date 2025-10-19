@@ -178,5 +178,5 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): RunwayEvaluation
   return {
     wind,
     runways: result
-  }
+  };
 }
