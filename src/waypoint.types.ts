@@ -1,5 +1,6 @@
 import { ICAO, MetarStation } from './index.js';
 import { Feature, Point, GeoJsonProperties } from 'geojson';
+import { Wind } from './metar.types.js';
 
 export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 
@@ -190,6 +191,39 @@ export interface RunwayWindVector {
   windAngle: number;
   headwind: number;
   crosswind: number;
+}
+
+/**
+ * Represents a runway with wind evaluation data.
+ *
+ * @interface RunwayEvaluation
+ * @property {string} designator - The identifier of the runway (e.g., "09L", "27R").
+ * @property {number} heading - The magnetic heading of the runway in degrees.
+ * @property {string} [length] - The length of the runway, in meters.
+ * @property {string} [width] - The width of the runway, in meters.
+ * @property {RunwaySurface} [surface] - The surface material of the runway.
+ * @property {number} windAngle - The angle between the runway heading and the wind direction in degrees.
+ * @property {number} headwind - The headwind component in knots (positive for headwind, negative for tailwind).
+ * @property {number} crosswind - The crosswind component in knots (absolute value).
+ * @property {boolean} favored - Indicates whether this runway is the most favored based on wind conditions (maximum headwind).
+ */
+export interface RunwayEvaluation extends Omit<Runway, 'isActive'> {
+  windAngle: number;
+  headwind: number;
+  crosswind: number;
+  favored: boolean;
+}
+
+/**
+ * Represents the result of evaluating multiple runways based on wind conditions.
+ *
+ * @interface RunwayEvaluationResult
+ * @property {Wind} wind - The wind data used for the evaluation.
+ * @property {RunwayEvaluation[]} runways - Array of runways with wind evaluation data, sorted with the most favored runway first.
+ */
+export interface RunwayEvaluationResult {
+  wind: Wind;
+  runways: RunwayEvaluation[];
 }
 
 /**

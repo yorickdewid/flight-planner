@@ -1,7 +1,7 @@
 import { calculateWindVector } from './utils.js';
 import { Wind } from './metar.types.js';
 import { bearing, bearingToAzimuth, distance } from "@turf/turf";
-import { FrequencyType, Runway, RunwayWindVector, Waypoint, WaypointVariant } from './waypoint.types.js';
+import { FrequencyType, Runway, RunwayEvaluationResult, RunwayWindVector, Waypoint, WaypointVariant } from './waypoint.types.js';
 
 /**
  * Calculates the distance from one waypoint to another.
@@ -141,9 +141,12 @@ export const calculateRunwayWindVector = (runway: Runway, wind: Wind): RunwayWin
  * @param wind Current wind data from METAR.
  * @returns Array of runways with wind angle, headwind, crosswind, and favored fields, sorted with the favored runway first. Returns empty array if no runways are available.
  */
-export const evaluateRunways = (runways: Runway[], wind: Wind): Array<RunwayWindVector & { favored: boolean }> => {
+export const evaluateRunways = (runways: Runway[], wind: Wind): RunwayEvaluationResult => {
   if (runways.length === 0) {
-    return [];
+    return {
+      wind,
+      runways: []
+    };
   }
 
   const runwaysWithWindData = runways.map(runway => {
@@ -159,7 +162,11 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): Array<RunwayWind
   const maxHeadwind = Math.max(...runwaysWithWindData.map(r => r.headwind));
 
   const result = runwaysWithWindData.map(({ runway, windAngle, headwind, crosswind }) => ({
-    runway,
+    designator: runway.designator,
+    heading: runway.heading,
+    length: runway.length,
+    width: runway.width,
+    surface: runway.surface,
     windAngle,
     headwind: Math.round(headwind),
     crosswind: Math.round(crosswind),
@@ -168,5 +175,8 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): Array<RunwayWind
 
   result.sort((a, b) => (b.favored ? 1 : 0) - (a.favored ? 1 : 0));
 
-  return result;
+  return {
+    wind,
+    runways: result
+  }
 }
