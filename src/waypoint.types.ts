@@ -198,16 +198,13 @@ export interface RunwayWindVector {
  *
  * @interface RunwayEvaluation
  * @property {string} designator - The identifier of the runway (e.g., "09L", "27R").
- * @property {number} heading - The magnetic heading of the runway in degrees.
- * @property {string} [length] - The length of the runway, in meters.
- * @property {string} [width] - The width of the runway, in meters.
- * @property {RunwaySurface} [surface] - The surface material of the runway.
  * @property {number} windAngle - The angle between the runway heading and the wind direction in degrees.
  * @property {number} headwind - The headwind component in knots (positive for headwind, negative for tailwind).
  * @property {number} crosswind - The crosswind component in knots (absolute value).
  * @property {boolean} favored - Indicates whether this runway is the most favored based on wind conditions (maximum headwind).
  */
-export interface RunwayEvaluation extends Omit<Runway, 'isActive'> {
+export interface RunwayEvaluation {
+  designator: string;
   windAngle: number;
   headwind: number;
   crosswind: number;
