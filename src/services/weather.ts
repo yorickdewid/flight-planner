@@ -1,4 +1,4 @@
-import { ICAO, MetarStation, Waypoint } from "../index.js";
+import { ICAO, MetarStation } from "../index.js";
 import { isICAO, normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
@@ -132,29 +132,5 @@ export class WeatherService {
     }
 
     throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
-  }
-
-  /**
-   * Attaches the closest METAR station to each waypoint.
-   *
-   * @param waypoints - An array of waypoints to attach weather data to.
-   * @param reassign - Whether to reassign existing weather data (default: false).
-   * @returns A promise that resolves when the operation is complete.
-   */
-  async attachWeather(waypoints: Waypoint[], reassign = false): Promise<void> {
-    if (reassign) {
-      for (const waypoint of waypoints) {
-        waypoint.metarStation = undefined;
-      }
-    }
-
-    await Promise.all(waypoints
-      .filter(waypoint => !waypoint.metarStation)
-      .map(async waypoint => {
-        const station = await this.nearest(waypoint.location.geometry.coordinates);
-        if (station) {
-          waypoint.metarStation = station;
-        }
-      }));
   }
 }
