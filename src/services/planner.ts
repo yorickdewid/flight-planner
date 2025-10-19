@@ -224,17 +224,46 @@ export class PlannerService {
   }
 
   /**
-   * Attaches weather data to an array of waypoints using the WeatherService.
+   * Attaches the closest METAR station to each waypoint in the provided array.
    *
-   * @param waypoints - The array of waypoints to attach weather data to
-   * @returns A promise that resolves when the weather data has been attached to all waypoints
+   * This method finds and assigns the nearest weather station to each waypoint by using the
+   * waypoint's geographical coordinates. It modifies the waypoints in place by setting their
+   * `metarStation` property. By default, it only processes waypoints that don't already have
+   * a METAR station assigned.
+   *
+   * @param waypoints - An array of waypoints to attach weather data to
+   * @param reassign - Whether to reassign existing weather data (default: false). When true,
+   *                   clears all existing `metarStation` assignments before searching for new ones
+   * @returns A promise that resolves when all waypoints have been processed
    *
    * @remarks
-   * This method mutates the waypoints by adding weather/METAR station data to them.
-   * Weather attachment may fail silently for waypoints without associated METAR stations.
+   * - Waypoints that already have a `metarStation` assigned are skipped unless `reassign` is true
+   * - If no METAR station is found near a waypoint, its `metarStation` property remains undefined
+   * - The method processes all waypoints in parallel for better performance
+   * - Uses the weather service's `nearest()` method to find the closest station to each waypoint
+   *
+   * @example
+   * ```typescript
+   * const waypoints = await planner.parseRouteString("KJFK EGLL");
+   * await planner.attachWeatherToWaypoints(waypoints);
+   * // Each waypoint now has metarStation property set (if a nearby station was found)
+   * ```
    */
-  async attachWeatherToWaypoints(waypoints: WaypointType[]): Promise<void> {
-    await this.weatherService.attachWeather(waypoints);
+  async attachWeatherToWaypoints(waypoints: Waypoint[], reassign = false): Promise<void> {
+    if (reassign) {
+      for (const waypoint of waypoints) {
+        waypoint.metarStation = undefined;
+      }
+    }
+
+    await Promise.all(waypoints
+      .filter(waypoint => !waypoint.metarStation)
+      .map(async waypoint => {
+        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+        if (station) {
+          waypoint.metarStation = station;
+        }
+      }));
   }
 
   /**
