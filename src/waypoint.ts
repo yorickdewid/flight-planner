@@ -163,10 +163,6 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): RunwayEvaluation
 
   const result = runwaysWithWindData.map(({ runway, windAngle, headwind, crosswind }) => ({
     designator: runway.designator,
-    heading: runway.heading,
-    length: runway.length,
-    width: runway.width,
-    surface: runway.surface,
     windAngle,
     headwind: Math.round(headwind),
     crosswind: Math.round(crosswind),
