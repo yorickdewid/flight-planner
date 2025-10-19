@@ -135,22 +135,6 @@ export class WeatherService {
   }
 
   /**
-   * Checks if a METAR station exists.
-   *
-   * @param icaoCode - The ICAO code of the METAR station to check.
-   * @returns A promise that resolves to true if the METAR station exists, false otherwise.
-   * @throws Error if the ICAO code is invalid.
-   */
-  async exists(icaoCode: string): Promise<boolean> {
-    if (!isICAO(icaoCode)) {
-      throw new Error(`Invalid ICAO code: ${icaoCode}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
-    return await this.repository.exists(normalizedIcao);
-  }
-
-  /**
    * Attaches the closest METAR station to each waypoint.
    *
    * @param waypoints - An array of waypoints to attach weather data to.

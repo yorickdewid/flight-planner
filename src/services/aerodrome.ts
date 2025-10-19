@@ -131,20 +131,4 @@ export class AerodromeService {
 
     throw new Error('This repository does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
   }
-
-  /**
-   * Checks if an aerodrome exists.
-   *
-   * @param icaoCode - The ICAO code of the aerodrome to check.
-   * @returns A promise that resolves to true if the aerodrome exists, false otherwise.
-   * @throws Error if the ICAO code is invalid.
-   */
-  async exists(icaoCode: string): Promise<boolean> {
-    if (!isICAO(icaoCode)) {
-      throw new Error(`Invalid ICAO code: ${icaoCode}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icaoCode) as ICAO;
-    return await this.repository.exists(normalizedIcao);
-  }
 }

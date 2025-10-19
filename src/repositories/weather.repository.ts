@@ -7,7 +7,7 @@ import { ICAO, MetarStation } from "../index.js";
 export interface WeatherRepository {
   /**
    * Finds METAR stations by their ICAO codes.
-   * 
+   *
    * @param icaoCodes - An array of ICAO codes to search for.
    * @returns A promise that resolves to an array of found MetarStation objects.
    */
@@ -15,7 +15,7 @@ export interface WeatherRepository {
 
   /**
    * Finds METAR stations within a bounding box.
-   * 
+   *
    * @param bbox - A GeoJSON BBox object defining the search area.
    * @returns A promise that resolves to an array of MetarStation objects within the bounding box.
    */
@@ -23,7 +23,7 @@ export interface WeatherRepository {
 
   /**
    * Finds METAR stations within a specified radius of a geographical location.
-   * 
+   *
    * @param location - The geographical coordinates [longitude, latitude].
    * @param distance - The search radius in kilometers.
    * @returns A promise that resolves to an array of MetarStation objects within the specified radius.
@@ -32,17 +32,9 @@ export interface WeatherRepository {
 
   /**
    * Finds a single METAR station by its ICAO code.
-   * 
+   *
    * @param icaoCode - The ICAO code to search for.
    * @returns A promise that resolves to the MetarStation object or null if not found.
    */
   findOne(icaoCode: ICAO): Promise<MetarStation | null>;
-
-  /**
-   * Checks if a METAR station exists in the repository.
-   * 
-   * @param icaoCode - The ICAO code of the METAR station to check.
-   * @returns A promise that resolves to true if the METAR station exists, false otherwise.
-   */
-  exists(icaoCode: ICAO): Promise<boolean>;
 }
