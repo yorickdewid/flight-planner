@@ -73,6 +73,10 @@
       "import": "./dist/format.js",
       "types": "./dist/format.d.ts"
     },
+    "./services/base": {
+      "import": "./dist/services/base.js",
+      "types": "./dist/services/base.d.ts"
+    },
     "./services/aerodrome": {
       "import": "./dist/services/aerodrome.js",
       "types": "./dist/services/aerodrome.d.ts"
