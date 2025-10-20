@@ -225,6 +225,7 @@ export class PlannerService {
     return null;
   }
 
+  // TODO: This thing should return the waypoints, not mutate them in place
   /**
    * Attaches the closest METAR station to each waypoint in the provided array.
    *
