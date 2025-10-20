@@ -52,27 +52,6 @@ export abstract class ServiceBase<T extends Locatable> {
   abstract findByICAO(icaoCodes: readonly ICAO[]): Promise<T[]>;
 
   /**
-   * Finds entities within a bounding box.
-   * Optional method that can be implemented for spatial queries.
-   *
-   * @abstract
-   * @param {GeoJSON.BBox} bbox - A GeoJSON BBox object defining the search area [minLon, minLat, maxLon, maxLat].
-   * @returns {Promise<T[]>} A promise that resolves to an array of entities within the bounding box.
-   */
-  abstract findByBbox?(bbox: GeoJSON.BBox): Promise<T[]>;
-
-  /**
-   * Finds entities within a specified radius of a geographical location.
-   * Optional method that can be implemented for radial searches.
-   *
-   * @abstract
-   * @param {GeoJSON.Position} location - The geographical coordinates [longitude, latitude].
-   * @param {number} distance - The search radius in kilometers.
-   * @returns {Promise<T[]>} A promise that resolves to an array of entities within the specified radius.
-   */
-  abstract findByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
-
-  /**
    * Retrieves entities by geographical location within a specified radius.
    * This method automatically chooses between radius-based or bounding box-based search
    * depending on which methods are implemented by the concrete service class.
@@ -89,33 +68,7 @@ export abstract class ServiceBase<T extends Locatable> {
    * If findByRadius is implemented, it will be used preferentially.
    * Otherwise, findByBbox will be used with a calculated bounding box.
    */
-  async findByLocation(location: GeoJSON.Position, radius: number = 100): Promise<T[]> {
-    if (!Array.isArray(location) || location.length < 2 ||
-      typeof location[0] !== 'number' || typeof location[1] !== 'number') {
-      throw new Error('Invalid location format. Expected [longitude, latitude].');
-    }
-
-    const radiusRange = Math.min(1000, Math.max(1, radius));
-
-    if (this.findByRadius) {
-      return await this.findByRadius(location, radiusRange);
-    }
-
-    if (this.findByBbox) {
-      const locationPoint = point(location);
-      const buffered = buffer(locationPoint, radiusRange, { units: 'kilometers' });
-      if (buffered) {
-        const searchBbox = bbox(buffered) as GeoJSON.BBox;
-        return await this.findByBbox(searchBbox);
-      }
-    }
-
-    throw new Error('This service does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
-  }
-
-  async nearest(_location: GeoJSON.Position, _radius: number, _exclude: string[]): Promise<T> {
-    throw new Error('Method not implemented.');
-  }
+  abstract findByLocation(location: GeoJSON.Position, radius: number): Promise<T[]>;
 
   // /**
   //  * Finds the nearest entity to a given geographical location.
