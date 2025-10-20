@@ -46,26 +46,6 @@ export class WeatherService {
   }
 
   /**
-   * Finds multiple METAR stations by ICAO codes.
-   *
-   * @param icaoCodes - An array of ICAO codes to search for.
-   * @returns A promise that resolves to an array of MetarStation objects.
-   * @throws Error if no valid ICAO codes are provided or if no stations are found.
-   */
-  async findMany(icaoCodes: string[]): Promise<MetarStation[]> {
-    const validIcaoCodes = icaoCodes.filter(code => typeof code === 'string' && isICAO(code)).map(code => normalizeICAO(code)) as ICAO[];
-    if (!validIcaoCodes.length) {
-      throw new Error(`No valid ICAO codes provided: ${icaoCodes.join(', ')}`);
-    }
-
-    const result = await this.repository.findByICAO(validIcaoCodes);
-    if (result.length === 0) {
-      throw new Error(`No METAR stations found for ICAO codes: ${validIcaoCodes.join(', ')}`);
-    }
-    return result;
-  }
-
-  /**
    * Finds the nearest METAR station to the given location.
    *
    * @param location - The geographical location to find the nearest METAR station to.
