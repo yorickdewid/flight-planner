@@ -113,7 +113,9 @@ export abstract class ServiceBase<T extends Locatable> {
     throw new Error('This service does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
   }
 
-  abstract nearest(location: GeoJSON.Position, radius: number, exclude: string[]): Promise<T>;
+  async nearest(_location: GeoJSON.Position, _radius: number, _exclude: string[]): Promise<T> {
+    throw new Error('Method not implemented.');
+  }
 
   // /**
   //  * Finds the nearest entity to a given geographical location.
