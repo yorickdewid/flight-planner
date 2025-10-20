@@ -33,7 +33,7 @@ export interface Waypoint {
   readonly ICAO?: ICAO;
   readonly IATA?: string;
   readonly name: string;
-  readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position
+  readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position, rename to coords
   readonly elevation?: number;
   readonly declination?: number;
   metarStation?: MetarStation;

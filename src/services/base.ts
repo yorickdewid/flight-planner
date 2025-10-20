@@ -134,7 +134,7 @@ export abstract class ServiceBase<T extends Locatable> {
    * If findByRadius is implemented, it will be used preferentially.
    * Otherwise, findByBbox will be used with a calculated bounding box.
    */
-  protected async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<T[]> {
+  async findByLocation(location: GeoJSON.Position, radius: number = 100): Promise<T[]> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');
