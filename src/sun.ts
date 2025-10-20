@@ -10,7 +10,7 @@ import type { Position } from 'geojson';
  * @returns An object containing sun event times
  */
 export const calculateSunEvents = (location: Waypoint | Position, date: Date = new Date()): GetTimesResult => {
-  const coordinates = 'location' in location ? location.location.geometry.coordinates : location;
+  const coordinates = 'coords' in location ? location.coords : location;
   const longitude = coordinates[0];
   const latitude = coordinates[1];
 

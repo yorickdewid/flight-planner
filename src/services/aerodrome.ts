@@ -47,17 +47,17 @@ export class AerodromeService {
     }
 
     const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
-    const aerodromeCandidates = aerodromes.filter(airport => !normalizedExclude.includes(normalizeICAO(airport.ICAO!))); // TODO: handle undefined ICAO
+    const aerodromeCandidates = aerodromes.filter(airport => !normalizedExclude.includes(normalizeICAO(airport.icao!))); // TODO: handle undefined ICAO
 
     if (aerodromeCandidates.length === 0) {
       throw new Error(`No aerodromes found within ${radius}km of location [${location[0]}, ${location[1]}] after excluding: ${exclude.join(', ')}`);
     }
 
     const nearest = nearestPoint(location, featureCollection(aerodromeCandidates.map(airport => {
-      return point(airport.location.geometry.coordinates, { icao: airport.ICAO });
+      return point(airport.coords, { icao: airport.icao });
     })));
 
-    const result = aerodromeCandidates.find(airport => airport.ICAO === nearest.properties.icao);
+    const result = aerodromeCandidates.find(airport => airport.icao === nearest.properties.icao);
     if (!result) {
       throw new Error('Failed to find nearest aerodrome');
     }

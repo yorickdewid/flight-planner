@@ -1,8 +1,6 @@
 import { ICAO, MetarStation } from './index.js';
-import { Feature, Point, GeoJsonProperties } from 'geojson';
+import { Position } from 'geojson';
 import { Wind } from './metar.types.js';
-
-export type WaypointLocation = Feature<Point, GeoJsonProperties>;
 
 /**
  * Enum representing the variant of waypoint.
@@ -20,20 +18,20 @@ export enum WaypointVariant {
  * It can be associated with a METAR weather observation station.
  *
  * @interface Waypoint
- * @property {ICAO} [ICAO] - The ICAO code of the waypoint, if available.
- * @property {string} [IATA] - The IATA code of the waypoint, if available.
+ * @property {ICAO} [icao] - The ICAO code of the waypoint, if available.
+ * @property {string} [iata] - The IATA code of the waypoint, if available.
  * @property {string} name - The name of the waypoint.
- * @property {WaypointLocation} location - The geographical location of the waypoint, represented as a GeoJSON Point.
+ * @property {Position} coords - The geographical coordinates of the waypoint as [longitude, latitude] or [longitude, latitude, elevation].
  * @property {number} [elevation] - The elevation of the waypoint in feet.
  * @property {number} [declination] - The magnetic declination at the waypoint in degrees.
  * @property {MetarStation} [metarStation] - Optional METAR station associated with the waypoint, providing weather information.
  * @property {WaypointVariant} waypointVariant - The variant of the waypoint, indicating its type (e.g., Waypoint, ReportingPoint, Aerodrome).
  */
 export interface Waypoint {
-  readonly ICAO?: ICAO;
-  readonly IATA?: string;
+  readonly icao?: ICAO;
+  readonly iata?: string;
   readonly name: string;
-  readonly location: WaypointLocation; // TODO: Replace with just GeoJSON.Position, rename to coords
+  readonly coords: Position;
   readonly elevation?: number;
   readonly declination?: number;
   metarStation?: MetarStation;

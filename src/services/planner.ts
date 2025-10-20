@@ -1,9 +1,6 @@
-// import { AerodromeService } from './aerodrome.js';
-// import { WeatherService } from './weather.js';
 import type { WaypointType } from '../navigation.types.js';
-import { Waypoint, Aerodrome } from '../waypoint.types.js';
+import { Waypoint, Aerodrome, WaypointVariant } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
-import { point as turfPoint } from '@turf/turf';
 import type { MetarStation } from '../metar.types.js';
 import type { ServiceBase } from './base.js';
 
@@ -77,8 +74,9 @@ class CoordinateResolver implements WaypointResolver {
         throw new Error(`Invalid coordinates in waypoint: ${part}`);
       }
 
+      // TODO: Call createWaypoint utility function?
       const name = `WP-${lat.toFixed(2)},${lng.toFixed(2)}`;
-      return { name, location: turfPoint([lng, lat]) } as Waypoint;
+      return { name, coords: [lng, lat], waypointVariant: WaypointVariant.Waypoint } as Waypoint;
     }
     return null;
   }
@@ -262,7 +260,7 @@ export class PlannerService {
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
       .map(async waypoint => {
-        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates, 100, []);
+        const station = await this.weatherService.nearest(waypoint.coords, 100, []);
         if (station) {
           waypoint.metarStation = station;
         }
@@ -295,10 +293,10 @@ export class PlannerService {
     radius: number = 50,
     excludeICAOs: string[] = []
   ): Promise<WaypointType | null> {
-    const exclude = destination.ICAO
-      ? [...excludeICAOs, destination.ICAO]
+    const exclude = destination.icao
+      ? [...excludeICAOs, destination.icao]
       : excludeICAOs;
-    return await this.aerodromeService.nearest(destination.location.geometry.coordinates, radius, exclude);
+    return await this.aerodromeService.nearest(destination.coords, radius, exclude);
   }
 }
 
