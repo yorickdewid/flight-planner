@@ -1,5 +1,5 @@
 import { ICAO, MetarStation } from "../index.js";
-import { isICAO, normalizeICAO } from "../utils.js";
+import { normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 import { WeatherRepository } from "../repositories/weather.repository.js";
@@ -25,24 +25,8 @@ export class WeatherService {
     }
   }
 
-  /**
-   * Finds a single METAR station by ICAO code.
-   *
-   * @param icao - The ICAO code to search for.
-   * @returns A promise that resolves to a MetarStation object.
-   * @throws Error if the ICAO code is invalid or if no station is found.
-   */
-  async findOne(icao: string): Promise<MetarStation> {
-    if (!isICAO(icao)) {
-      throw new Error(`Invalid ICAO code: ${icao}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icao) as ICAO;
-    const result = await this.repository.findByICAO([normalizedIcao]);
-    if (!result || result.length === 0) {
-      throw new Error(`METAR station not found for ICAO code: ${normalizedIcao}`);
-    }
-    return result[0];
+  findByICAO(icaoCodes: readonly string[]): Promise<MetarStation[]> {
+    return this.repository.findByICAO(icaoCodes);
   }
 
   /**

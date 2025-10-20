@@ -1,7 +1,6 @@
-import { ICAO } from "../index.js";
 import { Aerodrome } from "../waypoint.types.js";
 import { AerodromeRepository } from "../repositories/aerodrome.repository.js";
-import { isICAO, normalizeICAO } from "../utils.js";
+import { normalizeICAO } from "../utils.js";
 import { point, nearestPoint, bbox, buffer } from "@turf/turf";
 import { featureCollection } from '@turf/helpers';
 
@@ -27,24 +26,8 @@ export class AerodromeService {
     }
   }
 
-  /**
-   * Finds a single aerodrome by ICAO code.
-   *
-   * @param icao - The ICAO code to search for.
-   * @returns A promise that resolves to an Aerodrome object.
-   * @throws Error if the ICAO code is invalid or if no aerodrome is found.
-   */
-  async findOne(icao: string): Promise<Aerodrome> {
-    if (!isICAO(icao)) {
-      throw new Error(`Invalid ICAO code: ${icao}`);
-    }
-
-    const normalizedIcao = normalizeICAO(icao) as ICAO;
-    const result = await this.repository.findByICAO([normalizedIcao]);
-    if (!result || result.length === 0) {
-      throw new Error(`Aerodrome not found for ICAO code: ${normalizedIcao}`);
-    }
-    return result[0];
+  findByICAO(icaoCodes: readonly string[]): Promise<Aerodrome[]> {
+    return this.repository.findByICAO(icaoCodes);
   }
 
   /**
