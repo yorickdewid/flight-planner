@@ -40,9 +40,9 @@ class ICAOResolver implements WaypointResolver {
    */
   async resolve(part: string): Promise<WaypointType | null> {
     if (isICAO(part)) {
-      const airport = await this.aerodromeService.findOne(part);
-      if (airport) {
-        return airport;
+      const airports = await this.aerodromeService.findByICAO([part]);
+      if (airports && airports.length > 0) {
+        return airports[0];
       }
       throw new Error(`Could not find aerodrome with ICAO code: ${part}`);
     }
