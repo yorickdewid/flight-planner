@@ -30,12 +30,4 @@ export interface AerodromeRepository {
    * @returns A promise that resolves to an array of Aerodrome objects within the specified radius.
    */
   findByRadius?(location: GeoJSON.Position, distance: number): Promise<Aerodrome[]>;
-
-  /**
-   * Finds a single aerodrome by its ICAO code.
-   *
-   * @param icaoCode - The ICAO code to search for.
-   * @returns A promise that resolves to the Aerodrome object or null if not found.
-   */
-  findOne(icaoCode: ICAO): Promise<Aerodrome | null>;
 }

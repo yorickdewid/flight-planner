@@ -29,12 +29,4 @@ export interface WeatherRepository {
    * @returns A promise that resolves to an array of MetarStation objects within the specified radius.
    */
   findByRadius?(location: GeoJSON.Position, distance: number): Promise<MetarStation[]>;
-
-  /**
-   * Finds a single METAR station by its ICAO code.
-   *
-   * @param icaoCode - The ICAO code to search for.
-   * @returns A promise that resolves to the MetarStation object or null if not found.
-   */
-  findOne(icaoCode: ICAO): Promise<MetarStation | null>;
 }

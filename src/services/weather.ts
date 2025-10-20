@@ -38,11 +38,11 @@ export class WeatherService {
     }
 
     const normalizedIcao = normalizeICAO(icao) as ICAO;
-    const result = await this.repository.findOne(normalizedIcao);
-    if (!result) {
+    const result = await this.repository.findByICAO([normalizedIcao]);
+    if (!result || result.length === 0) {
       throw new Error(`METAR station not found for ICAO code: ${normalizedIcao}`);
     }
-    return result;
+    return result[0];
   }
 
   /**
@@ -90,7 +90,7 @@ export class WeatherService {
    * @param radius - The radius in kilometers (default: 100, max: 1000).
    * @returns A promise that resolves to an array of data.
    */
-  async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<MetarStation[]> {
+  private async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<MetarStation[]> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');

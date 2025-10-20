@@ -40,11 +40,11 @@ export class AerodromeService {
     }
 
     const normalizedIcao = normalizeICAO(icao) as ICAO;
-    const result = await this.repository.findOne(normalizedIcao);
-    if (!result) {
+    const result = await this.repository.findByICAO([normalizedIcao]);
+    if (!result || result.length === 0) {
       throw new Error(`Aerodrome not found for ICAO code: ${normalizedIcao}`);
     }
-    return result;
+    return result[0];
   }
 
   /**
@@ -88,7 +88,7 @@ export class AerodromeService {
    * @param radius - The radius in kilometers (default: 100, max: 1000).
    * @returns A promise that resolves to an array of aerodromes.
    */
-  async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
+  private async getByLocation(location: GeoJSON.Position, radius: number = 100): Promise<Aerodrome[]> {
     if (!Array.isArray(location) || location.length < 2 ||
       typeof location[0] !== 'number' || typeof location[1] !== 'number') {
       throw new Error('Invalid location format. Expected [longitude, latitude].');

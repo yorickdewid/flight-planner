@@ -299,6 +299,40 @@ export class PlannerService {
   }
 }
 
+/**
+ * Creates a PlannerService instance with default waypoint resolvers.
+ *
+ * This factory function initializes a PlannerService with a standard resolver chain that includes:
+ * 1. Any custom resolvers provided (tried first)
+ * 2. ICAOResolver - for resolving 4-letter ICAO airport codes
+ * 3. CoordinateResolver - for resolving WP(lat,lng) coordinate waypoints
+ *
+ * @param aerodromeService - The aerodrome service for looking up airports and aerodromes
+ * @param weatherService - The weather service for attaching weather data to waypoints
+ * @param customResolvers - Optional array of custom waypoint resolvers that will be tried before the default resolvers
+ * @returns A configured PlannerService instance with the resolver chain
+ *
+ * @remarks
+ * Custom resolvers are placed at the beginning of the resolver chain, allowing you to override
+ * or extend the default behavior. For example, you could add an IATA code resolver that would
+ * be tried before the ICAO resolver.
+ *
+ * @example
+ * ```typescript
+ * const planner = createDefaultPlannerService(aerodromeService, weatherService);
+ * // Creates a planner with ICAO and coordinate resolvers
+ * ```
+ *
+ * @example
+ * ```typescript
+ * const planner = createDefaultPlannerService(
+ *   aerodromeService,
+ *   weatherService,
+ *   [new IATAResolver(), new VORResolver()]
+ * );
+ * // Creates a planner that tries IATA, then VOR, then ICAO, then coordinate resolvers
+ * ```
+ */
 export function createDefaultPlannerService(
   aerodromeService: AerodromeService,
   weatherService: WeatherService,
