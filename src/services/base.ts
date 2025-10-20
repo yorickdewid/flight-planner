@@ -71,53 +71,6 @@ export abstract class ServiceBase<T extends Locatable> {
   abstract findByRadius?(location: GeoJSON.Position, distance: number): Promise<T[]>;
 
   /**
-   * Finds the nearest entity to a given geographical location.
-   * Searches within the specified radius and optionally excludes certain entities by ICAO code.
-   *
-   * @param {GeoJSON.Position} location - The geographical coordinates [longitude, latitude] to search near.
-   * @param {number} [radius=100] - The search radius in kilometers (default: 100km).
-   * @param {string[]} [exclude=[]] - An optional array of ICAO codes to exclude from the search.
-   * @returns {Promise<T>} A promise that resolves to the nearest entity.
-   * @throws {Error} If no entities are found within the specified radius.
-   * @throws {Error} If no entities remain after applying exclusion filters.
-   * @throws {Error} If the nearest entity cannot be determined or retrieved.
-   *
-   * @example
-   * ```typescript
-   * const nearest = await service.nearest([4.7683, 52.3105], 50, ['EHAM']);
-   * console.log(`Nearest entity: ${nearest.code}`);
-   * ```
-   */
-  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<T> {
-    const entities: Map<ICAO, T> = new Map();
-
-    const result = await this.getByLocation(location, radius);
-    result.forEach(entity => entities.set(normalizeICAO(entity.code), entity));
-
-    if (!entities.size) {
-      throw new Error(`No entities found within ${radius}km of location [${location[0]}, ${location[1]}]`);
-    }
-
-    const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
-    const candidates = Array.from(entities.values()).filter(entity => !normalizedExclude.includes(normalizeICAO(entity.code)));
-    if (candidates.length === 0) {
-      throw new Error(`No entities found within ${radius}km of location [${location[0]}, ${location[1]}] after excluding: ${exclude.join(', ')}`);
-    }
-
-    const nearest = nearestPoint(location, featureCollection(candidates.map(entity => point(entity.coords, { code: entity.code }))));
-    const entityCode = nearest.properties?.code;
-    if (typeof entityCode !== 'string') {
-      throw new Error('Failed to determine nearest entity code');
-    }
-
-    const nearestEntity = entities.get(normalizeICAO(entityCode));
-    if (!nearestEntity) {
-      throw new Error('Failed to find nearest entity');
-    }
-    return nearestEntity;
-  }
-
-  /**
    * Retrieves entities by geographical location within a specified radius.
    * This method automatically chooses between radius-based or bounding box-based search
    * depending on which methods are implemented by the concrete service class.
@@ -156,5 +109,52 @@ export abstract class ServiceBase<T extends Locatable> {
     }
 
     throw new Error('This service does not implement findByRadius or findByBbox. At least one of these methods must be implemented to use getByLocation.');
+  }
+
+  /**
+   * Finds the nearest entity to a given geographical location.
+   * Searches within the specified radius and optionally excludes certain entities by ICAO code.
+   *
+   * @param {GeoJSON.Position} location - The geographical coordinates [longitude, latitude] to search near.
+   * @param {number} [radius=100] - The search radius in kilometers (default: 100km).
+   * @param {string[]} [exclude=[]] - An optional array of ICAO codes to exclude from the search.
+   * @returns {Promise<T>} A promise that resolves to the nearest entity.
+   * @throws {Error} If no entities are found within the specified radius.
+   * @throws {Error} If no entities remain after applying exclusion filters.
+   * @throws {Error} If the nearest entity cannot be determined or retrieved.
+   *
+   * @example
+   * ```typescript
+   * const nearest = await service.nearest([4.7683, 52.3105], 50, ['EHAM']);
+   * console.log(`Nearest entity: ${nearest.code}`);
+   * ```
+   */
+  async nearest(location: GeoJSON.Position, radius: number = 100, exclude: string[] = []): Promise<T> {
+    const entities: Map<ICAO, T> = new Map();
+
+    const result = await this.findByLocation(location, radius);
+    result.forEach(entity => entities.set(normalizeICAO(entity.code), entity));
+
+    if (!entities.size) {
+      throw new Error(`No entities found within ${radius}km of location [${location[0]}, ${location[1]}]`);
+    }
+
+    const normalizedExclude = exclude.map(icao => normalizeICAO(icao));
+    const candidates = Array.from(entities.values()).filter(entity => !normalizedExclude.includes(normalizeICAO(entity.code)));
+    if (candidates.length === 0) {
+      throw new Error(`No entities found within ${radius}km of location [${location[0]}, ${location[1]}] after excluding: ${exclude.join(', ')}`);
+    }
+
+    const nearest = nearestPoint(location, featureCollection(candidates.map(entity => point(entity.coords, { code: entity.code }))));
+    const entityCode = nearest.properties?.code;
+    if (typeof entityCode !== 'string') {
+      throw new Error('Failed to determine nearest entity code');
+    }
+
+    const nearestEntity = entities.get(normalizeICAO(entityCode));
+    if (!nearestEntity) {
+      throw new Error('Failed to find nearest entity');
+    }
+    return nearestEntity;
   }
 }
