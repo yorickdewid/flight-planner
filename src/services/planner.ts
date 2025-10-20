@@ -1,9 +1,11 @@
-import { AerodromeService } from './aerodrome.js';
-import { WeatherService } from './weather.js';
+// import { AerodromeService } from './aerodrome.js';
+// import { WeatherService } from './weather.js';
 import type { WaypointType } from '../navigation.types.js';
 import { Waypoint, Aerodrome } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import { point as turfPoint } from '@turf/turf';
+import type { MetarStation } from '../metar.types.js';
+import type { ServiceBase } from './base.js';
 
 /**
  * Interface for waypoint resolvers that attempt to resolve a route string part into a waypoint.
@@ -29,7 +31,7 @@ export interface WaypointResolver {
  * @implements {WaypointResolver}
  */
 class ICAOResolver implements WaypointResolver {
-  constructor(private aerodromeService: AerodromeService) { }
+  constructor(private aerodromeService: ServiceBase<Aerodrome>) { }
 
   /**
    * Resolves a route part if it matches a valid ICAO code pattern (4 letters).
@@ -98,8 +100,8 @@ export class PlannerService {
    * @throws {Error} If aerodromeService or weatherService are not provided
    */
   constructor(
-    private aerodromeService: AerodromeService,
-    private weatherService: WeatherService,
+    private aerodromeService: ServiceBase<Aerodrome>,
+    private weatherService: ServiceBase<MetarStation>,
     private resolvers: WaypointResolver[] = []
   ) { }
 
@@ -259,7 +261,7 @@ export class PlannerService {
     await Promise.all(waypoints
       .filter(waypoint => !waypoint.metarStation)
       .map(async waypoint => {
-        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates);
+        const station = await this.weatherService.nearest(waypoint.location.geometry.coordinates, 100, []);
         if (station) {
           waypoint.metarStation = station;
         }
@@ -334,8 +336,8 @@ export class PlannerService {
  * ```
  */
 export function createDefaultPlannerService(
-  aerodromeService: AerodromeService,
-  weatherService: WeatherService,
+  aerodromeService: ServiceBase<Aerodrome>,
+  weatherService: ServiceBase<MetarStation>,
   customResolvers: WaypointResolver[] = []
 ): PlannerService {
   return new PlannerService(aerodromeService, weatherService, [
