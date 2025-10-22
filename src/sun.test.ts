@@ -2,17 +2,9 @@ import { describe, it, expect } from '@jest/globals';
 import { calculateSunEvents, isDaylight, isNight } from './sun.js';
 import { Waypoint, WaypointVariant } from './waypoint.types.js';
 
-// Helper function to create a test waypoint
 const createTestWaypoint = (latitude: number, longitude: number, name: string = 'Test Waypoint'): Waypoint => ({
   name,
-  location: {
-    type: 'Feature',
-    geometry: {
-      type: 'Point',
-      coordinates: [longitude, latitude]
-    },
-    properties: {}
-  },
+  coords: [longitude, latitude],
   waypointVariant: WaypointVariant.Waypoint
 });
 
