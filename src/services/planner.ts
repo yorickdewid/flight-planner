@@ -1,10 +1,7 @@
 import type { WaypointType } from '../navigation.types.js';
-import { Waypoint, Aerodrome, WaypointVariant } from '../waypoint.types.js';
+import { Aerodrome, WaypointVariant, Waypoint } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
-import type { MetarStation } from '../metar.types.js';
 import type { ServiceBase } from './base.js';
-import { nearestPoint, point } from "@turf/turf";
-import { featureCollection } from '@turf/helpers';
 
 /**
  * Interface for waypoint resolvers that attempt to resolve a route string part into a waypoint.
@@ -85,8 +82,8 @@ class CoordinateResolver implements WaypointResolver {
 }
 
 /**
- * PlannerService class provides methods to create and manage flight plans.
- * Acts as a service layer that orchestrates route planning, weather data, and aircraft information.
+ * PlannerService class provides methods to parse and resolve flight route strings into waypoints.
+ * Uses a configurable chain of resolvers to support various waypoint formats.
  *
  * @class PlannerService
  */
@@ -94,14 +91,9 @@ export class PlannerService {
   /**
    * Creates a new instance of the PlannerService class.
    *
-   * @param aerodromeService - The aerodrome service for looking up airports and aerodromes
-   * @param weatherService - The weather service for attaching weather data to waypoints
-   * @param customResolvers - Optional array of custom waypoint resolvers that will be tried before the default resolvers (ICAO and Coordinate)
-   * @throws {Error} If aerodromeService or weatherService are not provided
+   * @param resolvers - Array of waypoint resolvers that will be tried in sequence to resolve route parts
    */
   constructor(
-    private aerodromeService: ServiceBase<Aerodrome>,
-    private weatherService: ServiceBase<MetarStation>,
     private resolvers: WaypointResolver[] = []
   ) { }
 
@@ -132,24 +124,25 @@ export class PlannerService {
   /**
    * Parses a route string into an array of waypoints.
    *
-   * This function accepts a route string containing various waypoint formats and converts them
+   * This method accepts a route string containing various waypoint formats and converts them
    * into standardized waypoint objects using a chain of resolvers.
    *
    * @param routeString - The route string to parse, containing waypoints separated by spaces, semicolons, or newlines
    * @returns A promise that resolves to an array of successfully parsed waypoints
    *
-   * @description
-   * Default supported waypoint formats:
+   * @remarks
+   * Supported waypoint formats depend on the configured resolvers. The default factory function
+   * (`createDefaultPlannerService`) provides support for:
    * - ICAO codes: 4-letter airport identifiers (e.g., "KJFK", "EGLL")
    * - Coordinate waypoints: WP(latitude,longitude) format (e.g., "WP(40.7128,-74.0060)")
    *
-   * Custom resolvers can be provided in the constructor to support additional formats such as:
+   * Custom resolvers can be added to support additional formats such as:
    * - IATA codes (e.g., "JFK", "LHR")
    * - VOR/NDB navaids (e.g., "VOR123", "NDB456")
    * - IFR waypoints (e.g., "BOSOX", "CRISY")
    * - VFR reporting points (e.g., "VRP_XX")
    *
-   * The function performs the following operations:
+   * Processing steps:
    * 1. Returns empty array if routeString is empty or falsy
    * 2. Converts input to uppercase for consistency
    * 3. Splits the route string by whitespace, semicolons, and newlines
@@ -157,11 +150,10 @@ export class PlannerService {
    * 5. For each part, attempts to resolve using the chain of resolvers in order
    * 6. Silently skips parts that cannot be resolved by any resolver
    *
-   * @remarks
-   * Note: This method does NOT throw errors for unresolved waypoints. Parts that cannot be resolved
-   * by any resolver are silently skipped. This means the returned array may have fewer waypoints
-   * than parts in the input string. If a resolver throws an error for a matched pattern
-   * (e.g., valid ICAO but aerodrome not found), that error will propagate.
+   * **Important**: This method does NOT throw errors for unresolved waypoints. Parts that cannot
+   * be resolved by any resolver are silently skipped. This means the returned array may have fewer
+   * waypoints than parts in the input string. However, if a resolver throws an error for a matched
+   * pattern (e.g., valid ICAO but aerodrome not found), that error will propagate.
    *
    * @example
    * ```typescript
@@ -224,85 +216,6 @@ export class PlannerService {
 
     return null;
   }
-
-  // TODO: This thing should return the waypoints, not mutate them in place
-  /**
-   * Attaches the closest METAR station to each waypoint in the provided array.
-   *
-   * This method finds and assigns the nearest weather station to each waypoint by using the
-   * waypoint's geographical coordinates. It modifies the waypoints in place by setting their
-   * `metarStation` property. By default, it only processes waypoints that don't already have
-   * a METAR station assigned.
-   *
-   * @param waypoints - An array of waypoints to attach weather data to
-   * @param reassign - Whether to reassign existing weather data (default: false). When true,
-   *                   processes all waypoints regardless of existing `metarStation` assignments
-   * @param radius - The search radius in kilometers for finding nearby METAR stations (default: 25 km)
-   * @returns A promise that resolves when all waypoints have been processed
-   *
-   * @remarks
-   * - Waypoints that already have a `metarStation` assigned are skipped unless `reassign` is true
-   * - The method first searches for all METAR stations within the specified radius of each waypoint
-   * - From the stations found within the radius, it selects the geographically nearest one using Turf.js
-   * - If no METAR stations are found within the radius, the waypoint's `metarStation` property remains undefined
-   * - The method processes all waypoints in parallel for better performance
-   *
-   * @example
-   * ```typescript
-   * const waypoints = await planner.parseRouteString("KJFK EGLL");
-   * await planner.attachWeatherToWaypoints(waypoints);
-   * // Each waypoint now has metarStation property set (if a nearby station was found within 25 km)
-   * ```
-   *
-   * @example
-   * ```typescript
-   * // Use a larger search radius and force reassignment
-   * await planner.attachWeatherToWaypoints(waypoints, true, 50);
-   * ```
-   */
-  async attachWeatherToWaypoints(waypoints: Waypoint[], reassign = false, radius = 25): Promise<void> {
-    await Promise.all(waypoints
-      .filter(waypoint => reassign || !waypoint.metarStation)
-      .map(async waypoint => {
-        const stations = await this.weatherService.findByLocation(waypoint.coords, radius)
-        const nearest = nearestPoint(waypoint.coords, featureCollection(stations.map((entity, index) => point(entity.coords, { index }))));
-        if (nearest && nearest.properties) {
-          waypoint.metarStation = stations[nearest.properties.index];
-        }
-      }));
-  }
-
-  /**
-   * Finds an alternate aerodrome near the destination waypoint.
-   *
-   * @param destination - The destination aerodrome to search near
-   * @param radius - The search radius in kilometers (default: 50 km)
-   * @param excludeICAOs - Array of ICAO codes to exclude from the search (in addition to the destination's ICAO if present)
-   * @returns A promise that resolves to the nearest alternate aerodrome waypoint, or null if none found within the radius
-   *
-   * @remarks
-   * This method searches for the nearest aerodrome to the destination waypoint within the specified radius.
-   * It uses the destination's coordinates to perform a proximity search and excludes any specified ICAO codes.
-   * The destination's ICAO code is automatically excluded if present, ensuring the alternate is different from the destination.
-   * This is commonly used to find suitable alternate airports for flight planning.
-   *
-   * @example
-   * ```typescript
-   * const destination = await planner.resolveRoutePart("KJFK");
-   * // KJFK is automatically excluded from the search
-   * const alternate = await planner.findAlternateAerodrome(destination, 100);
-   * ```
-   */
-  async findAlternateAerodrome(
-    destination: Aerodrome,
-    radius: number = 50,
-    excludeICAOs: string[] = []
-  ): Promise<WaypointType | null> {
-    const exclude = destination.icao
-      ? [...excludeICAOs, destination.icao]
-      : excludeICAOs;
-    return await this.aerodromeService.nearest(destination.coords, radius, exclude);
-  }
 }
 
 /**
@@ -314,7 +227,6 @@ export class PlannerService {
  * 3. CoordinateResolver - for resolving WP(lat,lng) coordinate waypoints
  *
  * @param aerodromeService - The aerodrome service for looking up airports and aerodromes
- * @param weatherService - The weather service for attaching weather data to waypoints
  * @param customResolvers - Optional array of custom waypoint resolvers that will be tried before the default resolvers
  * @returns A configured PlannerService instance with the resolver chain
  *
@@ -325,7 +237,7 @@ export class PlannerService {
  *
  * @example
  * ```typescript
- * const planner = createDefaultPlannerService(aerodromeService, weatherService);
+ * const planner = createDefaultPlannerService(aerodromeService);
  * // Creates a planner with ICAO and coordinate resolvers
  * ```
  *
@@ -333,18 +245,16 @@ export class PlannerService {
  * ```typescript
  * const planner = createDefaultPlannerService(
  *   aerodromeService,
- *   weatherService,
  *   [new IATAResolver(), new VORResolver()]
  * );
- * // Creates a planner that tries IATA, then VOR, then ICAO, then coordinate resolvers
+ * // Creates a planner that tries custom resolvers first, then ICAO, then coordinate resolvers
  * ```
  */
 export function createDefaultPlannerService(
   aerodromeService: ServiceBase<Aerodrome>,
-  weatherService: ServiceBase<MetarStation>,
   customResolvers: WaypointResolver[] = []
 ): PlannerService {
-  return new PlannerService(aerodromeService, weatherService, [
+  return new PlannerService([
     ...customResolvers,
     new ICAOResolver(aerodromeService),
     new CoordinateResolver()
