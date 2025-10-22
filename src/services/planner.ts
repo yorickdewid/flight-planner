@@ -3,6 +3,8 @@ import { Waypoint, Aerodrome, WaypointVariant } from '../waypoint.types.js';
 import { isICAO } from '../utils.js';
 import type { MetarStation } from '../metar.types.js';
 import type { ServiceBase } from './base.js';
+import { nearestPoint, point } from "@turf/turf";
+import { featureCollection } from '@turf/helpers';
 
 /**
  * Interface for waypoint resolvers that attempt to resolve a route string part into a waypoint.
@@ -234,35 +236,38 @@ export class PlannerService {
    *
    * @param waypoints - An array of waypoints to attach weather data to
    * @param reassign - Whether to reassign existing weather data (default: false). When true,
-   *                   clears all existing `metarStation` assignments before searching for new ones
+   *                   processes all waypoints regardless of existing `metarStation` assignments
+   * @param radius - The search radius in kilometers for finding nearby METAR stations (default: 25 km)
    * @returns A promise that resolves when all waypoints have been processed
    *
    * @remarks
    * - Waypoints that already have a `metarStation` assigned are skipped unless `reassign` is true
-   * - If no METAR station is found near a waypoint, its `metarStation` property remains undefined
+   * - The method first searches for all METAR stations within the specified radius of each waypoint
+   * - From the stations found within the radius, it selects the geographically nearest one using Turf.js
+   * - If no METAR stations are found within the radius, the waypoint's `metarStation` property remains undefined
    * - The method processes all waypoints in parallel for better performance
-   * - Uses the weather service's `nearest()` method to find the closest station to each waypoint
    *
    * @example
    * ```typescript
    * const waypoints = await planner.parseRouteString("KJFK EGLL");
    * await planner.attachWeatherToWaypoints(waypoints);
-   * // Each waypoint now has metarStation property set (if a nearby station was found)
+   * // Each waypoint now has metarStation property set (if a nearby station was found within 25 km)
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Use a larger search radius and force reassignment
+   * await planner.attachWeatherToWaypoints(waypoints, true, 50);
    * ```
    */
-  async attachWeatherToWaypoints(waypoints: Waypoint[], reassign = false): Promise<void> {
-    if (reassign) {
-      for (const waypoint of waypoints) {
-        waypoint.metarStation = undefined;
-      }
-    }
-
+  async attachWeatherToWaypoints(waypoints: Waypoint[], reassign = false, radius = 25): Promise<void> {
     await Promise.all(waypoints
-      .filter(waypoint => !waypoint.metarStation)
+      .filter(waypoint => reassign || !waypoint.metarStation)
       .map(async waypoint => {
-        const station = await this.weatherService.nearest(waypoint.coords, 100, []);
-        if (station) {
-          waypoint.metarStation = station;
+        const stations = await this.weatherService.findByLocation(waypoint.coords, radius)
+        const nearest = nearestPoint(waypoint.coords, featureCollection(stations.map((entity, index) => point(entity.coords, { index }))));
+        if (nearest && nearest.properties) {
+          waypoint.metarStation = stations[nearest.properties.index];
         }
       }));
   }
