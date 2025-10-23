@@ -47,7 +47,7 @@ export abstract class ServiceBase<T> {
    * Finds entities within a specified radius of a geographic location.
    *
    * @param location - A GeoJSON position [longitude, latitude, altitude?] representing the center point
-   * @param radius - The search radius in meters
+   * @param radius - The search radius in kilometers
    * @returns A promise that resolves to an array of entities within the specified radius
    *
    * @example
