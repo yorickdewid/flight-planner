@@ -105,15 +105,11 @@ export function closestRouteLeg(routeTrip: RouteTrip, location: [number, number]
     const startWp = leg.start.waypoint;
     const endWp = leg.end.waypoint;
 
-    if (!startWp.location?.geometry?.coordinates || !endWp.location?.geometry?.coordinates) {
+    if (!startWp.coords || !endWp.coords) {
       continue;
     }
 
-    const legLine = lineString([
-      startWp.location.geometry.coordinates,
-      endWp.location.geometry.coordinates
-    ]);
-
+    const legLine = lineString([startWp.coords, endWp.coords]);
     const distance = pointToLineDistance(targetPointFeature, legLine, { units: 'nauticalmiles' });
     if (distance < minDistanceToLeg) {
       minDistanceToLeg = distance;
@@ -143,7 +139,7 @@ export function closestWaypoint(routeTrip: RouteTrip, location: [number, number]
 
   const uniqueWaypoints = routeTripWaypoints(routeTrip);
   for (const wp of uniqueWaypoints) {
-    if (!wp.location?.geometry?.coordinates) {
+    if (!wp.coords) {
       continue;
     }
     const dist = waypointDistance(currentLocationAsWaypoint, wp);

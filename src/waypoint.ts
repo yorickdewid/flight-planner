@@ -11,7 +11,7 @@ import { FrequencyType, Runway, RunwayEvaluationResult, RunwayWindVector, Waypoi
  * @returns The distance in nautical miles.
  */
 export const waypointDistance = (from: Waypoint, to: Waypoint): number => {
-  return distance(from.location, to.location, { units: 'nauticalmiles' });
+  return distance(from.coords, to.coords, { units: 'nauticalmiles' });
 }
 
 /**
@@ -22,7 +22,7 @@ export const waypointDistance = (from: Waypoint, to: Waypoint): number => {
  * @returns The heading in degrees.
  */
 export const waypointHeading = (from: Waypoint, to: Waypoint): number => {
-  return bearingToAzimuth(bearing(from.location, to.location));
+  return bearingToAzimuth(bearing(from.coords, to.coords));
 }
 
 /**
@@ -101,14 +101,7 @@ export function isWaypointType<T extends { waypointVariant: WaypointVariant }>(
 export const createWaypoint = (location: [number, number], name: string = 'locationPoint'): Waypoint => {
   return {
     name,
-    location: {
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: location
-      },
-      properties: {}
-    },
+    coords: location,
     waypointVariant: WaypointVariant.Waypoint,
   };
 }

@@ -1,4 +1,4 @@
-import { degreesToRadians, radiansToDegrees } from '@turf/turf';
+import { bbox, circle, degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 import { Cloud, Wind } from './metar.types.js';
 import { ISA_STANDARD_PRESSURE_HPA } from './index.js';
 import convert from 'convert-units';
@@ -127,6 +127,32 @@ export const calculateGroundspeed = (wind: Wind, airSpeed: number, heading: numb
 }
 
 /**
+ * Creates a bounding box around a geographic center point with a specified radius.
+ *
+ * This function generates a circular polygon around the center point and returns
+ * its bounding box, which can be used for geographic searches or spatial queries.
+ *
+ * @param center - The center point as a GeoJSON Position [longitude, latitude]
+ * @param radiusKm - The radius in kilometers to extend from the center point
+ * @returns A GeoJSON BBox [minLon, minLat, maxLon, maxLat] encompassing the circular area
+ *
+ * @example
+ * ```typescript
+ * // Create a bounding box 50km around Amsterdam
+ * const bbox = createBoundingBox([4.9041, 52.3676], 50);
+ * // Returns: [4.254, 51.918, 5.554, 52.817]
+ * ```
+ */
+export const createBoundingBox = (
+  center: GeoJSON.Position,
+  radiusKm: number
+): GeoJSON.BBox => {
+  const locationPoint = point(center);
+  const circlePolygon = circle(locationPoint, radiusKm, { units: 'kilometers' });
+  return bbox(circlePolygon) as GeoJSON.BBox;
+}
+
+/**
  * Sorts an array of clouds by their height in ascending order.
  *
  * @param clouds - The array of clouds to sort
@@ -141,7 +167,6 @@ export const sortClouds = (clouds: Cloud[]): Cloud[] => {
   });
 }
 
-// TODO: Move to aerodrome.ts
 /**
  * Checks if the given string is a valid ICAO code.
  *
@@ -152,7 +177,6 @@ export const isICAO = (icao: string): boolean => {
   return /^[A-Z]{4}$/.test(icao.toUpperCase());
 }
 
-// TODO: Move to aerodrome.ts
 /**
  * Normalizes the given ICAO code to uppercase.
  *
@@ -163,7 +187,6 @@ export const normalizeICAO = (icao: string): string => {
   return icao.toUpperCase();
 }
 
-// TODO: Move to aerodrome.ts
 /**
  * Checks if the given string is a valid IATA code.
  *
@@ -174,7 +197,6 @@ export const isIATA = (iata: string): boolean => {
   return /^[A-Z]{3}$/.test(iata.toUpperCase());
 }
 
-// TODO: Move to aerodrome.ts
 /**
  * Normalizes the given IATA code to uppercase.
  *

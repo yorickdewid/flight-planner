@@ -136,3 +136,13 @@ export {
  */
 export type { Advisory } from "./advisor.js";
 export { routeTripValidate, advisoryHasErrors } from "./advisor.js";
+
+// =============================================================================
+// PLANNER & SERVICES
+// =============================================================================
+
+/**
+ * Planner service types and implementations for route parsing and waypoint resolution.
+ */
+export type { WaypointResolver } from "./planner.js";
+export { ServiceBase, PlannerService, createDefaultPlannerService } from "./planner.js";

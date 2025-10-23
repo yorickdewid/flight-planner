@@ -73,21 +73,9 @@
       "import": "./dist/format.js",
       "types": "./dist/format.d.ts"
     },
-    "./services/aerodrome": {
-      "import": "./dist/services/aerodrome.js",
-      "types": "./dist/services/aerodrome.d.ts"
-    },
-    "./services/weather": {
-      "import": "./dist/services/weather.js",
-      "types": "./dist/services/weather.d.ts"
-    },
-    "./services/aircraft": {
-      "import": "./dist/services/aircraft.js",
-      "types": "./dist/services/aircraft.d.ts"
-    },
-    "./services/planner": {
-      "import": "./dist/services/planner.js",
-      "types": "./dist/services/planner.d.ts"
+    "./planner": {
+      "import": "./dist/planner.js",
+      "types": "./dist/planner.d.ts"
     }
   },
   "dependencies": {
@@ -103,15 +91,15 @@
     "@types/convert-units": "^2.3.12",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.8.1",
+    "@types/node": "^24.9.1",
     "@types/suncalc": "^1.9.2",
-    "@typescript-eslint/eslint-plugin": "^8.46.1",
-    "@typescript-eslint/parser": "^8.46.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "eslint": "^9.38.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.1"
+    "typescript-eslint": "^8.46.2"
   }
 }
