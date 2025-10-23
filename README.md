@@ -131,7 +131,7 @@ class IATAResolver implements WaypointResolver {
     // Check if it's a 3-letter code (potential IATA)
     if (/^[A-Z]{3}$/.test(part)) {
       // Your custom logic to find by IATA code
-      const airport = await this.aerodromeService.findByIATA?.(part);
+      const airport = await this.aerodromeService.findByIATA(part);
       if (airport) {
         return airport;
       }
