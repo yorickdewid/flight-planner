@@ -73,13 +73,9 @@
       "import": "./dist/format.js",
       "types": "./dist/format.d.ts"
     },
-    "./services/base": {
-      "import": "./dist/services/base.js",
-      "types": "./dist/services/base.d.ts"
-    },
-    "./services/planner": {
-      "import": "./dist/services/planner.js",
-      "types": "./dist/services/planner.d.ts"
+    "./planner": {
+      "import": "./dist/planner.js",
+      "types": "./dist/planner.d.ts"
     }
   },
   "dependencies": {
