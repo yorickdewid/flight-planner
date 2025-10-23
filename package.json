@@ -77,18 +77,6 @@
       "import": "./dist/services/base.js",
       "types": "./dist/services/base.d.ts"
     },
-    "./services/aerodrome": {
-      "import": "./dist/services/aerodrome.js",
-      "types": "./dist/services/aerodrome.d.ts"
-    },
-    "./services/weather": {
-      "import": "./dist/services/weather.js",
-      "types": "./dist/services/weather.d.ts"
-    },
-    "./services/aircraft": {
-      "import": "./dist/services/aircraft.js",
-      "types": "./dist/services/aircraft.d.ts"
-    },
     "./services/planner": {
       "import": "./dist/services/planner.js",
       "types": "./dist/services/planner.d.ts"
