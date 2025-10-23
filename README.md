@@ -66,27 +66,41 @@ const isExpired = isMetarExpired(metar);
 
 ### Flight Planning
 
+The flight planner provides route parsing and navigation log calculation. You need to implement the `ServiceBase` interface to provide aerodrome data.
+
 ```typescript
 import {
-  PlannerService,
-  AerodromeService,
-  WeatherService,
-  WaypointResolver,
+  ServiceBase,
+  createDefaultPlannerService,
   WaypointType,
   waypointsToSegments,
   calculateNavLog,
+  Aerodrome,
+  ICAO,
 } from "flight-planner";
 
-// Initialize services with your repositories
-const aerodromeService = new AerodromeService(aerodromeRepository);
-const weatherService = new WeatherService(weatherRepository);
+// Implement the ServiceBase interface to provide aerodrome data
+class MyAerodromeService extends ServiceBase<Aerodrome> {
+  async findByICAO(icao: readonly ICAO[]): Promise<Aerodrome[]> {
+    // Your implementation - fetch from database, API, etc.
+    return await yourDatabase.getAerodromesByICAO(icao);
+  }
+
+  async findByLocation(
+    location: GeoJSON.Position,
+    radius: number
+  ): Promise<Aerodrome[]> {
+    // Your implementation - spatial query
+    return await yourDatabase.getAerodromesNearLocation(location, radius);
+  }
+}
 
 // Create planner service with default resolvers (ICAO and coordinates)
-const plannerService = new PlannerService(aerodromeService, weatherService);
+const aerodromeService = new MyAerodromeService();
+const plannerService = createDefaultPlannerService(aerodromeService);
 
-// Parse a route string and attach weather data
+// Parse a route string
 const waypoints = await plannerService.parseRouteString("EGLL EHAM");
-await plannerService.attachWeatherToWaypoints(waypoints);
 
 // Convert waypoints to segments and calculate navigation log
 const segments = waypointsToSegments(waypoints, 5500); // 5500 ft altitude
@@ -102,16 +116,22 @@ const navLog = calculateNavLog({
 You can extend the route parser with custom waypoint resolvers to support additional formats like IATA codes, VORs, NDBs, or IFR waypoints:
 
 ```typescript
-import { WaypointResolver, WaypointType } from "flight-planner";
+import {
+  WaypointResolver,
+  WaypointType,
+  ServiceBase,
+  Aerodrome,
+} from "flight-planner";
 
 // Example: Custom IATA resolver
 class IATAResolver implements WaypointResolver {
-  constructor(private aerodromeService: AerodromeService) {}
+  constructor(private aerodromeService: ServiceBase<Aerodrome>) {}
 
   async resolve(part: string): Promise<WaypointType | null> {
     // Check if it's a 3-letter code (potential IATA)
     if (/^[A-Z]{3}$/.test(part)) {
-      const airport = await this.aerodromeService.findByIATA(part);
+      // Your custom logic to find by IATA code
+      const airport = await this.aerodromeService.findByIATA?.(part);
       if (airport) {
         return airport;
       }
@@ -122,7 +142,7 @@ class IATAResolver implements WaypointResolver {
 
 // Example: VOR/NDB resolver
 class NavaidResolver implements WaypointResolver {
-  constructor(private navaidService: NavaidService) {}
+  constructor(private navaidService: YourNavaidService) {}
 
   async resolve(part: string): Promise<WaypointType | null> {
     // Check for VOR or NDB pattern
@@ -137,7 +157,10 @@ class NavaidResolver implements WaypointResolver {
 }
 
 // Create planner with custom resolvers
-const plannerService = new PlannerService(aerodromeService, weatherService, [
+const aerodromeService = new MyAerodromeService();
+const navaidService = new MyNavaidService();
+
+const plannerService = createDefaultPlannerService(aerodromeService, [
   new IATAResolver(aerodromeService),
   new NavaidResolver(navaidService),
   // Add more custom resolvers as needed
@@ -147,7 +170,6 @@ const plannerService = new PlannerService(aerodromeService, weatherService, [
 const waypoints = await plannerService.parseRouteString(
   "JFK VOR123 LAX" // IATA codes and VOR
 );
-await plannerService.attachWeatherToWaypoints(waypoints);
 
 // Calculate navigation log with the waypoints
 const segments = waypointsToSegments(waypoints, 3500);

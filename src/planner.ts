@@ -13,7 +13,21 @@ import type { ICAO } from './index.js';
  * by ICAO codes or geographic location. All concrete implementations must provide
  * their own implementations of the abstract methods.
  *
- * @todo Rename to something like EntityServiceBase
+ * Users of this library must implement this class to provide data fetching logic
+ * for their specific data sources (database, API, cache, etc.).
+ *
+ * @example
+ * ```typescript
+ * class MyAerodromeService extends ServiceBase<Aerodrome> {
+ *   async findByICAO(icao: readonly ICAO[]): Promise<Aerodrome[]> {
+ *     return await database.getAerodromesByICAO(icao);
+ *   }
+ *
+ *   async findByLocation(location: GeoJSON.Position, radius: number): Promise<Aerodrome[]> {
+ *     return await database.getAerodromesNearLocation(location, radius);
+ *   }
+ * }
+ * ```
  */
 export abstract class ServiceBase<T> {
   /**
@@ -127,12 +141,36 @@ class CoordinateResolver implements WaypointResolver {
  * Uses a configurable chain of resolvers to support various waypoint formats.
  *
  * @class PlannerService
+ *
+ * @remarks
+ * **Typical Usage**: Use the `createDefaultPlannerService()` factory function to get a pre-configured
+ * instance with ICAO and coordinate resolvers.
+ *
+ * **Advanced Usage**: Use the constructor directly when you need full control over the resolver chain,
+ * such as when you want to exclude default resolvers or change their order.
+ *
+ * @example
+ * ```typescript
+ * // Recommended: Use factory function for standard use cases
+ * const planner = createDefaultPlannerService(aerodromeService);
+ *
+ * // Advanced: Direct construction for custom resolver chains
+ * const planner = new PlannerService([
+ *   new MyCustomResolver(),
+ *   new ICAOResolver(aerodromeService),
+ * ]);
+ * ```
  */
 export class PlannerService {
   /**
    * Creates a new instance of the PlannerService class.
    *
    * @param resolvers - Array of waypoint resolvers that will be tried in sequence to resolve route parts
+   *
+   * @remarks
+   * Resolvers are tried in the order they appear in the array. The first resolver to return a
+   * non-null/non-undefined value wins. Consider using `createDefaultPlannerService()` instead
+   * for typical use cases.
    */
   constructor(
     private resolvers: WaypointResolver[] = []
@@ -191,10 +229,17 @@ export class PlannerService {
    * 5. For each part, attempts to resolve using the chain of resolvers in order
    * 6. Silently skips parts that cannot be resolved by any resolver
    *
-   * **Important**: This method does NOT throw errors for unresolved waypoints. Parts that cannot
-   * be resolved by any resolver are silently skipped. This means the returned array may have fewer
-   * waypoints than parts in the input string. However, if a resolver throws an error for a matched
-   * pattern (e.g., valid ICAO but aerodrome not found), that error will propagate.
+   * **Error Handling**:
+   * - Parts that don't match any resolver pattern are **silently skipped**
+   * - Parts that match a resolver's pattern but fail to resolve (e.g., valid ICAO code but
+   *   aerodrome not found in database) **will throw an error**
+   * - This means the returned array may have fewer waypoints than parts in the input string
+   *
+   * For example:
+   * - "KJFK UNKNOWN EGLL" where UNKNOWN is not a valid ICAO → returns 2 waypoints (KJFK, EGLL)
+   * - "KJFK XXXX EGLL" where XXXX is a valid ICAO pattern but not found → throws error
+   *
+   * @throws {Error} When a resolver matches a pattern but fails to find the entity
    *
    * @example
    * ```typescript
