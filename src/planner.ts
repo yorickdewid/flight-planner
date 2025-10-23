@@ -52,7 +52,7 @@ export abstract class ServiceBase<T> {
    *
    * @example
    * ```typescript
-   * const results = await service.findByLocation([-74.0060, 40.7128], 50000);
+   * const results = await service.findByLocation([-74.0060, 40.7128], 50);
    * ```
    */
   abstract findByLocation(location: GeoJSON.Position, radius: number): Promise<T[]>;
