@@ -178,13 +178,13 @@ export class PlannerService {
 
   /**
    * Adds a custom waypoint resolver to the resolver chain.
-   * The resolver will be added at the beginning of the chain and will be tried before existing resolvers.
+   * The resolver will be added at the end of the chain and will be tried after existing resolvers.
    *
    * @param resolver - The waypoint resolver to add
    * @returns void
    */
   addResolver(resolver: WaypointResolver): void {
-    this.resolvers.unshift(resolver);
+    this.resolvers.push(resolver);
   }
 
   /**
@@ -308,18 +308,19 @@ export class PlannerService {
  * Creates a PlannerService instance with default waypoint resolvers.
  *
  * This factory function initializes a PlannerService with a standard resolver chain that includes:
- * 1. Any custom resolvers provided (tried first)
- * 2. ICAOResolver - for resolving 4-letter ICAO airport codes
- * 3. CoordinateResolver - for resolving WP(lat,lng) coordinate waypoints
+ * 1. ICAOResolver - for resolving 4-letter ICAO airport codes (tried first)
+ * 2. CoordinateResolver - for resolving WP(lat,lng) coordinate waypoints
+ * 3. Any custom resolvers provided (tried last)
  *
  * @param aerodromeService - The aerodrome service for looking up airports and aerodromes
- * @param customResolvers - Optional array of custom waypoint resolvers that will be tried before the default resolvers
+ * @param customResolvers - Optional array of custom waypoint resolvers that will be tried after the default resolvers
  * @returns A configured PlannerService instance with the resolver chain
  *
  * @remarks
- * Custom resolvers are placed at the beginning of the resolver chain, allowing you to override
- * or extend the default behavior. For example, you could add an IATA code resolver that would
- * be tried before the ICAO resolver.
+ * Custom resolvers are placed at the end of the resolver chain, allowing you to extend
+ * the default behavior with additional formats. For example, you could add resolvers for
+ * IATA codes, VOR/NDB navaids, or IFR waypoints that would handle formats not recognized
+ * by the default resolvers.
  *
  * @example
  * ```typescript
@@ -333,7 +334,7 @@ export class PlannerService {
  *   aerodromeService,
  *   [new IATAResolver(), new VORResolver()]
  * );
- * // Creates a planner that tries custom resolvers first, then ICAO, then coordinate resolvers
+ * // Creates a planner that tries ICAO first, then coordinates, then custom resolvers
  * ```
  */
 export function createDefaultPlannerService(
@@ -341,8 +342,8 @@ export function createDefaultPlannerService(
   customResolvers: WaypointResolver[] = []
 ): PlannerService {
   return new PlannerService([
-    ...customResolvers,
     new ICAOResolver(aerodromeService),
-    new CoordinateResolver()
+    new CoordinateResolver(),
+    ...customResolvers
   ]);
 }
