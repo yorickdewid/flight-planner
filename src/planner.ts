@@ -137,6 +137,42 @@ class CoordinateResolver implements WaypointResolver {
 }
 
 /**
+ * Navaid resolver that looks up navigation aids (VOR, NDB, FIX, intersection)
+ * by their identifier. Handles alphanumeric identifiers that aren't 4-letter
+ * ICAO airport codes (those are handled by ICAOResolver).
+ *
+ * @class NavaidResolver
+ * @implements {WaypointResolver}
+ */
+class NavaidResolver implements WaypointResolver {
+  private identifierRegex = /^[A-Z0-9]{2,5}$/;
+
+  constructor(private navaidService: ServiceBase<Aerodrome>) { }
+
+  /**
+   * Resolves a route part if it matches a navaid identifier pattern.
+   * Skips 4-letter codes (deferred to ICAOResolver) and coordinate format.
+   *
+   * @param part - The route string part to resolve
+   * @returns The navaid if found, null if not a valid identifier pattern
+   * @throws {Error} If the identifier matches but no navaid is found
+   */
+  async resolve(part: string): Promise<WaypointType | null> {
+    const normalized = part.toUpperCase();
+    if (!this.identifierRegex.test(normalized) || isICAO(normalized)) {
+      return null;
+    }
+
+    const navaids = await this.navaidService.findByICAO([normalized]);
+    if (navaids && navaids.length > 0) {
+      return navaids[0];
+    }
+
+    throw new Error(`Could not find navaid with identifier: ${part}`);
+  }
+}
+
+/**
  * PlannerService class provides methods to parse and resolve flight route strings into waypoints.
  * Uses a configurable chain of resolvers to support various waypoint formats.
  *
@@ -339,11 +375,14 @@ export class PlannerService {
  */
 export function createDefaultPlannerService(
   aerodromeService: ServiceBase<Aerodrome>,
-  customResolvers: WaypointResolver[] = []
+  options: { navaidService?: ServiceBase<Aerodrome>; customResolvers?: WaypointResolver[] } = {}
 ): PlannerService {
+  const { navaidService, customResolvers = [] } = options;
+
   return new PlannerService([
     new ICAOResolver(aerodromeService),
     new CoordinateResolver(),
+    ...(navaidService ? [new NavaidResolver(navaidService)] : []),
     ...customResolvers
   ]);
 }
