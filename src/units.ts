@@ -1,6 +1,6 @@
 import convert from "convert-units";
 import { Angle, Distance, Mass, Pressure, Speed, Temperature, Volume } from "convert-units";
-import { DefaultUnits } from "./index.js";
+import { DefaultUnits } from "./constants.js";
 
 /**
  * Nautical miles to kilometers conversion factor (exact).

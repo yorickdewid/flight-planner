@@ -39,7 +39,7 @@ export function createMetarFromString(raw: string): Metar {
 
   let altimeter = metar.altimeter?.value;
   if (metar.altimeter && metar.altimeter.unit === 'inHg') {
-    altimeter = metar.altimeter?.value * 33.8639; // TODO: sumbit PR to convert-units to add inHg
+    altimeter = metar.altimeter?.value * 33.8639;
   }
 
   return {
@@ -126,14 +126,9 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
     return now.getTime() > metar.observationTime.getTime() + customMinutes * 60_000;
   }
 
-  if (useStandardRules) {
-    const isSpecial = metar.raw.includes('SPECI');
-    const expirationMinutes = isSpecial ? 30 : 60;
-    return now.getTime() > metar.observationTime.getTime() + expirationMinutes * 60_000;
-  }
-
-  // Fallback to the old behavior with a default of 60 minutes
-  return now.getTime() > metar.observationTime.getTime() + 60 * 60_000;
+  const isSpecial = useStandardRules && metar.raw.includes('SPECI');
+  const expirationMinutes = isSpecial ? 30 : 60;
+  return now.getTime() > metar.observationTime.getTime() + expirationMinutes * 60_000;
 }
 
 /**

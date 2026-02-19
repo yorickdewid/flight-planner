@@ -1,4 +1,4 @@
-import { DefaultUnits } from "./index.js";
+import { DefaultUnits } from "./constants.js";
 import { Cloud, Wind } from "./metar.types.js";
 import {
   convertAltitude,
@@ -184,13 +184,6 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
 }
 
 export function formatVisibility(visibility: number): string {
-  // if (metarData.visibility === undefined) {
-  //   if (metarData.raw.includes('CAVOK')) {
-  //     return '10 km+';
-  //   }
-  //   return '-';
-  // }
-
   if (visibility >= 9999) {
     return '10 km+';
   }
