@@ -1,7 +1,7 @@
 import type { WaypointType } from './navigation.types.js';
 import { Aerodrome, WaypointVariant, Waypoint } from './waypoint.types.js';
 import { isICAO } from './utils.js';
-import type { ICAO } from './index.js';
+import type { ICAO } from './constants.js';
 
 /**
  * Abstract base class for service implementations that handle entity retrieval.

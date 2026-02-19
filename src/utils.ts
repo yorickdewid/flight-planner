@@ -1,6 +1,6 @@
 import { bbox, circle, degreesToRadians, point, radiansToDegrees } from '@turf/turf';
 import { Cloud, Wind } from './metar.types.js';
-import { ISA_STANDARD_PRESSURE_HPA } from './index.js';
+import { ISA_STANDARD_PRESSURE_HPA } from './constants.js';
 import convert from 'convert-units';
 
 /**

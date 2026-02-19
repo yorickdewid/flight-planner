@@ -1,8 +1,7 @@
 import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
-import { FlightRules } from './index.js';
 import convert from 'convert-units';
-import { Metar, Cloud, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
+import { FlightRules, Metar, Cloud, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
 
 /**
  * Creates a Metar object from a raw METAR string.

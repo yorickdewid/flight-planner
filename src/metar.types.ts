@@ -1,4 +1,21 @@
-import { ICAO } from './index.js';
+import { ICAO } from './constants.js';
+
+/**
+ * Enumeration representing different flight rules categories.
+ *
+ * @enum {string}
+ * @readonly
+ * @property {string} VFR - Visual Flight Rules
+ * @property {string} MVFR - Marginal Visual Flight Rules
+ * @property {string} IFR - Instrument Flight Rules
+ * @property {string} LIFR - Low Instrument Flight Rules
+ */
+export enum FlightRules {
+  VFR = 'VFR',
+  MVFR = 'MVFR',
+  IFR = 'IFR',
+  LIFR = 'LIFR',
+}
 
 /**
  * Represents a METAR (Meteorological Aerodrome Report) station.

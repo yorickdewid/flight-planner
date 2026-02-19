@@ -1,7 +1,6 @@
-import { ICAO, MetarStation } from './index.js';
+import { ICAO } from './constants.js';
+import { MetarStation, Wind } from './metar.types.js';
 import { Position } from 'geojson';
-import { Wind } from './metar.types.js';
-
 /**
  * Enum representing the variant of waypoint.
  */

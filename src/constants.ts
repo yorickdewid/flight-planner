@@ -1,6 +1,14 @@
 import type { UnitOptions } from "./units.js";
 
 /**
+ * Represents an ICAO (International Civil Aviation Organization) identifier,
+ * typically used for airports, navigation aids, or weather stations.
+ *
+ * @type {string}
+ */
+export type ICAO = string;
+
+/**
  * Standard atmospheric pressure at sea level in hectopascals (hPa).
  *
  * @constant {number}

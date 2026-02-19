@@ -8,8 +8,7 @@ import {
 } from './metar.js';
 import { Metar, Wind } from './metar.types.js';
 import { formatCloud, formatPressure, formatTemperature, formatVisibility, formatWind } from './format.js';
-import { FlightRules } from './index.js';
-import { vi } from 'vitest';
+import { FlightRules } from './metar.types.js';
 
 describe('Metar functions', () => {
   describe('metarFlightRule', () => {

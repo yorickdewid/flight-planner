@@ -1,4 +1,4 @@
-import { ICAO } from './index.js';
+import { ICAO } from './constants.js';
 
 /**
  * Enumeration representing NOTAM classification types.

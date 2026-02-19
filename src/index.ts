@@ -1,10 +1,3 @@
-import {
-  ISA_STANDARD_PRESSURE_HPA,
-  ISA_STANDARD_TEMPERATURE_CELSIUS,
-  ISA_STANDARD_TEMPERATURE_LAPSE_RATE,
-  DefaultUnits
-} from "./constants.js";
-
 /**
  * Flight planning library for aviation applications.
  *
@@ -15,40 +8,15 @@ import {
 // CORE TYPES AND CONSTANTS
 // =============================================================================
 
-/**
- * Represents an ICAO (International Civil Aviation Organization) identifier,
- * typically used for airports, navigation aids, or weather stations.
- *
- * @type {string}
- */
-export type ICAO = string;
-
-/**
- * Enumeration representing different flight rules categories.
- *
- * @enum {string}
- * @readonly
- * @property {string} VFR - Visual Flight Rules
- * @property {string} MVFR - Marginal Visual Flight Rules
- * @property {string} IFR - Instrument Flight Rules
- * @property {string} LIFR - Low Instrument Flight Rules
- */
-export enum FlightRules {
-  VFR = 'VFR',
-  MVFR = 'MVFR',
-  IFR = 'IFR',
-  LIFR = 'LIFR',
-}
-
-/**
- * International Standard Atmosphere (ISA) constants and default units.
- */
+export type { ICAO } from "./constants.js";
 export {
   ISA_STANDARD_PRESSURE_HPA,
   ISA_STANDARD_TEMPERATURE_CELSIUS,
   ISA_STANDARD_TEMPERATURE_LAPSE_RATE,
   DefaultUnits
-};
+} from "./constants.js";
+
+export { FlightRules } from "./metar.types.js";
 
 // =============================================================================
 // UTILITY FUNCTIONS
