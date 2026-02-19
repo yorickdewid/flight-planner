@@ -40,9 +40,9 @@
     "clean": "rm -rf dist",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest",
-    "test:watch": "NODE_OPTIONS=--experimental-vm-modules npx jest --watch",
-    "test:coverage": "NODE_OPTIONS=--experimental-vm-modules npx jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prepare": "pnpm run build",
     "prepublishOnly": "pnpm test && pnpm run lint",
     "dev": "pnpm run build:watch"
@@ -87,19 +87,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@jest/globals": "^30.2.0",
     "@types/convert-units": "^2.3.12",
     "@types/geojson": "^7946.0.16",
-    "@types/jest": "^30.0.0",
     "@types/node": "^25.0.10",
     "@types/suncalc": "^1.9.2",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.53.1",
     "eslint": "^9.39.2",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1"
+    "typescript-eslint": "^8.53.1",
+    "vitest": "^4.0.18"
   }
 }
