@@ -437,7 +437,7 @@ function calculatePerformance(aircraft: AircraftPerformance, course: CourseVecto
 
   // Groundspeed calculation uses true heading.
   const groundSpeed = calculateGroundspeed(wind, trueAirspeed, trueHeading);
-  const duration = (course.distance / groundSpeed) * 60;
+  const duration = groundSpeed > 0 ? (course.distance / groundSpeed) * 60 : 0;
   const fuelConsumption = aircraft.fuelConsumption && (aircraft.fuelConsumption * (duration / 60));
 
   // Calculate wind vector components
