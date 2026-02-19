@@ -1,4 +1,5 @@
-import { ICAO, MetarStation } from './index.js';
+import { ICAO } from './constants.js';
+import { MetarStation } from './metar.types.js';
 import { Position } from 'geojson';
 import { Wind } from './metar.types.js';
 

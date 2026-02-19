@@ -14,8 +14,7 @@
 import { Aircraft } from './aircraft.js';
 import { routeTripWaypoints } from './navigation.js';
 import type { RouteTrip, RouteOptions } from './navigation.types.js';
-import { FlightRules } from './index.js';
-import { Metar } from './metar.types.js';
+import { FlightRules, Metar } from './metar.types.js';
 import { metarFlightRule, metarCeiling } from './metar.js';
 import { isNight } from './sun.js';
 import { MAX_LEG_DURATION_MINUTES } from './constants.js';
