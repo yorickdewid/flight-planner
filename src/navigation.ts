@@ -75,13 +75,13 @@ export function calculateVFRCruisingAltitude(track: number, altitude: number): n
 // TODO: Maybe convert altitude to pressure altitude
 /**
  * Converts an altitude in feet to the corresponding flight level.
- * Flight levels are typically expressed in hundreds of feet, so the function divides the altitude by 1000.
+ * Flight levels are expressed in hundreds of feet, so the function divides the altitude by 100.
  *
  * @param {number} altitude - The altitude in feet.
  * @returns {number} The flight level (FL) corresponding to the given altitude.
  */
 export const flightLevel = (altitude: number): number => {
-  return Math.floor(altitude / 1000);
+  return Math.floor(altitude / 100);
 }
 
 /**
