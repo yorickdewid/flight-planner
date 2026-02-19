@@ -1,9 +1,4 @@
-// import { ReportingPoint, Aerodrome } from './airport.js';
 import { isICAO, normalizeICAO, capitalizeWords, isIATA, normalizeIATA } from './utils.js';
-import { describe, it, expect } from 'vitest';
-// import { jest } from '@jest/globals';
-// import { point } from '@turf/turf';
-// import { AerodromeService } from './service.js';
 
 describe('isICAO', () => {
   it('should return true for valid ICAO identifiers', () => {

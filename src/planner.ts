@@ -128,7 +128,6 @@ class CoordinateResolver implements WaypointResolver {
         throw new Error(`Invalid coordinates in waypoint: ${part}`);
       }
 
-      // TODO: Call createWaypoint utility function?
       const name = `WP-${lat.toFixed(2)},${lng.toFixed(2)}`;
       return { name, coords: [lng, lat], waypointVariant: WaypointVariant.Waypoint } as Waypoint;
     }

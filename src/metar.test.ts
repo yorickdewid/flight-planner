@@ -254,15 +254,6 @@ describe('Metar functions', () => {
       expect(formatVisibility(metarData.visibility!)).toBe('10 km+');
     });
 
-    // it('should handle CAVOK condition correctly', () => {
-    //   const metarData: Metar = {
-    //     station: 'TEST',
-    //     observationTime: new Date(),
-    //     raw: 'EGLL 291020Z 24015KT CAVOK 18/09 Q1022',
-    //     wind: { direction: 240, speed: 15 },
-    //   };
-    //   expect(formatVisibility(metarData.visibility!)).toBe('10 km+');
-    // });
   });
 
   describe('formatMetarTemperature', () => {
@@ -365,14 +356,6 @@ describe('Metar functions', () => {
       expect(metar.visibility).toBeCloseTo(9656.064, 1); // 6 SM to meters
       expect(metar.qnh).toBeCloseTo(1010.14, 1); // 29.83 inHg to hPa
     });
-
-    // it('should handle wind in KM/H', () => {
-    //   const rawMetar = 'METAR CYYZ 011000Z 30020G30KMH 8000 -SN BKN015 OVC030 M05/M08 Q0995';
-    //   const metar = createMetarFromString(rawMetar);
-    //   expect(metar.station).toBe('CYYZ');
-    //   expect(metar.wind?.speed).toBeCloseTo(10.8, 1); // 20 KM/H to knots
-    //   expect(metar.wind?.gust).toBeCloseTo(16.2, 1); // 30 KM/H to knots
-    // });
 
     it('should handle CAVOK', () => {
       const rawMetar = 'METAR LFPG 011100Z 27010KT CAVOK 15/08 Q1018 NOSIG';

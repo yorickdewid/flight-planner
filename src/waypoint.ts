@@ -50,11 +50,10 @@ export const validateFrequencyType = (type: number): FrequencyType => {
 export const waypointQFE = (waypoint: Waypoint): number | undefined => {
   const qnh = waypoint.metarStation?.metar?.qnh;
 
-  if (waypoint.elevation === undefined || waypoint.elevation === null || qnh === undefined || qnh === null) {
+  if (waypoint.elevation === undefined || qnh === undefined || qnh === null) {
     return undefined;
   }
 
-  // TODO: Use proper conversion for pressure lapse rate
   // Standard pressure lapse rate: 1 hPa per 27 feet
   // QFE = QNH - (Elevation_ft / PressureLapseRate_ft_per_hPa)
   return Math.round((qnh - (waypoint.elevation / 27)) * 100) / 100;
