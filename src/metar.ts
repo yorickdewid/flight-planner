@@ -124,23 +124,17 @@ export function isMetarExpired(metar: Metar, options: { customMinutes?: number; 
   const { customMinutes, useStandardRules = true } = options;
 
   if (customMinutes !== undefined) {
-    const expirationTime = new Date(metar.observationTime);
-    expirationTime.setMinutes(metar.observationTime.getMinutes() + customMinutes);
-    return now > expirationTime;
+    return now.getTime() > metar.observationTime.getTime() + customMinutes * 60_000;
   }
 
   if (useStandardRules) {
     const isSpecial = metar.raw.includes('SPECI');
-    const expirationTime = new Date(metar.observationTime);
     const expirationMinutes = isSpecial ? 30 : 60;
-    expirationTime.setMinutes(metar.observationTime.getMinutes() + expirationMinutes);
-    return now > expirationTime;
+    return now.getTime() > metar.observationTime.getTime() + expirationMinutes * 60_000;
   }
 
   // Fallback to the old behavior with a default of 60 minutes
-  const expirationTime = new Date(metar.observationTime);
-  expirationTime.setMinutes(metar.observationTime.getMinutes() + 60);
-  return now > expirationTime;
+  return now.getTime() > metar.observationTime.getTime() + 60 * 60_000;
 }
 
 /**
