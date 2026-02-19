@@ -109,7 +109,8 @@ export const calculateTrueAirspeed = (
  */
 export const calculateWindCorrectionAngle = (wind: Wind, trueTrack: number, airSpeed: number): number => {
   const windVector = calculateWindVector(wind, trueTrack);
-  const wcaInRadians = Math.asin(windVector.crosswind / airSpeed);
+  const ratio = Math.max(-1, Math.min(1, windVector.crosswind / airSpeed));
+  const wcaInRadians = Math.asin(ratio);
   const wca = radiansToDegrees(wcaInRadians);
 
   return wca; // Positive WCA means wind from the right
