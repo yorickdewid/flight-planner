@@ -291,14 +291,15 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     fuelConsumption: aircraft.fuelConsumption
   } : undefined;
 
-  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance));
+  const lastLegIndex = segments.length - 2;
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance, i === lastLegIndex));
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
     if (altitude && !alternateSegment.altitude) {
       alternateSegment.altitude = altitude;
     }
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance);
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, true);
   }
 
   let totalDistance = 0;
@@ -380,12 +381,15 @@ function calculateRouteLeg(
   start: RouteSegment,
   end: RouteSegment,
   aircraft: AircraftPerformance | undefined,
+  isLastLeg: boolean = false,
 ): RouteLeg {
   const course = calculateRouteCourse(start.waypoint, end.waypoint);
 
-  // TODO:
-  // const temperature = start.waypoint.metarStation?.metar.temperature;
-  const wind = end.waypoint.metarStation?.metar.wind;
+  // Use start waypoint wind for most legs; use end waypoint wind for the
+  // last leg so arrival wind checks reflect the destination weather.
+  const wind = isLastLeg
+    ? end.waypoint.metarStation?.metar.wind
+    : start.waypoint.metarStation?.metar.wind;
 
   const performance = aircraft && wind ? calculatePerformance(aircraft, course, wind) : undefined;
 
