@@ -160,7 +160,7 @@ export const createBoundingBox = (
  */
 export const sortClouds = (clouds: Cloud[]): Cloud[] => {
   if (!clouds || clouds.length === 0) return [];
-  return clouds.sort((a, b) => {
+  return [...clouds].sort((a, b) => {
     if (a.height === undefined) return 1;
     if (b.height === undefined) return -1;
     return a.height - b.height;
