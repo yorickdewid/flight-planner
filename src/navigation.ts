@@ -315,11 +315,13 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
   }
 
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
+  const alternateFuel = routeAlternate?.performance?.fuelConsumption || 0;
   const totalTripFuel = totalFuelConsumption
     + (reserveFuelRequired || 0)
     + (takeoffFuel || 0)
     + (landingFuel || 0)
-    + (taxiFuel || 0);
+    + (taxiFuel || 0)
+    + alternateFuel;
 
   const fuelBreakdown = {
     trip: totalFuelConsumption,
