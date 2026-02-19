@@ -375,7 +375,8 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
  * @param {RouteSegment} start - The starting segment of the leg.
  * @param {RouteSegment} end - The ending segment of the leg.
  * @param {AircraftPerformance} [aircraft] - The aircraft performance data for calculations.
-  * @returns {RouteLeg} The calculated route leg.
+ * @param {boolean} [isLastLeg=false] - Indicates whether this is the last leg of the route; when true, the end waypoint's wind data is used instead of the start waypoint's.
+ * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
   start: RouteSegment,
