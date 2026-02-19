@@ -361,7 +361,7 @@ function checkServiceCeiling(
     return advisories;
   }
 
-  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  const routeSegments = [routeTrip.route[0].start, ...routeTrip.route.map(leg => leg.end)];
   for (const routeSegment of routeSegments) {
     if (routeSegment.altitude !== undefined && routeSegment.altitude > aircraft.serviceCeiling) {
       advisories.push({
@@ -390,8 +390,8 @@ function checkMinimumSafeAltitude(
   const advisories: Advisory[] = [];
   const minimumAltitude = 500;
 
-  // Iterate from the second leg to the second-to-last leg
-  const routeSegments = routeTrip.route.flatMap(leg => [leg.start, leg.end]);
+  // Iterate over enroute segments (excluding departure and arrival)
+  const routeSegments = [routeTrip.route[0].start, ...routeTrip.route.map(leg => leg.end)];
   for (let i = 1; i < routeSegments.length - 1; i++) {
     const routeSegment = routeSegments[i];
 
