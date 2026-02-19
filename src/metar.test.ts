@@ -9,7 +9,6 @@ import {
 import { Metar, Wind } from './metar.types.js';
 import { formatCloud, formatPressure, formatTemperature, formatVisibility, formatWind } from './format.js';
 import { FlightRules } from './metar.types.js';
-import { jest } from '@jest/globals';
 
 describe('Metar functions', () => {
   describe('metarFlightRule', () => {
