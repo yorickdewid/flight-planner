@@ -6,11 +6,12 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   {
     files: ["src/**/*.ts"],
+    ignores: ["src/**/*.test.ts"],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
         project: true,
-        ecmaVersion: 2020,
+        ecmaVersion: "latest",
         sourceType: "module",
       },
     },
@@ -28,6 +29,14 @@ export default tseslint.config(
       ],
       "@typescript-eslint/no-unused-expressions": "error",
       "@typescript-eslint/no-floating-promises": "error",
+    },
+  },
+  {
+    files: ["src/**/*.test.ts"],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-floating-promises": "off",
     },
   }
 );

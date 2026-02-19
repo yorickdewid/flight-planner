@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect } from 'vitest';
 import { calculateSunEvents, isDaylight, isNight } from './sun.js';
 import { Waypoint, WaypointVariant } from './waypoint.types.js';
 
