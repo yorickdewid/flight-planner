@@ -13,12 +13,16 @@ import { Metar, Cloud, MetarFlightRuleColor, MetarColorCode, ColorCondition } fr
 export function createMetarFromString(raw: string): Metar {
   const metar = parseMetar(raw);
 
-  const observationTime = new Date();
-  observationTime.setUTCDate(metar.day ?? observationTime.getUTCDate());
-  observationTime.setUTCHours(metar.hour ?? observationTime.getUTCHours());
-  observationTime.setUTCMinutes(metar.minute ?? observationTime.getUTCMinutes());
-  observationTime.setUTCSeconds(0);
-  observationTime.setUTCMilliseconds(0);
+  const now = new Date();
+  const observationTime = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    metar.day ?? now.getUTCDate(),
+    metar.hour ?? now.getUTCHours(),
+    metar.minute ?? now.getUTCMinutes(),
+    0,
+    0,
+  ));
 
   let windSpeed = metar.wind?.speed;
   if (metar.wind && metar.wind.unit === 'MPS') {
