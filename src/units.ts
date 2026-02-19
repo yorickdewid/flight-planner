@@ -3,22 +3,34 @@ import { Angle, Distance, Mass, Pressure, Speed, Temperature, Volume } from "con
 import { DefaultUnits } from "./index.js";
 
 /**
+ * Nautical miles to kilometers conversion factor (exact).
+ */
+const NM_TO_KM = 1.852;
+
+/**
+ * Distance unit type that extends convert-units Distance with nautical miles ('nmi'),
+ * which is not natively supported by convert-units v2.
+ */
+export type AviationDistance = Distance | 'nmi';
+
+/**
  * Defines unit preferences for various measurements used in flight planning.
  *
  * @interface UnitOptions
- * @property {UnitSpeed} [speed='kts'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
- * @property {UnitDistance} [distance='nm'] - Unit for distance measurements (nautical miles, kilometers, or miles).
- * @property {UnitDistance} [runway='m'] - Unit for runway length measurements (meters or feet).
- * @property {UnitAltitude} [altitude='ft'] - Unit for altitude measurements (feet or meters).
- * @property {UnitTemperature} [temperature='C'] - Unit for temperature measurements (Celsius or Fahrenheit).
- * @property {UnitPressure} [pressure='hPa'] - Unit for pressure measurements (hectopascals or inches of mercury).
- * @property {UnitWeight} [weight='kg'] - Unit for weight measurements (kilograms or pounds).
- * @property {UnitVolume} [volume='l'] - Unit for volume measurements (liters or gallons).
- * @property {UnitAngle} [angle='deg'] - Unit for angular measurements (degrees or radians).
+ * @property {Speed} [speed='knot'] - Unit for speed measurements (knots, kilometers per hour, miles per hour, or meters per second).
+ * @property {AviationDistance} [distance='nmi'] - Unit for distance measurements (nautical miles, kilometers, or miles).
+ * @property {Distance} [runway='m'] - Unit for runway length measurements (meters or feet).
+ * @property {Distance} [altitude='ft'] - Unit for altitude measurements (feet or meters).
+ * @property {Distance} [elevation='ft'] - Unit for elevation measurements (feet or meters).
+ * @property {Temperature} [temperature='C'] - Unit for temperature measurements (Celsius or Fahrenheit).
+ * @property {Pressure} [pressure='hPa'] - Unit for pressure measurements (hectopascals or inches of mercury).
+ * @property {Mass} [mass='kg'] - Unit for weight measurements (kilograms or pounds).
+ * @property {Volume} [volume='l'] - Unit for volume measurements (liters or gallons).
+ * @property {Angle} [angle='deg'] - Unit for angular measurements (degrees or radians).
  */
 export interface UnitOptions {
   speed?: Speed;
-  distance?: Distance;
+  distance?: AviationDistance;
   runway?: Distance;
   altitude?: Distance;
   elevation?: Distance;
@@ -92,7 +104,16 @@ export const convertPressure = (pressure: number, units: UnitOptions): number =>
  * @returns {number} The converted distance.
  */
 export const convertDistance = (distance: number, units: UnitOptions): number => {
-  return convert(distance).from(DefaultUnits.distance!).to(units.distance || DefaultUnits.distance!);
+  const from = DefaultUnits.distance!;
+  const to = units.distance || DefaultUnits.distance!;
+
+  if (from === to) return distance;
+
+  // Convert from source to km as intermediate unit
+  const inKm = from === 'nmi' ? distance * NM_TO_KM : convert(distance).from(from as Distance).to('km');
+  // Convert from km to target unit
+  if (to === 'nmi') return inKm / NM_TO_KM;
+  return convert(inKm).from('km').to(to as Distance);
 }
 
 /**
