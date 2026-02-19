@@ -8,13 +8,6 @@ import type { UnitOptions } from "./units.js";
 export const ISA_STANDARD_PRESSURE_HPA = 1013.25;
 
 /**
- * Standard atmospheric pressure lapse rate in the troposphere in hectopascals per meter (hPa/m).
- *
- * @constant {number}
- */
-export const ISA_STANDARD_PRESSURE_LAPSE_RATE = 1 / 8;
-
-/**
  * Standard atmospheric temperature at sea level in degrees Celsius (°C).
  *
  * @constant {number}
