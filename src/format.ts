@@ -176,7 +176,11 @@ export function formatWind(wind: Wind, units: UnitOptions = DefaultUnits): strin
     return windString;
   }
 
-  return 'Calm';
+  let windString = `Variable at ${formatSpeed(wind.speed, units)}`;
+  if (wind.gust) {
+    windString += ` gusting ${formatSpeed(wind.gust, units)}`;
+  }
+  return windString;
 }
 
 export function formatVisibility(visibility: number): string {
