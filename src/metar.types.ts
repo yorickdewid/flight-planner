@@ -39,7 +39,7 @@ export interface Cloud {
  * @property {number} [gust] - The gust speed in knots (optional).
  */
 export interface Wind {
-  direction: number;
+  direction?: number;
   directionMin?: number;
   directionMax?: number;
   speed: number;
