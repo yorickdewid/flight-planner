@@ -25,6 +25,10 @@ export interface WindVector {
  * @returns An object containing the wind angle, headwind, and crosswind components.
  */
 export const calculateWindVector = (wind: Wind, trueTrack: number): WindVector => {
+  if (wind.direction === undefined) {
+    return { angle: 0, headwind: 0, crosswind: 0 };
+  }
+
   const windAngle = wind.direction - trueTrack;
   const windAngleRad = degreesToRadians(windAngle);
 

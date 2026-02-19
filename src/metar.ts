@@ -2,7 +2,7 @@ import { normalizeICAO } from './utils.js';
 import { ICloud, parseMetar } from "metar-taf-parser";
 import { FlightRules } from './index.js';
 import convert from 'convert-units';
-import { Metar, Cloud, Wind, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
+import { Metar, Cloud, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
 
 /**
  * Creates a Metar object from a raw METAR string.
@@ -51,9 +51,9 @@ export function createMetarFromString(raw: string): Metar {
       direction: metar.wind?.degrees,
       directionMin: metar.wind?.minVariation,
       directionMax: metar.wind?.maxVariation,
-      speed: windSpeed,
+      speed: windSpeed ?? 0,
       gust: windGust,
-    } as Wind,
+    },
     temperature: metar.temperature,
     dewpoint: metar.dewPoint,
     visibility,
