@@ -1,4 +1,4 @@
-import { UnitOptions } from "./units.js";
+import type { UnitOptions } from "./units.js";
 
 /**
  * Standard atmospheric pressure at sea level in hectopascals (hPa).
@@ -37,7 +37,7 @@ export const ISA_STANDARD_TEMPERATURE_LAPSE_RATE = 0.0065;
  */
 export const DefaultUnits: UnitOptions = {
   speed: 'knot',
-  distance: 'mi',
+  distance: 'nmi',
   altitude: 'ft',
   elevation: 'ft',
   temperature: 'C',
