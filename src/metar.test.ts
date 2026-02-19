@@ -419,9 +419,9 @@ describe('Metar functions', () => {
         wind: dummyWind,
       };
       // Mock current time to be baseTime
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData)).toBe(false);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should return true for an old METAR using standard rules', () => {
@@ -431,9 +431,9 @@ describe('Metar functions', () => {
         raw: 'METAR TEST ...',
         wind: dummyWind,
       };
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData)).toBe(true);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should return false for a recent SPECI report using standard rules', () => {
@@ -443,9 +443,9 @@ describe('Metar functions', () => {
         raw: 'SPECI TEST ...',
         wind: dummyWind,
       };
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData)).toBe(false);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should return true for an old SPECI report using standard rules', () => {
@@ -455,9 +455,9 @@ describe('Metar functions', () => {
         raw: 'SPECI TEST ...',
         wind: dummyWind,
       };
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData)).toBe(true);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should use custom expiration time if provided', () => {
@@ -467,10 +467,10 @@ describe('Metar functions', () => {
         raw: 'METAR TEST ...',
         wind: dummyWind,
       };
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData, { customMinutes: 5 })).toBe(true); // Expired after 5 mins
       expect(isMetarExpired(metarData, { customMinutes: 15 })).toBe(false); // Not expired after 15 mins
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('should default to 60 minutes if useStandardRules is false and no customMinutes', () => {
@@ -480,7 +480,7 @@ describe('Metar functions', () => {
         raw: 'METAR TEST ...',
         wind: dummyWind,
       };
-      jest.useFakeTimers().setSystemTime(baseTime);
+      vi.useFakeTimers().setSystemTime(baseTime);
       expect(isMetarExpired(metarData, { useStandardRules: false })).toBe(true);
 
       const metarData2: Metar = {
@@ -490,7 +490,7 @@ describe('Metar functions', () => {
         wind: dummyWind,
       };
       expect(isMetarExpired(metarData2, { useStandardRules: false })).toBe(false);
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
   });
 });

@@ -291,14 +291,15 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     fuelConsumption: aircraft.fuelConsumption
   } : undefined;
 
-  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance));
+  const lastLegIndex = segments.length - 2;
+  const legs = segments.slice(0, -1).map((startSegment, i) => calculateRouteLeg(startSegment, segments[i + 1], aircraftPerformance, i === lastLegIndex));
 
   let routeAlternate: RouteLeg | undefined;
   if (alternateSegment) {
     if (altitude && !alternateSegment.altitude) {
       alternateSegment.altitude = altitude;
     }
-    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance);
+    routeAlternate = calculateRouteLeg(segments[segments.length - 1], alternateSegment, aircraftPerformance, true);
   }
 
   let totalDistance = 0;
@@ -315,11 +316,13 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
   }
 
   const reserveFuelRequired = reserveFuel ?? (aircraft?.fuelConsumption ? aircraft.fuelConsumption * (reserveFuelDuration / 60) : 0);
+  const alternateFuel = routeAlternate?.performance?.fuelConsumption || 0;
   const totalTripFuel = totalFuelConsumption
     + (reserveFuelRequired || 0)
     + (takeoffFuel || 0)
     + (landingFuel || 0)
-    + (taxiFuel || 0);
+    + (taxiFuel || 0)
+    + alternateFuel;
 
   const fuelBreakdown = {
     trip: totalFuelConsumption,
@@ -374,18 +377,22 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
  * @param {RouteSegment} start - The starting segment of the leg.
  * @param {RouteSegment} end - The ending segment of the leg.
  * @param {AircraftPerformance} [aircraft] - The aircraft performance data for calculations.
-  * @returns {RouteLeg} The calculated route leg.
+ * @param {boolean} [isLastLeg=false] - Indicates whether this is the last leg of the route; when true, the end waypoint's wind data is used instead of the start waypoint's.
+ * @returns {RouteLeg} The calculated route leg.
  */
 function calculateRouteLeg(
   start: RouteSegment,
   end: RouteSegment,
   aircraft: AircraftPerformance | undefined,
+  isLastLeg: boolean = false,
 ): RouteLeg {
   const course = calculateRouteCourse(start.waypoint, end.waypoint);
 
-  // TODO:
-  // const temperature = start.waypoint.metarStation?.metar.temperature;
-  const wind = end.waypoint.metarStation?.metar.wind;
+  // Use start waypoint wind for most legs; use end waypoint wind for the
+  // last leg so arrival wind checks reflect the destination weather.
+  const wind = isLastLeg
+    ? end.waypoint.metarStation?.metar.wind
+    : start.waypoint.metarStation?.metar.wind;
 
   const performance = aircraft && wind ? calculatePerformance(aircraft, course, wind) : undefined;
 

@@ -152,15 +152,18 @@ export const evaluateRunways = (runways: Runway[], wind: Wind): RunwayEvaluation
     };
   });
 
-  const maxHeadwind = Math.max(...runwaysWithWindData.map(r => r.headwind));
-
   const result = runwaysWithWindData.map(({ runway, windAngle, headwind, crosswind }) => ({
     designator: runway.designator,
     windAngle,
     headwind: Math.round(headwind),
     crosswind: Math.round(crosswind),
-    favored: headwind === maxHeadwind
+    favored: false
   }));
+
+  const maxHeadwind = Math.max(...result.map(r => r.headwind));
+  for (const runway of result) {
+    runway.favored = runway.headwind === maxHeadwind;
+  }
 
   result.sort((a, b) => (b.favored ? 1 : 0) - (a.favored ? 1 : 0));
 
