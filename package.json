@@ -91,11 +91,11 @@
     "@types/geojson": "^7946.0.16",
     "@types/node": "^25.3.3",
     "@types/suncalc": "^1.9.2",
-    "@typescript-eslint/eslint-plugin": "^8.56.1",
-    "@typescript-eslint/parser": "^8.56.1",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
     "eslint": "^10.0.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.56.1",
+    "typescript-eslint": "^8.57.1",
     "vitest": "^4.0.18"
   }
 }
