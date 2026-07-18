@@ -94,6 +94,10 @@ export interface RouteLeg {
  * @property {Date} [arrivalDate] - Optional estimated arrival date and time
  * @property {Date} generatedAt - The date and time when the trip was generated
  * @property {string} [remarks] - Optional remarks or notes about the trip
+ * @property {number[]} [incompleteLegs] - Indices into `route` of legs that have no
+ *   performance data (missing wind or aircraft performance). Present only when
+ *   non-empty — and then `totalDuration`/`totalTripFuel` UNDERSTATE the real trip,
+ *   since those legs contribute distance but no time or fuel to the totals.
  */
 export interface RouteTrip {
   route: RouteLeg[];
@@ -101,6 +105,7 @@ export interface RouteTrip {
   totalDistance: number;
   totalDuration: number;
   totalTripFuel?: number;
+  incompleteLegs?: number[];
   fuelBreakdown?: {
     trip: number;
     reserve: number;

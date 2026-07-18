@@ -331,6 +331,8 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     alternate: routeAlternate?.performance?.fuelConsumption !== undefined ? routeAlternate.performance.fuelConsumption : undefined
   };
 
+  const incompleteLegs = legs.flatMap((leg, i) => leg.performance ? [] : [i]);
+
   return {
     route: legs,
     routeAlternate,
@@ -341,6 +343,7 @@ export function calculateNavLog(options: NavLogOptions): RouteTrip {
     departureDate,
     arrivalDate: new Date(departureDate.getTime() + totalDuration * 60 * 1000),
     generatedAt: new Date(),
+    ...(incompleteLegs.length > 0 ? { incompleteLegs } : {}),
   };
 }
 
