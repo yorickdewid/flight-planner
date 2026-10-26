@@ -4,20 +4,61 @@ import convert from 'convert-units';
 import { FlightRules, Metar, Cloud, MetarFlightRuleColor, MetarColorCode, ColorCondition } from './metar.types.js';
 
 /**
+ * Resolves the full UTC observation time of a METAR from its day/hour/minute group.
+ *
+ * A METAR only carries the day of the month, so the month and year come from `now`.
+ * A METAR is never from the future: when the day lies ahead of `now` (e.g. a report
+ * for the 31st read just after midnight on the 1st), it belongs to the previous
+ * month. All components are resolved together via `Date.UTC`, so a day that does not
+ * exist in the current month (e.g. the 31st in February) cannot roll into the next one.
+ *
+ * @param day Day of the month from the METAR (UTC)
+ * @param hour Hour from the METAR (UTC)
+ * @param minute Minute from the METAR (UTC)
+ * @param now Reference time, defaults to the current time
+ * @returns The observation time as a Date
+ */
+export function resolveObservationTime(
+  day: number | undefined,
+  hour: number | undefined,
+  minute: number | undefined,
+  now: Date = new Date(),
+): Date {
+  const build = (monthOffset: number): Date =>
+    new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth() + monthOffset,
+      day ?? now.getUTCDate(),
+      hour ?? now.getUTCHours(),
+      minute ?? now.getUTCMinutes(),
+      0,
+      0,
+    ));
+
+  const toleranceMs = 60 * 60_000; // allow 1 h clock skew between station and us
+  const candidate = build(0);
+  const rolledOver = candidate.getUTCMonth() !== now.getUTCMonth();
+  if (!rolledOver && candidate.getTime() <= now.getTime() + toleranceMs) {
+    return candidate;
+  }
+
+  const previous = build(-1);
+  const expectedDay = day ?? now.getUTCDate();
+  // Only use the previous month when the day actually exists there; otherwise keep the candidate.
+  return previous.getUTCDate() === expectedDay ? previous : candidate;
+}
+
+/**
  * Creates a Metar object from a raw METAR string.
  *
  * @param raw The raw METAR string
+ * @param now Reference time used to resolve month and year of the observation (default: current time)
  * @returns A Metar object
  */
-export function createMetarFromString(raw: string): Metar {
+export function createMetarFromString(raw: string, now: Date = new Date()): Metar {
   const metar = parseMetar(raw);
 
-  const observationTime = new Date();
-  observationTime.setUTCDate(metar.day ?? observationTime.getUTCDate());
-  observationTime.setUTCHours(metar.hour ?? observationTime.getUTCHours());
-  observationTime.setUTCMinutes(metar.minute ?? observationTime.getUTCMinutes());
-  observationTime.setUTCSeconds(0);
-  observationTime.setUTCMilliseconds(0);
+  const observationTime = resolveObservationTime(metar.day, metar.hour, metar.minute, now);
 
   let windSpeed = metar.wind?.speed;
   if (metar.wind && metar.wind.unit === 'MPS') {
