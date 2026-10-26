@@ -5,6 +5,7 @@ import {
   metarCeiling,
   createMetarFromString,
   isMetarExpired,
+  resolveObservationTime,
 } from './metar.js';
 import { Metar, Wind } from './metar.types.js';
 import { formatCloud, formatPressure, formatTemperature, formatVisibility, formatWind } from './format.js';
@@ -474,5 +475,52 @@ describe('Metar functions', () => {
       expect(isMetarExpired(metarData2, { useStandardRules: false })).toBe(false);
       vi.useRealTimers();
     });
+  });
+});
+
+describe('resolveObservationTime', () => {
+  const iso = (d: Date) => d.toISOString();
+
+  it('uses the current month when the day is today or earlier', () => {
+    const now = new Date('2026-10-26T08:00:00Z');
+    expect(iso(resolveObservationTime(26, 7, 55, now))).toBe('2026-10-26T07:55:00.000Z');
+    expect(iso(resolveObservationTime(20, 12, 0, now))).toBe('2026-10-20T12:00:00.000Z');
+  });
+
+  it('tolerates a report slightly ahead of now (clock skew)', () => {
+    const now = new Date('2026-10-26T08:00:00Z');
+    expect(iso(resolveObservationTime(26, 8, 30, now))).toBe('2026-10-26T08:30:00.000Z');
+  });
+
+  it('resolves a report for the last day of the previous month just after midnight', () => {
+    const now = new Date('2026-11-01T00:10:00Z');
+    expect(iso(resolveObservationTime(31, 23, 50, now))).toBe('2026-10-31T23:50:00.000Z');
+  });
+
+  it('crosses the year boundary', () => {
+    const now = new Date('2027-01-01T00:05:00Z');
+    expect(iso(resolveObservationTime(31, 23, 50, now))).toBe('2026-12-31T23:50:00.000Z');
+  });
+
+  it('does not roll a day that does not exist in the current month into the next month', () => {
+    // day 31 while it is February: must be January 31st, not March 3rd
+    const now = new Date('2026-02-01T00:20:00Z');
+    expect(iso(resolveObservationTime(31, 23, 50, now))).toBe('2026-01-31T23:50:00.000Z');
+  });
+
+  it('resolves 28 February after midnight on 1 March', () => {
+    const now = new Date('2026-03-01T00:20:00Z');
+    expect(iso(resolveObservationTime(28, 23, 50, now))).toBe('2026-02-28T23:50:00.000Z');
+  });
+
+  it('falls back to now for missing groups', () => {
+    const now = new Date('2026-10-26T08:17:00Z');
+    expect(iso(resolveObservationTime(undefined, undefined, undefined, now))).toBe('2026-10-26T08:17:00.000Z');
+  });
+
+  it('createMetarFromString uses the reference time for the observation month', () => {
+    const now = new Date('2026-11-01T00:10:00Z');
+    const metar = createMetarFromString('EHRD 312350Z 24010KT 9999 FEW030 12/08 Q1015', now);
+    expect(iso(metar.observationTime)).toBe('2026-10-31T23:50:00.000Z');
   });
 });
