@@ -35,7 +35,7 @@
     "url": "https://github.com/yorickdewid/flight-planner/issues"
   },
   "scripts": {
-    "build": "tsc && pnpm run lint",
+    "build": "tsc && npm run lint",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/",
@@ -43,9 +43,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "pnpm run build",
-    "prepublishOnly": "pnpm test && pnpm run lint",
-    "dev": "pnpm run build:watch"
+    "prepare": "tsc",
+    "prepublishOnly": "npm test && npm run lint",
+    "dev": "npm run build:watch"
   },
   "files": [
     "dist",
@@ -94,5 +94,6 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
     "vitest": "^4.1.12"
-  }
+  },
+  "packageManager": "bun@1.4.4"
 }
