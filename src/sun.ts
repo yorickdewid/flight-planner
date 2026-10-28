@@ -1,4 +1,4 @@
-import suncalc, { GetTimesResult } from 'suncalc';
+import { getTimes, type SunTimes } from 'suncalc';
 import { Waypoint } from './waypoint.types.js';
 import type { Position } from 'geojson';
 
@@ -7,14 +7,14 @@ import type { Position } from 'geojson';
  *
  * @param location - The waypoint or geographic position (longitude, latitude)
  * @param date - The date for which to calculate sun events
- * @returns An object containing sun event times
+ * @returns An object containing sun event times (an event that does not happen at this latitude on this day is `null`)
  */
-export const calculateSunEvents = (location: Waypoint | Position, date: Date = new Date()): GetTimesResult => {
+export const calculateSunEvents = (location: Waypoint | Position, date: Date = new Date()): SunTimes => {
   const coordinates = 'coords' in location ? location.coords : location;
   const longitude = coordinates[0];
   const latitude = coordinates[1];
 
-  return suncalc.getTimes(date, latitude, longitude);
+  return getTimes(date, latitude, longitude);
 }
 
 /**
@@ -25,8 +25,13 @@ export const calculateSunEvents = (location: Waypoint | Position, date: Date = n
  * @returns true if the specified time is during daylight (between sunrise and sunset)
  */
 export const isDaylight = (location: Waypoint | Position, time: Date = new Date()): boolean => {
-  const events = calculateSunEvents(location, time);
-  return time >= events.sunrise && time <= events.sunset;
+  const { sunrise, sunset, alwaysUp, alwaysDown } = calculateSunEvents(location, time);
+
+  // Polar day or night: there is no sunrise or sunset (null) and suncalc sets a flag instead
+  if (alwaysUp) return true;
+  if (alwaysDown) return false;
+
+  return sunrise !== null && sunset !== null && time >= sunrise && time <= sunset;
 }
 
 /**
@@ -38,6 +43,8 @@ export const isDaylight = (location: Waypoint | Position, time: Date = new Date(
  * @returns true if the specified time is during night
  */
 export const isNight = (location: Waypoint | Position, time: Date = new Date()): boolean => {
-  const events = calculateSunEvents(location, time);
-  return time <= events.dawn || time >= events.dusk;
+  const { dawn, dusk } = calculateSunEvents(location, time);
+
+  // dawn or dusk is null when civil twilight never ends (or the sun never gets that high): not night
+  return (dawn !== null && time <= dawn) || (dusk !== null && time >= dusk);
 }
