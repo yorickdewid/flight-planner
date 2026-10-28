@@ -8,7 +8,7 @@
         "@turf/turf": "^7.3.2",
         "convert-units": "^2.3.4",
         "metar-taf-parser": "^9.1.2",
-        "suncalc": "^1.9.0",
+        "suncalc": "^2.1.1",
       },
       "devDependencies": {
         "@eslint/js": "^10.0.1",
@@ -622,7 +622,7 @@
 
     "std-env": ["std-env@4.3.0", "", {}, "sha512-OtU/EgQ1kIm5KwqQpBC6ZEMXrZRui11w8zgfTWp8cdO9B8OaPsbA8bTHO2P+HNo1VlUTGMVBwPhydu6poeXiag=="],
 
-    "suncalc": ["suncalc@1.9.0", "", {}, "sha512-vMJ8Byp1uIPoj+wb9c1AdK4jpkSKVAywgHX0lqY7zt6+EWRRC3Z+0Ucfjy/0yxTVO1hwwchZe4uoFNqrIC24+A=="],
+    "suncalc": ["suncalc@2.1.1", "", {}, "sha512-ufMOPzYRk5aomEs3g+qeJGdCPZWC3TL94E0HQagoSusFnNXCvfuewWBroY3lxRHqA7IA8UGvgg7dcrSSDJsuEg=="],
 
     "tinybench": ["tinybench@6.2.2", "", {}, "sha512-nIZ2N2dFpjBsg2hgitKu7mA+FvsIJuGJOwysRngmVRRmWgR/UyPjwJj8c/fT/dhm8EkHnF5EOogRf+0Z2qrimA=="],
 

@@ -82,7 +82,7 @@
     "@turf/turf": "^7.3.2",
     "convert-units": "^2.3.4",
     "metar-taf-parser": "^9.1.2",
-    "suncalc": "^1.9.0"
+    "suncalc": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
