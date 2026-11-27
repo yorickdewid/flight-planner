@@ -44,9 +44,10 @@ describe('calculateSunEvents', () => {
 
     expect(events).toHaveProperty('sunrise');
     expect(events).toHaveProperty('sunset');
-    // During midnight sun, sunrise/sunset might be invalid dates
-    expect(events.sunrise).toBeInstanceOf(Date);
-    expect(events.sunset).toBeInstanceOf(Date);
+    // During the midnight sun there is no sunrise or sunset: null, with the polar-day flag set
+    expect(events.sunrise).toBeNull();
+    expect(events.sunset).toBeNull();
+    expect(events.alwaysUp).toBe(true);
   });
 
   it('should use current date when no date is provided', () => {
@@ -203,5 +204,24 @@ describe('isNight', () => {
 
     expect(typeof winterResult).toBe('boolean');
     expect(typeof summerResult).toBe('boolean');
+  });
+});
+
+describe('polar day and night', () => {
+  const tromso = createTestWaypoint(69.6833, 18.9333, 'Tromsø');
+
+  it('is daylight all day during the midnight sun', () => {
+    expect(isDaylight(tromso, new Date('2024-06-21T00:30:00Z'))).toBe(true);
+    expect(isDaylight(tromso, new Date('2024-06-21T12:00:00Z'))).toBe(true);
+  });
+
+  it('is never night during the midnight sun', () => {
+    expect(isNight(tromso, new Date('2024-06-21T00:30:00Z'))).toBe(false);
+  });
+
+  it('is never daylight during the polar night, and civil twilight is not night', () => {
+    expect(isDaylight(tromso, new Date('2024-12-21T12:00:00Z'))).toBe(false);
+    expect(isNight(tromso, new Date('2024-12-21T12:00:00Z'))).toBe(false);
+    expect(isNight(tromso, new Date('2024-12-21T22:00:00Z'))).toBe(true);
   });
 });

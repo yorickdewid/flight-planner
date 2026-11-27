@@ -35,7 +35,7 @@
     "url": "https://github.com/yorickdewid/flight-planner/issues"
   },
   "scripts": {
-    "build": "tsc && pnpm run lint",
+    "build": "tsc && npm run lint",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "lint": "eslint src/",
@@ -43,9 +43,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "pnpm run build",
-    "prepublishOnly": "pnpm test && pnpm run lint",
-    "dev": "pnpm run build:watch"
+    "prepare": "tsc",
+    "prepublishOnly": "npm test && npm run lint",
+    "dev": "npm run build:watch"
   },
   "files": [
     "dist",
@@ -79,23 +79,20 @@
     }
   },
   "dependencies": {
-    "@turf/helpers": "^7.3.2",
     "@turf/turf": "^7.3.2",
     "convert-units": "^2.3.4",
     "metar-taf-parser": "^9.1.2",
-    "suncalc": "^1.9.0"
+    "suncalc": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/convert-units": "^2.3.12",
     "@types/geojson": "^7946.0.16",
-    "@types/node": "^25.3.3",
-    "@types/suncalc": "^1.9.2",
-    "@typescript-eslint/eslint-plugin": "^8.57.1",
-    "@typescript-eslint/parser": "^8.57.1",
+    "@types/node": "^26.6.6",
     "eslint": "^10.0.2",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
-    "vitest": "^4.0.18"
-  }
+    "vitest": "^5.0.5"
+  },
+  "packageManager": "bun@1.4.4"
 }
